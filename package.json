@@ -1,0 +1,40 @@
+{
+  "name": "matrix-widget-api",
+  "version": "0.0.1",
+  "description": "Matrix Widget API SDK",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": "https://github.com/matrix-org/matrix-widget-api",
+  "author": "The Matrix.org Foundation C.I.C.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "prepublishOnly": "yarn build",
+    "start": "babel src -w -s -d lib --verbose --extensions \".ts\"",
+    "clean": "rimraf lib dist",
+    "build": "yarn clean && yarn build:compile && yarn build:types",
+    "build:compile": "babel -d lib --verbose --extensions \".ts\" src",
+    "build:types": "tsc --emitDeclarationOnly",
+    "lint": "yarn lint:types && yarn lint:ts",
+    "lint:ts": "eslint src",
+    "lint:types": "tsc --noEmit"
+  },
+  "files": [
+    "src",
+    "lib",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CONTRIBUTING.rst"
+  ],
+  "devDependencies": {
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.11.6",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-typescript": "^7.10.4",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.8.1",
+    "eslint-config-matrix-org": "^0.1.2",
+    "eslint-plugin-babel": "^5.3.1",
+    "rimraf": "^3.0.2"
+  }
+}
