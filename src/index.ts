@@ -23,3 +23,8 @@ export * from "./interfaces/IJitsiWidgetData";
 export * from "./interfaces/IStickerpickerWidgetData";
 export * from "./interfaces/IWidget";
 export * from "./interfaces/WidgetType";
+export * from "./interfaces/IWidgetApiErrorResponse";
+export * from "./interfaces/IWidgetApiRequest";
+export * from "./interfaces/IWidgetApiResponse";
+export * from "./interfaces/WidgetApiAction";
+export * from "./interfaces/WidgetApiDirection";
