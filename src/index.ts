@@ -14,4 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Primary structures
 export * from "./WidgetApi";
+
+// Interfaces/models
+export * from "./interfaces/ICustomWidgetData";
+export * from "./interfaces/IJitsiWidgetData";
+export * from "./interfaces/IStickerpickerWidgetData";
+export * from "./interfaces/IWidget";
+export * from "./interfaces/WidgetType";

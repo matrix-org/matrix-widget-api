@@ -16,7 +16,8 @@
     "build:types": "tsc --emitDeclarationOnly",
     "lint": "yarn lint:types && yarn lint:ts",
     "lint:ts": "eslint src",
-    "lint:types": "tsc --noEmit"
+    "lint:types": "tsc --noEmit",
+    "lint:fix": "eslint src --fix"
   },
   "files": [
     "src",
