@@ -16,6 +16,10 @@ limitations under the License.
 
 // Primary structures
 export * from "./WidgetApi";
+export * from "./ClientWidgetApi";
+
+// Transports (not sure why you'd use these directly, but might as well export all the things)
+export * from "./transport/PostmessageTransport";
 
 // Interfaces/models
 export * from "./interfaces/ICustomWidgetData";
