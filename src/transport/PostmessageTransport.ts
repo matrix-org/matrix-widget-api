@@ -74,7 +74,9 @@ export class PostmessageTransport extends EventTarget implements ITransport {
     }
 
     private sendInternal(message: IWidgetApiRequest | IWidgetApiResponse) {
-        window.parent.postMessage(message, this.targetOrigin || '*');
+        const targetOrigin = this.targetOrigin || '*';
+        console.log(`[PostmessageTransport] Sending object to ${targetOrigin}: `, message);
+        window.parent.postMessage(message, targetOrigin);
     }
 
     public reply<T extends IWidgetApiResponseData>(request: IWidgetApiRequest, responseData: T) {
