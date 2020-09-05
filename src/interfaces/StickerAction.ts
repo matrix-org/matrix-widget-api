@@ -14,32 +14,35 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest } from "./IWidgetApiRequest";
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
+import { IWidgetApiAcknowledgeResponseData } from "./IWidgetApiResponse";
 
-export interface IStickerActionRequest extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.SendSticker;
-    data: {
-        name: string;
-        description?: string;
-        content: {
-            url: string;
-            info?: {
+export interface IStickerActionRequestData extends IWidgetApiRequestData {
+    name: string;
+    description?: string;
+    content: {
+        url: string;
+        info?: {
+            h?: number;
+            w?: number;
+            mimetype?: string;
+            size?: number;
+            thumbnail_info?: { // eslint-disable-line camelcase
                 h?: number;
                 w?: number;
                 mimetype?: string;
                 size?: number;
-                thumbnail_info?: {
-                    h?: number;
-                    w?: number;
-                    mimetype?: string;
-                    size?: number;
-                };
             };
         };
     };
 }
 
+export interface IStickerActionRequest extends IWidgetApiRequest {
+    action: WidgetApiFromWidgetAction.SendSticker;
+    data: IStickerActionRequestData;
+}
+
 export interface IStickerActionResponse extends IStickerActionRequest {
-    response: {};
+    response: IWidgetApiAcknowledgeResponseData;
 }

@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest } from "./IWidgetApiRequest";
+import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./IWidgetApiRequest";
 import { WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { Capability } from "./Capabilities";
+import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 
 export interface ICapabilitiesActionRequest extends IWidgetApiRequest {
     action: WidgetApiToWidgetAction.Capabilities;
-    data: {};
+    data: IWidgetApiRequestEmptyData;
+}
+
+export interface ICapabilitiesActionResponseData extends IWidgetApiResponseData {
+    capabilities: Capability[];
 }
 
 export interface ICapabilitiesActionResponse extends ICapabilitiesActionRequest {
-    response: {
-        capabilities: Capability[];
-    };
+    response: ICapabilitiesActionResponseData;
 }

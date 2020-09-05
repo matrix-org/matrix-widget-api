@@ -21,6 +21,10 @@ export interface IWidgetApiRequestData {
     [key: string]: unknown;
 }
 
+export interface IWidgetApiRequestEmptyData extends IWidgetApiRequestData {
+    // nothing
+}
+
 export interface IWidgetApiRequest {
     api: WidgetApiDirection;
     requestId: string;
