@@ -74,6 +74,16 @@ export class WidgetApi extends EventTarget {
     }
 
     /**
+     * Request capabilities from the client. They are not guaranteed to be allowed,
+     * but will be asked for if the negotiation has not already happened.
+     * @param {Capability[]} capabilities The capabilities to request.
+     * @throws Throws if the capabilities negotiation has already started.
+     */
+    public requestCapabilities(capabilities: Capability[]) {
+        capabilities.forEach(cap => this.requestCapability(cap));
+    }
+
+    /**
      * Tell the client that the content has been loaded.
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
