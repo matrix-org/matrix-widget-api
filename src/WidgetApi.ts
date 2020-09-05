@@ -87,8 +87,8 @@ export class WidgetApi extends EventTarget {
      * Tell the client that the content has been loaded.
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
-    public async sendContentLoaded(): Promise<void> {
-        await this.transport.send(WidgetApiFromWidgetAction.ContentLoaded, {});
+    public sendContentLoaded(): Promise<void> {
+        return this.transport.send(WidgetApiFromWidgetAction.ContentLoaded, {}).then();
     }
 
     /**
@@ -96,8 +96,8 @@ export class WidgetApi extends EventTarget {
      * @param {IStickerActionRequestData} sticker The sticker to send.
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
-    public async sendSticker(sticker: IStickerActionRequestData): Promise<void> {
-        await this.transport.send(WidgetApiFromWidgetAction.SendSticker, sticker);
+    public sendSticker(sticker: IStickerActionRequestData): Promise<void> {
+        return this.transport.send(WidgetApiFromWidgetAction.SendSticker, sticker).then();
     }
 
     /**
@@ -106,11 +106,10 @@ export class WidgetApi extends EventTarget {
      * @returns {Promise<boolean>} Resolve with true if the client was able to fulfill
      * the request, resolves to false otherwise. Rejects if an error occurred.
      */
-    public async setAlwaysOnScreen(value: boolean): Promise<boolean> {
-        const res = await this.transport.send<IStickyActionRequestData, IStickyActionResponseData>(
+    public setAlwaysOnScreen(value: boolean): Promise<boolean> {
+        return this.transport.send<IStickyActionRequestData, IStickyActionResponseData>(
             WidgetApiFromWidgetAction.UpdateAlwaysOnScreen, {value},
-        );
-        return res.success;
+        ).then(res => res.success);
     }
 
     /**
