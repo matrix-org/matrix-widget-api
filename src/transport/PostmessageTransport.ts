@@ -114,6 +114,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
         window.addEventListener("message", (ev: MessageEvent) => {
             this.handleMessage(ev);
         });
+        this._ready = true;
     }
 
     private handleMessage(ev: MessageEvent) {
