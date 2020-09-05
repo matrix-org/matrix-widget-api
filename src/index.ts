@@ -42,3 +42,6 @@ export * from "./interfaces/StickerAction";
 export * from "./interfaces/StickyAction";
 export * from "./interfaces/SupportedVersionsAction";
 export * from "./interfaces/VisibilityAction";
+
+// Utilities
+export * from "./AlmostEventEmitter";

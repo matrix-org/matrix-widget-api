@@ -29,6 +29,7 @@ import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { IStickerActionRequestData } from "./interfaces/StickerAction";
 import { IStickyActionRequestData, IStickyActionResponseData } from "./interfaces/StickyAction";
+import { AlmostEventEmitter } from "./AlmostEventEmitter";
 
 /**
  * API handler for widgets. This raises events for each unhandled
@@ -41,7 +42,7 @@ import { IStickyActionRequestData, IStickyActionResponseData } from "./interface
  * raise a "ready" CustomEvent. After the ready event fires, actions
  * can be sent and the transport will be ready.
  */
-export class WidgetApi extends EventTarget {
+export class WidgetApi extends AlmostEventEmitter {
     public readonly transport: ITransport;
 
     private capabilitiesFinished = false;
