@@ -36,6 +36,10 @@ import { IStickyActionRequestData, IStickyActionResponseData } from "./interface
  * * `visible` (detail of IVisibilityActionRequest)
  * * `screenshot` (detail of IScreenshotActionRequest)
  * To reply, call `reply` on the transport associated with this API.
+ *
+ * When the WidgetApi is ready to start sending requests, it will
+ * raise a "ready" CustomEvent. After the ready event fires, actions
+ * can be sent and the transport will be ready.
  */
 export class WidgetApi extends EventTarget {
     public readonly transport: ITransport;
@@ -146,6 +150,7 @@ export class WidgetApi extends EventTarget {
             });
         }
         this.capabilitiesFinished = true;
+        this.dispatchEvent(new CustomEvent("ready"));
         return this.transport.reply<ICapabilitiesActionResponseData>(request, {
             capabilities: this.requestedCapabilities,
         });
