@@ -1,5 +1,12 @@
 # matrix-widget-api
-JavaScript/TypeScript API for widgets &amp; web clients to communicate
+JavaScript/TypeScript API for widgets &amp; web clients to communicate.
+
+For help and support, visit [#matrix-dev:matrix.org](https://matrix.to/#/#matrix-dev:matrix.org) on Matrix.
+
+## Not yet ready for usage
+
+This is currently not validated and thus should not be relied upon until this notice goes away. Installation
+instructions will take this notice's place.
 
 ## Usage for widgets
 
