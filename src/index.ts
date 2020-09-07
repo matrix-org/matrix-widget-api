@@ -22,7 +22,7 @@ export * from "./ClientWidgetApi";
 export * from "./transport/ITransport";
 export * from "./transport/PostmessageTransport";
 
-// Interfaces/models
+// Interfaces and simple models
 export * from "./interfaces/ICustomWidgetData";
 export * from "./interfaces/IJitsiWidgetData";
 export * from "./interfaces/IStickerpickerWidgetData";
@@ -43,5 +43,12 @@ export * from "./interfaces/StickyAction";
 export * from "./interfaces/SupportedVersionsAction";
 export * from "./interfaces/VisibilityAction";
 
+// Complex models
+export * from "./models/validation/url";
+export * from "./models/validation/utils";
+export * from "./models/Widget";
+export * from "./models/WidgetParser";
+
 // Utilities
 export * from "./AlmostEventEmitter";
+export * from "./templating/url-template";
