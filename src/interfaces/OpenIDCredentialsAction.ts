@@ -21,7 +21,7 @@ import { IOpenIDCredentials, OpenIDRequestState } from "./GetOpenIDAction";
 
 export interface IOpenIDCredentialsActionRequestData extends IWidgetApiRequestData, IOpenIDCredentials {
     state: OpenIDRequestState;
-    original_request_id: string;
+    original_request_id: string; // eslint-disable-line camelcase
 }
 
 export interface IOpenIDCredentialsActionRequest extends IWidgetApiRequest {

@@ -34,7 +34,7 @@ import {
     IGetOpenIDActionRequestData,
     IGetOpenIDActionResponse,
     IOpenIDCredentials,
-    OpenIDRequestState
+    OpenIDRequestState,
 } from "./interfaces/GetOpenIDAction";
 import { IOpenIDCredentialsActionRequest } from "./interfaces/OpenIDCredentialsAction";
 

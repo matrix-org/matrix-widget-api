@@ -19,20 +19,21 @@ import { IWidget } from "..";
 import { isValidUrl } from "./validation/url";
 
 export interface IStateEvent {
-    event_id: string;
-    room_id: string;
+    event_id: string; // eslint-disable-line camelcase
+    room_id: string; // eslint-disable-line camelcase
     type: string;
     sender: string;
-    origin_server_ts: number;
+    origin_server_ts: number; // eslint-disable-line camelcase
     unsigned?: unknown;
     content: unknown;
-    state_key: string;
+    state_key: string; // eslint-disable-line camelcase
 }
 
 export interface IAccountDataWidgets {
     [widgetId: string]: {
         type: "m.widget";
-        state_key: string; // widget ID
+        // the state_key is also the widget's ID
+        state_key: string; // eslint-disable-line camelcase
         sender: string; // current user's ID
         content: IWidget;
         id?: string; // off-spec, but possible

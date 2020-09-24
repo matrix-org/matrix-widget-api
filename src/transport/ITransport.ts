@@ -19,7 +19,7 @@ import {
     IWidgetApiRequestData,
     IWidgetApiResponse,
     IWidgetApiResponseData,
-    WidgetApiAction
+    WidgetApiAction,
 } from "..";
 
 /**

@@ -25,10 +25,10 @@ export enum OpenIDRequestState {
 }
 
 export interface IOpenIDCredentials {
-    access_token?: string;
-    expires_in?: number;
-    matrix_server_name?: string;
-    token_type?: "Bearer" | string;
+    access_token?: string; // eslint-disable-line camelcase
+    expires_in?: number; // eslint-disable-line camelcase
+    matrix_server_name?: string; // eslint-disable-line camelcase
+    token_type?: "Bearer" | string; // eslint-disable-line camelcase
 }
 
 export interface IGetOpenIDActionRequestData extends IWidgetApiRequestData {
