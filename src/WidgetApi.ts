@@ -30,13 +30,26 @@ import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorRespons
 import { IStickerActionRequestData } from "./interfaces/StickerAction";
 import { IStickyActionRequestData, IStickyActionResponseData } from "./interfaces/StickyAction";
 import { AlmostEventEmitter } from "./AlmostEventEmitter";
+import {
+    IGetOpenIDActionRequestData,
+    IGetOpenIDActionResponse,
+    IOpenIDCredentials,
+    OpenIDRequestState
+} from "./interfaces/GetOpenIDAction";
+import { IOpenIDCredentialsActionRequest } from "./interfaces/OpenIDCredentialsAction";
 
 /**
- * API handler for widgets. This raises events for each unhandled
- * action received and for the following actions in particular:
- * * `visible` (detail of IVisibilityActionRequest)
- * * `screenshot` (detail of IScreenshotActionRequest)
- * To reply, call `reply` on the transport associated with this API.
+ * API handler for widgets. This raises events for each action
+ * received as `action:${action}` (eg: "action:screenshot").
+ * Default handling can be prevented by using preventDefault()
+ * on the raised event. The default handling varies for each
+ * action: ones which the SDK can handle safely are acknowledged
+ * appropriately and ones which are unhandled (custom or require
+ * the widget to do something) are rejected with an error.
+ *
+ * Events which are preventDefault()ed must reply using the
+ * transport. The events raised will have a detail of an
+ * IWidgetApiRequest interface.
  *
  * When the WidgetApi is ready to start sending requests, it will
  * raise a "ready" CustomEvent. After the ready event fires, actions
@@ -89,6 +102,51 @@ export class WidgetApi extends AlmostEventEmitter {
     }
 
     /**
+     * Requests an OpenID Connect token from the client for the currently logged in
+     * user. This token can be validated server-side with the federation API.
+     * @returns {Promise<IOpenIDCredentials>} Resolves to a token for verification.
+     * @throws Throws if the user rejected the request or the request failed.
+     */
+    public requestOpenIDConnectToken(): Promise<IOpenIDCredentials> {
+        return new Promise<IOpenIDCredentials>((resolve, reject) => {
+            this.transport.sendComplete<IGetOpenIDActionRequestData, IGetOpenIDActionResponse>(
+                WidgetApiFromWidgetAction.GetOpenIDCredentials, {},
+            ).then(response => {
+                const rdata = response.response;
+                if (rdata.state === OpenIDRequestState.Allowed) {
+                    resolve(rdata);
+                } else if (rdata.state === OpenIDRequestState.Blocked) {
+                    reject(new Error("User declined to verify their identity"));
+                } else if (rdata.state === OpenIDRequestState.PendingUserConfirmation) {
+                    const handlerFn = (ev: CustomEvent<IOpenIDCredentialsActionRequest>) => {
+                        ev.preventDefault();
+                        const request = ev.detail;
+                        if (request.data.original_request_id !== response.requestId) return;
+                        if (request.data.state === OpenIDRequestState.Allowed) {
+                            resolve(request.data);
+                            this.transport.reply(request, {}); // ack
+                        } else if (request.data.state === OpenIDRequestState.Blocked) {
+                            reject(new Error("User declined to verify their identity"));
+                            this.transport.reply(request, {}); // ack
+                        } else {
+                            reject(new Error("Invalid state on reply: " + rdata.state));
+                            this.transport.reply(request, <IWidgetApiErrorResponseData>{
+                                error: {
+                                    message: "Invalid state",
+                                },
+                            });
+                        }
+                        this.removeEventListener(`action:${WidgetApiToWidgetAction.OpenIDCredentials}`, handlerFn);
+                    };
+                    this.addEventListener(`action:${WidgetApiToWidgetAction.OpenIDCredentials}`, handlerFn);
+                } else {
+                    reject(new Error("Invalid state: " + rdata.state));
+                }
+            });
+        });
+    }
+
+    /**
      * Tell the client that the content has been loaded.
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
@@ -126,13 +184,26 @@ export class WidgetApi extends AlmostEventEmitter {
     }
 
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
-        switch (ev.detail.action) {
-            case WidgetApiToWidgetAction.SupportedApiVersions:
-                return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
-            case WidgetApiToWidgetAction.Capabilities:
-                return this.handleCapabilities(<ICapabilitiesActionRequest>ev.detail);
-            default:
-                this.dispatchEvent(new CustomEvent(ev.detail.action, {detail: ev.detail}));
+        const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
+            detail: ev.detail,
+            cancelable: true,
+        });
+        this.dispatchEvent(actionEv);
+        if (!actionEv.defaultPrevented) {
+            switch (ev.detail.action) {
+                case WidgetApiToWidgetAction.SupportedApiVersions:
+                    return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
+                case WidgetApiToWidgetAction.Capabilities:
+                    return this.handleCapabilities(<ICapabilitiesActionRequest>ev.detail);
+                case WidgetApiToWidgetAction.UpdateVisibility:
+                    return this.transport.reply(ev.detail, {}); // ack to avoid error spam
+                default:
+                    return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
+                        error: {
+                            message: "Unknown or unsupported action: " + ev.detail.action,
+                        },
+                    });
+            }
         }
     }
 

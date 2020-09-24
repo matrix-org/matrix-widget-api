@@ -29,7 +29,7 @@ import {
 
 interface IOutboundRequest {
     request: IWidgetApiRequest;
-    resolve: (response: IWidgetApiResponseData) => void;
+    resolve: (response: IWidgetApiResponse) => void;
     reject: (err: Error) => void;
     timerId: number;
 }
@@ -89,6 +89,12 @@ export class PostmessageTransport extends EventTarget implements ITransport {
     public send<T extends IWidgetApiRequestData, R extends IWidgetApiResponseData>(
         action: WidgetApiAction, data: T,
     ): Promise<R> {
+        return this.sendComplete(action, data).then(r => <R>r.response);
+    }
+
+    public sendComplete<T extends IWidgetApiRequestData, R extends IWidgetApiResponse>(
+        action: WidgetApiAction, data: T,
+    ) : Promise<R> {
         if (!this.ready || !this.widgetId) {
             return Promise.reject(new Error("Not ready or unknown widget ID"));
         }
@@ -106,7 +112,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
                 this.outboundRequests.delete(request.requestId);
                 req.reject(new Error("Request timed out"));
             }, (this.timeoutSeconds || 1) * 1000);
-            const resolve = (d: IWidgetApiResponseData) => prResolve(<R>d);
+            const resolve = (r: IWidgetApiResponse) => prResolve(<R>r);
             this.outboundRequests.set(request.requestId, {request, resolve, reject, timerId});
             this.sendInternal(request);
         });
@@ -162,7 +168,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
             const err = <IWidgetApiErrorResponseData>response.response;
             req.reject(new Error(err.error.message));
         } else {
-            req.resolve(response.response);
+            req.resolve(response);
         }
     }
 }

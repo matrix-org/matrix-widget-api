@@ -42,6 +42,8 @@ export * from "./interfaces/StickerAction";
 export * from "./interfaces/StickyAction";
 export * from "./interfaces/SupportedVersionsAction";
 export * from "./interfaces/VisibilityAction";
+export * from "./interfaces/GetOpenIDAction";
+export * from "./interfaces/OpenIDCredentialsAction";
 
 // Complex models
 export * from "./models/validation/url";

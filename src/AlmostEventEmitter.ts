@@ -18,15 +18,13 @@
 export class AlmostEventEmitter extends EventTarget {
     public once<T extends Event>(event: string, handler: (ev: T) => void) {
         const fn = (ev: T) => {
+            try {
+                handler(ev);
+            } catch (e) {
+                console.error("Unhandled once() error: ", e);
+            }
             this.removeEventListener(event, fn);
-            handler(ev);
         };
         this.addEventListener(event, fn);
-    }
-
-    public waitFor<T extends Event>(event: string): Promise<T> {
-        return new Promise<T>(resolve => {
-            this.once<T>(event, resolve);
-        });
     }
 }

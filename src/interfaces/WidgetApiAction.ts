@@ -19,6 +19,7 @@ export enum WidgetApiToWidgetAction {
     Capabilities = "capabilities",
     TakeScreenshot = "screenshot",
     UpdateVisibility = "visibility",
+    OpenIDCredentials = "openid_credentials"
 }
 
 export enum WidgetApiFromWidgetAction {
@@ -26,6 +27,7 @@ export enum WidgetApiFromWidgetAction {
     ContentLoaded = "content_loaded",
     SendSticker = "m.sticker",
     UpdateAlwaysOnScreen = "set_always_on_screen",
+    GetOpenIDCredentials = "get_openid"
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;

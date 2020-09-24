@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestData, IWidgetApiResponseData, WidgetApiAction } from "..";
+import {
+    IWidgetApiRequest,
+    IWidgetApiRequestData,
+    IWidgetApiResponse,
+    IWidgetApiResponseData,
+    WidgetApiAction
+} from "..";
 
 /**
  * A transport for widget requests/responses. All actions
@@ -65,6 +71,19 @@ export interface ITransport extends EventTarget {
      * failed.
      */
     send<T extends IWidgetApiRequestData, R extends IWidgetApiResponseData>(action: WidgetApiAction, data: T)
+        : Promise<R>;
+
+    /**
+     * Sends a request to the remote end. This is similar to the send() function
+     * however this version returns the full response rather than just the response
+     * data.
+     * @param {WidgetApiAction} action The action to send.
+     * @param {IWidgetApiRequestData} data The request data.
+     * @returns {Promise<IWidgetApiResponseData>} A promise which resolves
+     * to the remote end's response, or throws with an Error if the request
+     * failed.
+     */
+    sendComplete<T extends IWidgetApiRequestData, R extends IWidgetApiResponse>(action: WidgetApiAction, data: T)
         : Promise<R>;
 
     /**
