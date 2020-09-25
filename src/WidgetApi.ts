@@ -15,7 +15,7 @@
  */
 
 import { Capability } from "./interfaces/Capabilities";
-import { IWidgetApiRequest } from "./interfaces/IWidgetApiRequest";
+import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
 import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
 import {
     ISupportedVersionsActionRequest,
@@ -72,7 +72,12 @@ export class WidgetApi extends AlmostEventEmitter {
         if (!window.parent) {
             throw new Error("No parent window. This widget doesn't appear to be embedded properly.");
         }
-        this.transport = new PostmessageTransport(WidgetApiDirection.FromWidget, widgetId);
+        this.transport = new PostmessageTransport(
+            WidgetApiDirection.FromWidget,
+            widgetId,
+            window.parent,
+            window,
+        );
         this.transport.targetOrigin = clientOrigin;
         this.transport.addEventListener("message", this.handleMessage.bind(this));
     }
@@ -124,10 +129,10 @@ export class WidgetApi extends AlmostEventEmitter {
                         if (request.data.original_request_id !== response.requestId) return;
                         if (request.data.state === OpenIDRequestState.Allowed) {
                             resolve(request.data);
-                            this.transport.reply(request, {}); // ack
+                            this.transport.reply(request, <IWidgetApiRequestEmptyData>{}); // ack
                         } else if (request.data.state === OpenIDRequestState.Blocked) {
                             reject(new Error("User declined to verify their identity"));
-                            this.transport.reply(request, {}); // ack
+                            this.transport.reply(request, <IWidgetApiRequestEmptyData>{}); // ack
                         } else {
                             reject(new Error("Invalid state on reply: " + rdata.state));
                             this.transport.reply(request, <IWidgetApiErrorResponseData>{
@@ -151,7 +156,7 @@ export class WidgetApi extends AlmostEventEmitter {
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
     public sendContentLoaded(): Promise<void> {
-        return this.transport.send(WidgetApiFromWidgetAction.ContentLoaded, {}).then();
+        return this.transport.send(WidgetApiFromWidgetAction.ContentLoaded, <IWidgetApiRequestEmptyData>{}).then();
     }
 
     /**
@@ -196,7 +201,7 @@ export class WidgetApi extends AlmostEventEmitter {
                 case WidgetApiToWidgetAction.Capabilities:
                     return this.handleCapabilities(<ICapabilitiesActionRequest>ev.detail);
                 case WidgetApiToWidgetAction.UpdateVisibility:
-                    return this.transport.reply(ev.detail, {}); // ack to avoid error spam
+                    return this.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{}); // ack to avoid error spam
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {

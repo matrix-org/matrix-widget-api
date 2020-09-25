@@ -44,6 +44,7 @@ export * from "./interfaces/SupportedVersionsAction";
 export * from "./interfaces/VisibilityAction";
 export * from "./interfaces/GetOpenIDAction";
 export * from "./interfaces/OpenIDCredentialsAction";
+export * from "./interfaces/WidgetKind";
 
 // Complex models
 export * from "./models/validation/url";
@@ -54,3 +55,6 @@ export * from "./models/WidgetParser";
 // Utilities
 export * from "./AlmostEventEmitter";
 export * from "./templating/url-template";
+
+// Drivers
+export * from "./driver/WidgetDriver";

@@ -16,7 +16,7 @@
 
 import { IWidget, IWidgetData, WidgetType } from "..";
 import { assertPresent } from "./validation/utils";
-import { ITemplateParams, runTemplate } from "../templating/url-template";
+import { ITemplateParams, runTemplate } from "..";
 
 /**
  * Represents the barest form of widget.
@@ -71,6 +71,13 @@ export class Widget {
      */
     public get templateUrl(): string {
         return this.definition.url;
+    }
+
+    /**
+     * The origin for this widget.
+     */
+    public get origin(): string {
+        return new URL(this.templateUrl).origin;
     }
 
     /**

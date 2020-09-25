@@ -54,7 +54,12 @@ export class PostmessageTransport extends EventTarget implements ITransport {
         return this._widgetId || null;
     }
 
-    public constructor(private sendDirection: WidgetApiDirection, private initialWidgetId: string) {
+    public constructor(
+        private sendDirection: WidgetApiDirection,
+        private initialWidgetId: string,
+        private transportWindow: Window,
+        private inboundWindow: Window,
+    ) {
         super();
         this._widgetId = initialWidgetId;
     }
@@ -76,7 +81,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
     private sendInternal(message: IWidgetApiRequest | IWidgetApiResponse) {
         const targetOrigin = this.targetOrigin || '*';
         console.log(`[PostmessageTransport] Sending object to ${targetOrigin}: `, message);
-        window.parent.postMessage(message, targetOrigin);
+        this.transportWindow.postMessage(message, targetOrigin);
     }
 
     public reply<T extends IWidgetApiResponseData>(request: IWidgetApiRequest, responseData: T) {
@@ -94,7 +99,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
 
     public sendComplete<T extends IWidgetApiRequestData, R extends IWidgetApiResponse>(
         action: WidgetApiAction, data: T,
-    ) : Promise<R> {
+    ): Promise<R> {
         if (!this.ready || !this.widgetId) {
             return Promise.reject(new Error("Not ready or unknown widget ID"));
         }
@@ -119,7 +124,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
     }
 
     public start() {
-        window.addEventListener("message", (ev: MessageEvent) => {
+        this.inboundWindow.addEventListener("message", (ev: MessageEvent) => {
             this.handleMessage(ev);
         });
         this._ready = true;
