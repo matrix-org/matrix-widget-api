@@ -56,6 +56,7 @@ export class ClientWidgetApi extends AlmostEventEmitter {
 
     private capabilitiesFinished = false;
     private allowedCapabilities = new Set<Capability>();
+    private isStopped = false;
 
     /**
      * Creates a new client widget API. This will instantiate the transport
@@ -94,6 +95,11 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         }
 
         this.transport.start();
+    }
+
+    public stop() {
+        this.isStopped = true;
+        this.transport.stop();
     }
 
     private onIframeLoad(ev: Event) {
@@ -139,6 +145,7 @@ export class ClientWidgetApi extends AlmostEventEmitter {
     }
 
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
+        if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
             detail: ev.detail,
             cancelable: true,

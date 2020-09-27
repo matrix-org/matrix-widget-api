@@ -45,6 +45,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
     private _ready = false;
     private _widgetId = null;
     private outboundRequests = new Map<string, IOutboundRequest>();
+    private isStopped = false;
 
     public get ready(): boolean {
         return this._ready;
@@ -130,7 +131,13 @@ export class PostmessageTransport extends EventTarget implements ITransport {
         this._ready = true;
     }
 
+    public stop() {
+        this._ready = false;
+        this.isStopped = true;
+    }
+
     private handleMessage(ev: MessageEvent) {
+        if (this.isStopped) return;
         if (!ev.data) return; // invalid event
 
         if (this.strictOriginCheck && ev.origin !== window.origin) return; // bad origin

@@ -63,6 +63,11 @@ export interface ITransport extends EventTarget {
     start();
 
     /**
+     * Stops the transport. It cannot be re-started.
+     */
+    stop();
+
+    /**
      * Sends a request to the remote end.
      * @param {WidgetApiAction} action The action to send.
      * @param {IWidgetApiRequestData} data The request data.
