@@ -97,6 +97,10 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         this.transport.start();
     }
 
+    public hasCapability(capability: Capability): boolean {
+        return this.allowedCapabilities.has(capability);
+    }
+
     public stop() {
         this.isStopped = true;
         this.transport.stop();
