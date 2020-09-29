@@ -31,6 +31,7 @@ import {
     ISupportedVersionsActionResponseData,
 } from "./interfaces/SupportedVersionsAction";
 import { CurrentApiVersions } from "./interfaces/ApiVersion";
+import { IScreenshotActionResponseData } from "./interfaces/ScreenshotAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -169,5 +170,14 @@ export class ClientWidgetApi extends AlmostEventEmitter {
                     });
             }
         }
+    }
+
+    /**
+     * Takes a screenshot of the widget.
+     * @returns Resolves to the widget's screenshot.
+     * @throws Throws if there is a problem.
+     */
+    public takeScreenshot(): Promise<IScreenshotActionResponseData> {
+        return this.transport.send(WidgetApiToWidgetAction.TakeScreenshot, <IWidgetApiRequestEmptyData>{});
     }
 }
