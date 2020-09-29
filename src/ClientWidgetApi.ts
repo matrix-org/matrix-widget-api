@@ -91,7 +91,7 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         this.transport.addEventListener("message", this.handleMessage.bind(this));
 
         if (widget.waitForIframeLoad) {
-            iframe.addEventListener("onload", this.onIframeLoad.bind(this));
+            iframe.addEventListener("load", this.onIframeLoad.bind(this));
         }
 
         this.transport.start();
