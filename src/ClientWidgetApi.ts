@@ -32,6 +32,7 @@ import {
 } from "./interfaces/SupportedVersionsAction";
 import { CurrentApiVersions } from "./interfaces/ApiVersion";
 import { IScreenshotActionResponseData } from "./interfaces/ScreenshotAction";
+import { IVisibilityActionRequestData } from "./interfaces/VisibilityAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -179,5 +180,16 @@ export class ClientWidgetApi extends AlmostEventEmitter {
      */
     public takeScreenshot(): Promise<IScreenshotActionResponseData> {
         return this.transport.send(WidgetApiToWidgetAction.TakeScreenshot, <IWidgetApiRequestEmptyData>{});
+    }
+
+    /**
+     * Alerts the widget to whether or not it is currently visible.
+     * @param {boolean} isVisible Whether the widget is visible or not.
+     * @returns {Promise<any>} Resolves when the widget acknowledges the update.
+     */
+    public updateVisibility(isVisible: boolean): Promise<any> {
+        return this.transport.send(WidgetApiToWidgetAction.UpdateVisibility, <IVisibilityActionRequestData>{
+            visible: isVisible,
+        });
     }
 }
