@@ -1,5 +1,6 @@
 # Custom
 lib/
+.npmrc
 
 # Logs
 logs
