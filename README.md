@@ -21,13 +21,15 @@ api.requestCapability(MatrixCapabilities.Screenshots);
 api.requestCapabilities(StickerpickerCapabilities);
 
 // Add custom action handlers (if needed)
-api.addEventListener("visibility", (ev: CustomEvent<IVisibilityActionRequest>) => {
+api.addEventListener(`action:${WidgetApiToWidgetAction.UpdateVisibility}`, (ev: CustomEvent<IVisibilityActionRequest>) => {
+    ev.preventDefault(); // we're handling it, so stop the widget API from doing something.
     console.log(ev.detail); // custom handling here
-    api.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{error: {message: "Request failed"}});
+    api.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{});
 });
 api.addEventListener("com.example.my_action", (ev: CustomEvent<ICustomActionRequest>) => {
+    ev.preventDefault(); // we're handling it, so stop the widget API from doing something.
     console.log(ev.detail); // custom handling here
-    api.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{error: {message: "Request failed"}});
+    api.transport.reply(ev.detail, {custom: "reply"});
 });
 
 // Start the messaging
@@ -48,6 +50,15 @@ Sorry, this JS API is geared towards web-based widgets and clients 😢
 TODO: Improve this
 
 ```typescript
-const api = new ClientWidgetApi();
-// TODO
+const driver = new CustomDriver(); // an implementation of WidgetDriver
+const api = new ClientWidgetApi(widget, iframe, driver);
+
+// The API is automatically started, so we just have to wait for a ready before doing something
+api.addEventListener("ready", () => {
+    api.updateVisibility(true).then(() => console.log("Widget knows it is visible now"));
+    api.transport.send("com.example.my_action", {isExample: true});
+});
+
+// Eventually, stop the API handling
+api.stop();
 ``` 
