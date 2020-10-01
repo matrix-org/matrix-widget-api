@@ -25,6 +25,7 @@ import {
     IWidgetApiResponseData,
     WidgetApiAction,
     WidgetApiDirection,
+    WidgetApiToWidgetAction,
 } from "..";
 
 interface IOutboundRequest {
@@ -111,6 +112,11 @@ export class PostmessageTransport extends EventTarget implements ITransport {
             action: action,
             data: data,
         };
+        if (action === WidgetApiToWidgetAction.UpdateVisibility) {
+            // XXX: This is for Scalar support
+            // TODO: Fix scalar
+            request['visible'] = data['visible'];
+        }
         return new Promise<R>((prResolve, reject) => {
             const timerId = setTimeout(() => {
                 const req = this.outboundRequests.get(request.requestId);
