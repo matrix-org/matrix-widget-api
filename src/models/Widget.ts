@@ -104,6 +104,6 @@ export class Widget {
      * @returns {string} A templated URL.
      */
     public getCompleteUrl(params: ITemplateParams): string {
-        return runTemplate(this.templateUrl, this.rawData, params);
+        return runTemplate(this.templateUrl, this.definition, params);
     }
 }

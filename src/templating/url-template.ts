@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IWidgetData } from "..";
+import { IWidget } from "..";
 
 export interface ITemplateParams {
     currentRoomId?: string;
@@ -23,13 +23,14 @@ export interface ITemplateParams {
     userHttpAvatarUrl?: string;
 }
 
-export function runTemplate(url: string, data: IWidgetData, params: ITemplateParams): string {
+export function runTemplate(url: string, widget: IWidget, params: ITemplateParams): string {
     // Always apply the supplied params over top of data to ensure the data can't lie about them.
-    const variables = Object.assign({}, data, {
+    const variables = Object.assign({}, widget.data, {
         matrix_room_id: params.currentRoomId || "",
         matrix_user_id: params.currentUserId,
         matrix_display_name: params.userDisplayName || params.currentUserId,
         matrix_avatar_url: params.userHttpAvatarUrl || "",
+        matrix_widget_id: widget.id,
     });
     let result = url;
     for (const key of Object.keys(variables)) {
