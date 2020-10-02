@@ -33,6 +33,7 @@ import {
 import { CurrentApiVersions } from "./interfaces/ApiVersion";
 import { IScreenshotActionResponseData } from "./interfaces/ScreenshotAction";
 import { IVisibilityActionRequestData } from "./interfaces/VisibilityAction";
+import { IWidgetApiResponseData } from "./interfaces/IWidgetApiResponse";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -185,9 +186,9 @@ export class ClientWidgetApi extends AlmostEventEmitter {
     /**
      * Alerts the widget to whether or not it is currently visible.
      * @param {boolean} isVisible Whether the widget is visible or not.
-     * @returns {Promise<any>} Resolves when the widget acknowledges the update.
+     * @returns {Promise<IWidgetApiResponseData>} Resolves when the widget acknowledges the update.
      */
-    public updateVisibility(isVisible: boolean): Promise<any> {
+    public updateVisibility(isVisible: boolean): Promise<IWidgetApiResponseData> {
         return this.transport.send(WidgetApiToWidgetAction.UpdateVisibility, <IVisibilityActionRequestData>{
             visible: isVisible,
         });
