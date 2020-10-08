@@ -52,6 +52,11 @@ import { IWidgetApiResponseData } from "./interfaces/IWidgetApiResponse";
  * raise a "ready" CustomEvent. After the ready event fires, actions can
  * be sent and the transport will be ready.
  *
+ * When the widget has indicated it has loaded, this class raises a
+ * "preparing" CustomEvent. The preparing event does not indicate that
+ * the widget is ready to receive communications - that is signified by
+ * the ready event exclusively.
+ *
  * This class only handles one widget at a time.
  */
 export class ClientWidgetApi extends AlmostEventEmitter {
@@ -120,6 +125,9 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         if (this.capabilitiesFinished) {
             throw new Error("Capabilities exchange already completed");
         }
+
+        // widget has loaded - tell all the listeners that
+        this.dispatchEvent(new CustomEvent("preparing"));
 
         this.transport.send<IWidgetApiRequestEmptyData, ICapabilitiesActionResponseData>(
             WidgetApiToWidgetAction.Capabilities, {},
