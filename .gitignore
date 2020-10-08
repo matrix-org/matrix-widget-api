@@ -1,6 +1,7 @@
 # Custom
 lib/
 .npmrc
+.idea
 
 # Logs
 logs
