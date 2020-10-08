@@ -34,6 +34,12 @@ import { CurrentApiVersions } from "./interfaces/ApiVersion";
 import { IScreenshotActionResponseData } from "./interfaces/ScreenshotAction";
 import { IVisibilityActionRequestData } from "./interfaces/VisibilityAction";
 import { IWidgetApiResponseData } from "./interfaces/IWidgetApiResponse";
+import { IWidgetData } from "./interfaces/IWidget";
+import {
+    IModalWidgetButtonClickedRequestData,
+    IModalWidgetOpenRequestDataButton,
+    IModalWidgetReturnData,
+} from "./interfaces/ModalWidgetActions";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -192,5 +198,21 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         return this.transport.send(WidgetApiToWidgetAction.UpdateVisibility, <IVisibilityActionRequestData>{
             visible: isVisible,
         });
+    }
+
+    public sendWidgetConfig(data: IWidgetData): Promise<void> {
+        return this.transport.send<IWidgetData>(WidgetApiToWidgetAction.CloseModalWidget, data).then();
+    }
+
+    public notifyModalWidgetButtonClicked(id: IModalWidgetOpenRequestDataButton["id"]): Promise<void> {
+        return this.transport.send<IModalWidgetButtonClickedRequestData>(
+            WidgetApiToWidgetAction.CloseModalWidget, {id},
+        ).then();
+    }
+
+    public notifyModalWidgetClose(data: IModalWidgetReturnData): Promise<void> {
+        return this.transport.send<IModalWidgetReturnData>(
+            WidgetApiToWidgetAction.CloseModalWidget, data,
+        ).then();
     }
 }

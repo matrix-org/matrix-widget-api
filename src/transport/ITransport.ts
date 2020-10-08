@@ -15,6 +15,7 @@
  */
 
 import {
+    IWidgetApiAcknowledgeResponseData,
     IWidgetApiRequest,
     IWidgetApiRequestData,
     IWidgetApiResponse,
@@ -75,8 +76,10 @@ export interface ITransport extends EventTarget {
      * to the remote end's response, or throws with an Error if the request
      * failed.
      */
-    send<T extends IWidgetApiRequestData, R extends IWidgetApiResponseData>(action: WidgetApiAction, data: T)
-        : Promise<R>;
+    send<T extends IWidgetApiRequestData, R extends IWidgetApiResponseData = IWidgetApiAcknowledgeResponseData>(
+        action: WidgetApiAction,
+        data: T
+    ): Promise<R>;
 
     /**
      * Sends a request to the remote end. This is similar to the send() function

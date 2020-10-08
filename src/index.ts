@@ -45,6 +45,7 @@ export * from "./interfaces/VisibilityAction";
 export * from "./interfaces/GetOpenIDAction";
 export * from "./interfaces/OpenIDCredentialsAction";
 export * from "./interfaces/WidgetKind";
+export * from "./interfaces/ModalButtonKind";
 
 // Complex models
 export * from "./models/validation/url";
