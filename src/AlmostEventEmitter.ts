@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import { WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
-import { IWidgetApiRequest } from "../lib";
-
 // because we don't have real EventEmitter support :(
 export abstract class AlmostEventEmitter extends EventTarget {
     public once<T extends Event>(event: string, handler: (ev: T) => void) {
@@ -29,13 +26,5 @@ export abstract class AlmostEventEmitter extends EventTarget {
             this.removeEventListener(event, fn);
         };
         this.addEventListener(event, fn);
-    }
-
-    public onAction(action: WidgetApiToWidgetAction, handler: (ev: CustomEvent<IWidgetApiRequest>) => void) {
-        return this.addEventListener(`action:${action}`, handler);
-    }
-
-    public offAction(action: WidgetApiToWidgetAction, handler: (ev: CustomEvent<IWidgetApiRequest>) => void) {
-        return this.removeEventListener(`action:${action}`, handler);
     }
 }

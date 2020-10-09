@@ -15,12 +15,12 @@
  */
 
 import { IWidgetApiRequest } from "./IWidgetApiRequest";
-import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
+import { WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiAcknowledgeResponseData, IWidgetApiResponse } from "./IWidgetApiResponse";
 import { IWidgetData } from "./IWidget";
 
 export interface IWidgetConfigRequest extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.WidgetConfig;
+    action: WidgetApiToWidgetAction.WidgetConfig;
     data: IWidgetData;
 }
 
