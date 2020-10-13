@@ -209,12 +209,12 @@ export class ClientWidgetApi extends AlmostEventEmitter {
     }
 
     public sendWidgetConfig(data: IWidgetData): Promise<void> {
-        return this.transport.send<IWidgetData>(WidgetApiToWidgetAction.CloseModalWidget, data).then();
+        return this.transport.send<IWidgetData>(WidgetApiToWidgetAction.WidgetConfig, data).then();
     }
 
     public notifyModalWidgetButtonClicked(id: IModalWidgetOpenRequestDataButton["id"]): Promise<void> {
         return this.transport.send<IModalWidgetButtonClickedRequestData>(
-            WidgetApiToWidgetAction.CloseModalWidget, {id},
+            WidgetApiToWidgetAction.ButtonClicked, {id},
         ).then();
     }
 

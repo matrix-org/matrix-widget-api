@@ -37,7 +37,7 @@ import {
     OpenIDRequestState,
 } from "./interfaces/GetOpenIDAction";
 import { IOpenIDCredentialsActionRequest } from "./interfaces/OpenIDCredentialsAction";
-import { WidgetType } from "./interfaces/WidgetType";
+import { MatrixWidgetType, WidgetType } from "./interfaces/WidgetType";
 import {
     IModalWidgetCreateData,
     IModalWidgetOpenRequestData,
@@ -192,7 +192,7 @@ export class WidgetApi extends AlmostEventEmitter {
         name: string,
         buttons: IModalWidgetOpenRequestDataButton[] = [],
         data: IModalWidgetCreateData = {},
-        type: WidgetType = "m.custom",
+        type: WidgetType = MatrixWidgetType.Custom,
     ): Promise<void> {
         return this.transport.send<IModalWidgetOpenRequestData>(
             WidgetApiFromWidgetAction.OpenModalWidget, { type, url, name, buttons, data },
