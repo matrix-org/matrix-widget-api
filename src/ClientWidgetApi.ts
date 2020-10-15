@@ -34,9 +34,9 @@ import { CurrentApiVersions } from "./interfaces/ApiVersion";
 import { IScreenshotActionResponseData } from "./interfaces/ScreenshotAction";
 import { IVisibilityActionRequestData } from "./interfaces/VisibilityAction";
 import { IWidgetApiResponseData } from "./interfaces/IWidgetApiResponse";
-import { IWidgetData } from "./interfaces/IWidget";
 import {
     IModalWidgetButtonClickedRequestData,
+    IModalWidgetOpenRequestData,
     IModalWidgetOpenRequestDataButton,
     IModalWidgetReturnData,
 } from "./interfaces/ModalWidgetActions";
@@ -208,8 +208,8 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         });
     }
 
-    public sendWidgetConfig(data: IWidgetData): Promise<void> {
-        return this.transport.send<IWidgetData>(WidgetApiToWidgetAction.WidgetConfig, data).then();
+    public sendWidgetConfig(data: IModalWidgetOpenRequestData): Promise<void> {
+        return this.transport.send<IModalWidgetOpenRequestData>(WidgetApiToWidgetAction.WidgetConfig, data).then();
     }
 
     public notifyModalWidgetButtonClicked(id: IModalWidgetOpenRequestDataButton["id"]): Promise<void> {
