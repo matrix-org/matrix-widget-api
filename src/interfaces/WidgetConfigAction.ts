@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-// because we don't have real EventEmitter support :(
-export abstract class AlmostEventEmitter extends EventTarget {
-    public once<T extends Event>(event: string, handler: (ev: T) => void) {
-        const fn = (ev: T) => {
-            try {
-                handler(ev);
-            } catch (e) {
-                console.error("Unhandled once() error: ", e);
-            }
-            this.removeEventListener(event, fn);
-        };
-        this.addEventListener(event, fn);
-    }
+import { IWidgetApiRequest } from "./IWidgetApiRequest";
+import { WidgetApiToWidgetAction } from "./WidgetApiAction";
+import { IWidgetApiAcknowledgeResponseData, IWidgetApiResponse } from "./IWidgetApiResponse";
+import { IModalWidgetOpenRequestData } from "./ModalWidgetActions";
+
+export interface IWidgetConfigRequest extends IWidgetApiRequest {
+    action: WidgetApiToWidgetAction.WidgetConfig;
+    data: IModalWidgetOpenRequestData;
+}
+
+export interface IWidgetConfigResponse extends IWidgetApiResponse {
+    response: IWidgetApiAcknowledgeResponseData;
 }

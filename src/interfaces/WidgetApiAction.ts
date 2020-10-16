@@ -19,7 +19,10 @@ export enum WidgetApiToWidgetAction {
     Capabilities = "capabilities",
     TakeScreenshot = "screenshot",
     UpdateVisibility = "visibility",
-    OpenIDCredentials = "openid_credentials"
+    OpenIDCredentials = "openid_credentials",
+    WidgetConfig = "widget_config",
+    CloseModalWidget = "close_modal",
+    ButtonClicked = "button_clicked",
 }
 
 export enum WidgetApiFromWidgetAction {
@@ -27,7 +30,9 @@ export enum WidgetApiFromWidgetAction {
     ContentLoaded = "content_loaded",
     SendSticker = "m.sticker",
     UpdateAlwaysOnScreen = "set_always_on_screen",
-    GetOpenIDCredentials = "get_openid"
+    GetOpenIDCredentials = "get_openid",
+    CloseModalWidget = "close_modal",
+    OpenModalWidget = "open_modal",
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;

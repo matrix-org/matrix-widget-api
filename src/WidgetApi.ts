@@ -37,6 +37,13 @@ import {
     OpenIDRequestState,
 } from "./interfaces/GetOpenIDAction";
 import { IOpenIDCredentialsActionRequest } from "./interfaces/OpenIDCredentialsAction";
+import { MatrixWidgetType, WidgetType } from "./interfaces/WidgetType";
+import {
+    IModalWidgetCreateData,
+    IModalWidgetOpenRequestData,
+    IModalWidgetOpenRequestDataButton,
+    IModalWidgetReturnData,
+} from "./interfaces/ModalWidgetActions";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -178,6 +185,22 @@ export class WidgetApi extends AlmostEventEmitter {
         return this.transport.send<IStickyActionRequestData, IStickyActionResponseData>(
             WidgetApiFromWidgetAction.UpdateAlwaysOnScreen, {value},
         ).then(res => res.success);
+    }
+
+    public openModalWidget(
+        url: string,
+        name: string,
+        buttons: IModalWidgetOpenRequestDataButton[] = [],
+        data: IModalWidgetCreateData = {},
+        type: WidgetType = MatrixWidgetType.Custom,
+    ): Promise<void> {
+        return this.transport.send<IModalWidgetOpenRequestData>(
+            WidgetApiFromWidgetAction.OpenModalWidget, { type, url, name, buttons, data },
+        ).then();
+    }
+
+    public closeModalWidget(data: IModalWidgetReturnData = {}): Promise<void> {
+        return this.transport.send<IModalWidgetReturnData>(WidgetApiFromWidgetAction.CloseModalWidget, data).then();
     }
 
     /**
