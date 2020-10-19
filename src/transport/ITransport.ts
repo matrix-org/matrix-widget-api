@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from "events";
 import {
     IWidgetApiAcknowledgeResponseData,
     IWidgetApiRequest,
@@ -23,6 +22,7 @@ import {
     IWidgetApiResponseData,
     WidgetApiAction,
 } from "..";
+import { EventEmitter } from "../util/EventEmitter";
 
 /**
  * A transport for widget requests/responses. All actions

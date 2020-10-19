@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from "events";
 import { Capability } from "./interfaces/Capabilities";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
 import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
@@ -44,6 +43,7 @@ import {
     IModalWidgetOpenRequestDataButton,
     IModalWidgetReturnData,
 } from "./interfaces/ModalWidgetActions";
+import { EventEmitter } from "./util/EventEmitter";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -62,7 +62,7 @@ import {
  * raise a "ready" CustomEvent. After the ready event fires, actions
  * can be sent and the transport will be ready.
  */
-export class WidgetApi extends EventEmitter {
+export class WidgetApi extends EventEmitter<CustomEvent> {
     public readonly transport: ITransport;
 
     private capabilitiesFinished = false;

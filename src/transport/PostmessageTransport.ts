@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from "events";
 import { ITransport } from "./ITransport";
+import { EventEmitter } from "../util/EventEmitter";
 import {
     invertedDirection,
     isErrorResponse,

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from "events";
 import { ITransport } from "./transport/ITransport";
 import { Widget } from "./models/Widget";
 import { PostmessageTransport } from "./transport/PostmessageTransport";
@@ -40,6 +39,7 @@ import {
     IModalWidgetOpenRequestDataButton,
     IModalWidgetReturnData,
 } from "./interfaces/ModalWidgetActions";
+import { EventEmitter } from "./util/EventEmitter";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -65,7 +65,7 @@ import {
  *
  * This class only handles one widget at a time.
  */
-export class ClientWidgetApi extends EventEmitter {
+export class ClientWidgetApi extends EventEmitter<CustomEvent> {
     public readonly transport: ITransport;
 
     private capabilitiesFinished = false;

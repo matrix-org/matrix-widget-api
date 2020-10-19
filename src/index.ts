@@ -56,6 +56,8 @@ export * from "./models/Widget";
 export * from "./models/WidgetParser";
 
 // Utilities
+// Dev note: we don't export our EventEmitter or EnhancedMap utilities because
+// they confuse IDEs and aren't relevant to this package.
 export * from "./templating/url-template";
 
 // Drivers
