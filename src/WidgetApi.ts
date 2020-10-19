@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { EventEmitter } from "events";
 import { Capability } from "./interfaces/Capabilities";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
 import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
@@ -29,7 +30,6 @@ import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { IStickerActionRequestData } from "./interfaces/StickerAction";
 import { IStickyActionRequestData, IStickyActionResponseData } from "./interfaces/StickyAction";
-import { AlmostEventEmitter } from "./AlmostEventEmitter";
 import {
     IGetOpenIDActionRequestData,
     IGetOpenIDActionResponse,
@@ -62,7 +62,7 @@ import {
  * raise a "ready" CustomEvent. After the ready event fires, actions
  * can be sent and the transport will be ready.
  */
-export class WidgetApi extends AlmostEventEmitter {
+export class WidgetApi extends EventEmitter {
     public readonly transport: ITransport;
 
     private capabilitiesFinished = false;
@@ -86,7 +86,7 @@ export class WidgetApi extends AlmostEventEmitter {
             window,
         );
         this.transport.targetOrigin = clientOrigin;
-        this.transport.addEventListener("message", this.handleMessage.bind(this));
+        this.transport.on("message", this.handleMessage.bind(this));
     }
 
     /**
@@ -148,9 +148,9 @@ export class WidgetApi extends AlmostEventEmitter {
                                 },
                             });
                         }
-                        this.removeEventListener(`action:${WidgetApiToWidgetAction.OpenIDCredentials}`, handlerFn);
+                        this.off(`action:${WidgetApiToWidgetAction.OpenIDCredentials}`, handlerFn);
                     };
-                    this.addEventListener(`action:${WidgetApiToWidgetAction.OpenIDCredentials}`, handlerFn);
+                    this.on(`action:${WidgetApiToWidgetAction.OpenIDCredentials}`, handlerFn);
                 } else {
                     reject(new Error("Invalid state: " + rdata.state));
                 }
@@ -216,7 +216,7 @@ export class WidgetApi extends AlmostEventEmitter {
             detail: ev.detail,
             cancelable: true,
         });
-        this.dispatchEvent(actionEv);
+        this.emit(`action:${ev.detail.action}`, actionEv);
         if (!actionEv.defaultPrevented) {
             switch (ev.detail.action) {
                 case WidgetApiToWidgetAction.SupportedApiVersions:
@@ -250,7 +250,7 @@ export class WidgetApi extends AlmostEventEmitter {
             });
         }
         this.capabilitiesFinished = true;
-        this.dispatchEvent(new CustomEvent("ready"));
+        this.emit("ready");
         return this.transport.reply<ICapabilitiesActionResponseData>(request, {
             capabilities: this.requestedCapabilities,
         });

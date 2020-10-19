@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+import { EventEmitter } from "events";
 import { ITransport } from "./transport/ITransport";
 import { Widget } from "./models/Widget";
 import { PostmessageTransport } from "./transport/PostmessageTransport";
 import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
-import { AlmostEventEmitter } from "./AlmostEventEmitter";
 import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
@@ -65,7 +65,7 @@ import {
  *
  * This class only handles one widget at a time.
  */
-export class ClientWidgetApi extends AlmostEventEmitter {
+export class ClientWidgetApi extends EventEmitter {
     public readonly transport: ITransport;
 
     private capabilitiesFinished = false;
@@ -102,7 +102,7 @@ export class ClientWidgetApi extends AlmostEventEmitter {
             window,
         );
         this.transport.targetOrigin = widget.origin;
-        this.transport.addEventListener("message", this.handleMessage.bind(this));
+        this.transport.on("message", this.handleMessage.bind(this));
 
         if (widget.waitForIframeLoad) {
             iframe.addEventListener("load", this.onIframeLoad.bind(this));
@@ -133,7 +133,7 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         }
 
         // widget has loaded - tell all the listeners that
-        this.dispatchEvent(new CustomEvent("preparing"));
+        this.emit("preparing");
 
         this.transport.send<IWidgetApiRequestEmptyData, ICapabilitiesActionResponseData>(
             WidgetApiToWidgetAction.Capabilities, {},
@@ -142,7 +142,7 @@ export class ClientWidgetApi extends AlmostEventEmitter {
         }).then(allowedCaps => {
             this.allowedCapabilities = allowedCaps;
             this.capabilitiesFinished = true;
-            this.dispatchEvent(new CustomEvent("ready"));
+            this.emit("ready");
         });
     }
 
@@ -171,7 +171,7 @@ export class ClientWidgetApi extends AlmostEventEmitter {
             detail: ev.detail,
             cancelable: true,
         });
-        this.dispatchEvent(actionEv);
+        this.emit(`action:${ev.detail.action}`, actionEv);
         if (!actionEv.defaultPrevented) {
             switch (ev.detail.action) {
                 case WidgetApiFromWidgetAction.ContentLoaded:

@@ -56,7 +56,6 @@ export * from "./models/Widget";
 export * from "./models/WidgetParser";
 
 // Utilities
-export * from "./AlmostEventEmitter";
 export * from "./templating/url-template";
 
 // Drivers

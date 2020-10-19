@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { EventEmitter } from "events";
 import {
     IWidgetApiAcknowledgeResponseData,
     IWidgetApiRequest,
@@ -28,7 +29,7 @@ import {
  * get raised through a "message" CustomEvent with detail
  * of the IWidgetApiRequest.
  */
-export interface ITransport extends EventTarget {
+export interface ITransport extends EventEmitter {
     /**
      * True if the transport is ready to start sending, false otherwise.
      */

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { EventEmitter } from "events";
 import { ITransport } from "./ITransport";
 import {
     invertedDirection,
@@ -38,7 +39,7 @@ interface IOutboundRequest {
 /**
  * Transport for the Widget API over postMessage.
  */
-export class PostmessageTransport extends EventTarget implements ITransport {
+export class PostmessageTransport extends EventEmitter implements ITransport {
     public strictOriginCheck: boolean;
     public targetOrigin: string;
     public timeoutSeconds = 10;
@@ -171,7 +172,7 @@ export class PostmessageTransport extends EventTarget implements ITransport {
             this._widgetId = request.widgetId;
         }
 
-        this.dispatchEvent(new CustomEvent("message", {detail: request}));
+        this.emit("message", new CustomEvent("message", {detail: request}));
     }
 
     private handleResponse(response: IWidgetApiResponse) {
