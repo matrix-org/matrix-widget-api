@@ -48,8 +48,11 @@ export * from "./interfaces/WidgetKind";
 export * from "./interfaces/ModalButtonKind";
 export * from "./interfaces/ModalWidgetActions";
 export * from "./interfaces/WidgetConfigAction";
+export * from "./interfaces/SendEventAction";
+export * from "./interfaces/IRoomEvent";
 
 // Complex models
+export * from "./models/WidgetEventCapability";
 export * from "./models/validation/url";
 export * from "./models/validation/utils";
 export * from "./models/Widget";
