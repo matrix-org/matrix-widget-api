@@ -43,7 +43,10 @@ import {
     IModalWidgetOpenRequestData,
     IModalWidgetOpenRequestDataButton,
     IModalWidgetReturnData,
+    BuiltInModalButtonID,
+    ModalButtonID,
 } from "./interfaces/ModalWidgetActions";
+import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -187,6 +190,15 @@ export class WidgetApi extends EventEmitter {
         ).then(res => res.success);
     }
 
+    /**
+     * Opens a modal widget.
+     * @param {string} url The URL to the modal widget.
+     * @param {string} name The name of the widget.
+     * @param {IModalWidgetOpenRequestDataButton[]} buttons The buttons to have on the widget.
+     * @param {IModalWidgetCreateData} data Data to supply to the modal widget.
+     * @param {WidgetType} type The type of modal widget.
+     * @returns {Promise<void>} Resolves when the modal widget has been opened.
+     */
     public openModalWidget(
         url: string,
         name: string,
@@ -199,8 +211,29 @@ export class WidgetApi extends EventEmitter {
         ).then();
     }
 
+    /**
+     * Closes the modal widget. The widget's session will be terminated shortly after.
+     * @param {IModalWidgetReturnData} data Optional data to close the modal widget with.
+     * @returns {Promise<void>} Resolves when complete.
+     */
     public closeModalWidget(data: IModalWidgetReturnData = {}): Promise<void> {
         return this.transport.send<IModalWidgetReturnData>(WidgetApiFromWidgetAction.CloseModalWidget, data).then();
+    }
+
+    /**
+     * Sets a button as disabled or enabled on the modal widget. Buttons are enabled by default.
+     * @param {ModalButtonID} buttonId The button ID to enable/disable.
+     * @param {boolean} isEnabled Whether or not the button is enabled.
+     * @returns {Promise<void>} Resolves when complete.
+     * @throws Throws if the button cannot be disabled, or the client refuses to disable the button.
+     */
+    public setModalButtonEnabled(buttonId: ModalButtonID, isEnabled: boolean): Promise<void> {
+        if (buttonId === BuiltInModalButtonID.Close) {
+            throw new Error("The close button cannot be disabled");
+        }
+        return this.transport.send<ISetModalButtonEnabledActionRequestData>(
+            WidgetApiFromWidgetAction.SetModalButtonEnabled, {button: buttonId, enabled: isEnabled},
+        ).then();
     }
 
     /**
