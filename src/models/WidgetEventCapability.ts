@@ -92,11 +92,15 @@ export class WidgetEventCapability {
 
             if (direction === null) continue;
 
+            // The capability uses `#` as a separator between event type and state key/msgtype,
+            // so we split on that. However, a # is also valid in either one of those so we
+            // join accordingly.
+            // Eg: `m.room.message##m.text` is "m.room.message" event with msgtype "#m.text".
             let keyStr: string = null;
             if (eventSegment.includes('#')) {
-                const p = eventSegment.split('#');
-                eventSegment = p[0];
-                keyStr = p.slice(1).join('#');
+                const parts = eventSegment.split('#');
+                eventSegment = parts[0];
+                keyStr = parts.slice(1).join('#');
             }
 
             parsed.push(new WidgetEventCapability(direction, eventSegment, isState, keyStr, cap));

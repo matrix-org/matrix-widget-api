@@ -170,7 +170,7 @@ export class ClientWidgetApi extends EventEmitter {
         }).then(allowedCaps => {
             console.log(`Widget ${this.widget.id} is allowed capabilities:`, Array.from(allowedCaps));
             this.allowedCapabilities = allowedCaps;
-            this.allowedEvents = Array.from(new Set(WidgetEventCapability.findEventCapabilities(allowedCaps)));
+            this.allowedEvents = WidgetEventCapability.findEventCapabilities(allowedCaps);
             this.capabilitiesFinished = true;
             this.emit("ready");
         });
