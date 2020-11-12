@@ -195,7 +195,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private async handleSendEvent(request: ISendEventFromWidgetActionRequest) {
+    private handleSendEvent(request: ISendEventFromWidgetActionRequest) {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing event type"},
@@ -203,7 +203,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         const isState = request.data.state_key !== null && request.data.state_key !== undefined;
-        let sentEvent: ISendEventDetails;
+        let sendEventPromise: Promise<ISendEventDetails>;
         if (isState) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -211,18 +211,11 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            try {
-                sentEvent = await this.driver.sendEvent(
-                    request.data.type,
-                    request.data.content || {},
-                    request.data.state_key,
-                );
-            } catch (e) {
-                console.error("error sending event: ", e);
-                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Error sending event"},
-                });
-            }
+            sendEventPromise = this.driver.sendEvent(
+                request.data.type,
+                request.data.content || {},
+                request.data.state_key,
+            );
         } else {
             const content = request.data.content || {};
             const msgtype = content['msgtype'];
@@ -232,23 +225,23 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            try {
-                sentEvent = await this.driver.sendEvent(
-                    request.data.type,
-                    content,
-                    null, // not sending a state event
-                );
-            } catch (e) {
-                console.error("error sending event: ", e);
-                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Error sending event"},
-                });
-            }
+            sendEventPromise = this.driver.sendEvent(
+                request.data.type,
+                content,
+                null, // not sending a state event
+            );
         }
 
-        return this.transport.reply<ISendEventFromWidgetResponseData>(request, {
-            room_id: sentEvent.roomId,
-            event_id: sentEvent.eventId,
+        sendEventPromise.then(sentEvent => {
+            return this.transport.reply<ISendEventFromWidgetResponseData>(request, {
+                room_id: sentEvent.roomId,
+                event_id: sentEvent.eventId,
+            });
+        }).catch(e => {
+            console.error("error sending event: ", e);
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Error sending event"},
+            });
         });
     }
 
