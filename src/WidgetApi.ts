@@ -44,6 +44,7 @@ import {
     IModalWidgetOpenRequestDataButton,
     IModalWidgetReturnData,
 } from "./interfaces/ModalWidgetActions";
+import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } from "./interfaces/SendEventAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -201,6 +202,24 @@ export class WidgetApi extends EventEmitter {
 
     public closeModalWidget(data: IModalWidgetReturnData = {}): Promise<void> {
         return this.transport.send<IModalWidgetReturnData>(WidgetApiFromWidgetAction.CloseModalWidget, data).then();
+    }
+
+    public sendRoomEvent(eventType: string, content: unknown): Promise<ISendEventFromWidgetResponseData> {
+        return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.SendEvent,
+            {type: eventType, content},
+        );
+    }
+
+    public sendStateEvent(
+        eventType: string,
+        stateKey: string,
+        content: unknown,
+    ): Promise<ISendEventFromWidgetResponseData> {
+        return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.SendEvent,
+            {type: eventType, content, state_key: stateKey},
+        );
     }
 
     /**
