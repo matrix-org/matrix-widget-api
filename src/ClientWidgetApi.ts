@@ -24,7 +24,7 @@ import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { Capability } from "./interfaces/Capabilities";
-import { WidgetDriver } from "./driver/WidgetDriver";
+import { ISendEventDetails, WidgetDriver } from "./driver/WidgetDriver";
 import { ICapabilitiesActionResponseData } from "./interfaces/CapabilitiesAction";
 import {
     ISupportedVersionsActionRequest,
@@ -40,6 +40,13 @@ import {
     IModalWidgetOpenRequestDataButton,
     IModalWidgetReturnData,
 } from "./interfaces/ModalWidgetActions";
+import {
+    ISendEventFromWidgetActionRequest,
+    ISendEventFromWidgetResponseData,
+    ISendEventToWidgetRequestData,
+} from "./interfaces/SendEventAction";
+import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
+import { IRoomEvent } from "./interfaces/IRoomEvent";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -70,6 +77,7 @@ export class ClientWidgetApi extends EventEmitter {
 
     private capabilitiesFinished = false;
     private allowedCapabilities = new Set<Capability>();
+    private allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
 
     /**
@@ -115,6 +123,26 @@ export class ClientWidgetApi extends EventEmitter {
         return this.allowedCapabilities.has(capability);
     }
 
+    public canSendRoomEvent(eventType: string, msgtype: string = null): boolean {
+        return this.allowedEvents.some(e =>
+            e.matchesAsRoomEvent(eventType, msgtype) && e.direction === EventDirection.Send);
+    }
+
+    public canSendStateEvent(eventType: string, stateKey: string): boolean {
+        return this.allowedEvents.some(e =>
+            e.matchesAsStateEvent(eventType, stateKey) && e.direction === EventDirection.Send);
+    }
+
+    public canReceiveRoomEvent(eventType: string, msgtype: string = null): boolean {
+        return this.allowedEvents.some(e =>
+            e.matchesAsRoomEvent(eventType, msgtype) && e.direction === EventDirection.Receive);
+    }
+
+    public canReceiveStateEvent(eventType: string, stateKey: string): boolean {
+        return this.allowedEvents.some(e =>
+            e.matchesAsStateEvent(eventType, stateKey) && e.direction === EventDirection.Receive);
+    }
+
     public stop() {
         this.isStopped = true;
         this.transport.stop();
@@ -140,7 +168,9 @@ export class ClientWidgetApi extends EventEmitter {
         ).then(caps => {
             return this.driver.validateCapabilities(new Set(caps.capabilities));
         }).then(allowedCaps => {
+            console.log(`Widget ${this.widget.id} is allowed capabilities:`, Array.from(allowedCaps));
             this.allowedCapabilities = allowedCaps;
+            this.allowedEvents = WidgetEventCapability.findEventCapabilities(allowedCaps);
             this.capabilitiesFinished = true;
             this.emit("ready");
         });
@@ -165,6 +195,63 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
+    private async handleSendEvent(request: ISendEventFromWidgetActionRequest) {
+        if (!request.data.type) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - missing event type"},
+            });
+        }
+
+        const isState = request.data.state_key !== null && request.data.state_key !== undefined;
+        let sentEvent: ISendEventDetails;
+        if (isState) {
+            if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Cannot send state events of this type"},
+                });
+            }
+
+            try {
+                sentEvent = await this.driver.sendEvent(
+                    request.data.type,
+                    request.data.content || {},
+                    request.data.state_key,
+                );
+            } catch (e) {
+                console.error("error sending event: ", e);
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Error sending event"},
+                });
+            }
+        } else {
+            const content = request.data.content || {};
+            const msgtype = content['msgtype'];
+            if (!this.canSendRoomEvent(request.data.type, msgtype)) {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Cannot send room events of this type"},
+                });
+            }
+
+            try {
+                sentEvent = await this.driver.sendEvent(
+                    request.data.type,
+                    content,
+                    null, // not sending a state event
+                );
+            } catch (e) {
+                console.error("error sending event: ", e);
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Error sending event"},
+                });
+            }
+        }
+
+        return this.transport.reply<ISendEventFromWidgetResponseData>(request, {
+            room_id: sentEvent.roomId,
+            event_id: sentEvent.eventId,
+        });
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -178,6 +265,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleContentLoadedAction(<IContentLoadedActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.SupportedApiVersions:
                     return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.SendEvent:
+                    return this.handleSendEvent(<ISendEventFromWidgetActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
@@ -221,6 +310,33 @@ export class ClientWidgetApi extends EventEmitter {
     public notifyModalWidgetClose(data: IModalWidgetReturnData): Promise<void> {
         return this.transport.send<IModalWidgetReturnData>(
             WidgetApiToWidgetAction.CloseModalWidget, data,
+        ).then();
+    }
+
+    /**
+     * Feeds an event to the widget. If the widget is not able to accept the event due to
+     * permissions, this will no-op and return calmly. If the widget failed to handle the
+     * event, this will raise an error.
+     * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
+     * @returns {Promise<void>} Resolves when complete, rejects if there was an error sending.
+     */
+    public feedEvent(rawEvent: IRoomEvent): Promise<void> {
+        if (rawEvent.state_key !== undefined && rawEvent.state_key !== null) {
+            // state event
+            if (!this.canReceiveStateEvent(rawEvent.type, rawEvent.state_key)) {
+                return Promise.resolve(); // no-op
+            }
+        } else {
+            // message event
+            if (!this.canReceiveRoomEvent(rawEvent.type, (rawEvent.content || {})['msgtype'])) {
+                return Promise.resolve(); // no-op
+            }
+        }
+
+        // Feed the event into the widget
+        return this.transport.send<ISendEventToWidgetRequestData>(
+            WidgetApiToWidgetAction.SendEvent,
+            rawEvent as ISendEventToWidgetRequestData, // it's compatible, but missing the index signature
         ).then();
     }
 }

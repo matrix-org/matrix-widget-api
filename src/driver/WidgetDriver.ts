@@ -16,6 +16,11 @@
 
 import { Capability } from "..";
 
+export interface ISendEventDetails {
+    roomId: string;
+    eventId: string;
+}
+
 /**
  * Represents the functions and behaviour the widget-api is unable to
  * do, such as prompting the user for information or interacting with
@@ -40,5 +45,20 @@ export abstract class WidgetDriver {
      */
     public validateCapabilities(requested: Set<Capability>): Promise<Set<Capability>> {
         return Promise.resolve(new Set());
+    }
+
+    /**
+     * Sends an event into the room the user is currently looking at. The widget API
+     * will have already verified that the widget is capable of sending the event.
+     * @param {string} eventType The event type to be sent.
+     * @param {*} content The content for the event.
+     * @param {string|null} stateKey The state key if this is a state event, otherwise null.
+     * May be an empty string.
+     * @returns {Promise<ISendEventDetails>} Resolves when the event has been sent with
+     * details of that event.
+     * @throws Rejected when the event could not be sent.
+     */
+    public sendEvent(eventType: string, content: unknown, stateKey: string = null): Promise<ISendEventDetails> {
+        return Promise.reject(new Error("Failed to override function"));
     }
 }

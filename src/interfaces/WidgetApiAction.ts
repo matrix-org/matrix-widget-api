@@ -23,6 +23,7 @@ export enum WidgetApiToWidgetAction {
     WidgetConfig = "widget_config",
     CloseModalWidget = "close_modal",
     ButtonClicked = "button_clicked",
+    SendEvent = "send_event",
 }
 
 export enum WidgetApiFromWidgetAction {
@@ -34,6 +35,7 @@ export enum WidgetApiFromWidgetAction {
     CloseModalWidget = "close_modal",
     OpenModalWidget = "open_modal",
     SetModalButtonEnabled = "set_button_enabled",
+    SendEvent = "send_event",
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;
