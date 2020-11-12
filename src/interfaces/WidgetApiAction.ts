@@ -34,6 +34,7 @@ export enum WidgetApiFromWidgetAction {
     GetOpenIDCredentials = "get_openid",
     CloseModalWidget = "close_modal",
     OpenModalWidget = "open_modal",
+    SetModalButtonEnabled = "set_button_enabled",
     SendEvent = "send_event",
 }
 

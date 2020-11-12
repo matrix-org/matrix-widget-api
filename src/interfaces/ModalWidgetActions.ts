@@ -20,6 +20,11 @@ import { IWidgetApiAcknowledgeResponseData, IWidgetApiResponse } from "./IWidget
 import { IWidget } from "./IWidget";
 import { ModalButtonKind } from "./ModalButtonKind";
 
+export enum BuiltInModalButtonID {
+    Close = "m.close",
+}
+export type ModalButtonID = BuiltInModalButtonID | string;
+
 export interface IModalWidgetCreateData extends IWidgetApiRequestData {
     [key: string]: unknown;
 }
@@ -30,7 +35,7 @@ export interface IModalWidgetReturnData {
 
 // Types for a normal modal requesting the opening a modal widget
 export interface IModalWidgetOpenRequestDataButton {
-    id: "m.close" | string;
+    id: ModalButtonID;
     label: string;
     kind: ModalButtonKind | string;
 }
