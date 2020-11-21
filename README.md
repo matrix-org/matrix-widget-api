@@ -60,6 +60,8 @@ api.setAlwaysOnScreen(true);
 api.transport.send("com.example.my_action", {isExample: true});
 ```
 
+For a more complete example, see the `examples` directory of this repo.
+
 ## Usage for web clients
 
 This SDK is meant for use in browser-based applications. The concepts may be transferable to other platforms,
