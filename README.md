@@ -1,5 +1,8 @@
 # matrix-widget-api
-JavaScript/TypeScript API for widgets &amp; web clients to communicate.
+
+![npm](https://img.shields.io/npm/v/matrix-widget-api?style=for-the-badge)
+
+JavaScript/TypeScript SDK for widgets & clients to communicate.
 
 For help and support, visit [#matrix-dev:matrix.org](https://matrix.to/#/#matrix-dev:matrix.org) on Matrix.
 
@@ -7,6 +10,20 @@ For help and support, visit [#matrix-dev:matrix.org](https://matrix.to/#/#matrix
 
 This is currently not validated and thus should not be relied upon until this notice goes away. Installation
 instructions will take this notice's place.
+
+## Using the API without a bundler
+
+If you're looking to drop the widget-api into a web browser without the use of a bundler, add a `script`
+tag similar to the following:
+
+```html
+<script src="https://unpkg.com/matrix-widget-api@0.1.0/dist/api.min.js"></script>
+```
+
+Note that the version number may need changing to match the current release.
+
+Once included, the widget-api will be available under `mxwidgets`. For example, `new mxwidgets.WidgetApi(...)`
+to instantiate the `WidgetApi` class.
 
 ## Usage for widgets
 
@@ -26,7 +43,7 @@ api.on(`action:${WidgetApiToWidgetAction.UpdateVisibility}`, (ev: CustomEvent<IV
     console.log(ev.detail); // custom handling here
     api.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{});
 });
-api.on("com.example.my_action", (ev: CustomEvent<ICustomActionRequest>) => {
+api.on("action:com.example.my_action", (ev: CustomEvent<ICustomActionRequest>) => {
     ev.preventDefault(); // we're handling it, so stop the widget API from doing something.
     console.log(ev.detail); // custom handling here
     api.transport.reply(ev.detail, {custom: "reply"});
@@ -45,7 +62,9 @@ api.transport.send("com.example.my_action", {isExample: true});
 
 ## Usage for web clients
 
-Sorry, this JS API is geared towards web-based widgets and clients 😢
+This SDK is meant for use in browser-based applications. The concepts may be transferable to other platforms,
+though currently this SDK is intended to only be used by browsers. In the future it may be possible for this
+SDK to provide an interface for other platforms.
 
 TODO: Improve this
 
@@ -61,4 +80,4 @@ api.on("ready", () => {
 
 // Eventually, stop the API handling
 api.stop();
-``` 
+```
