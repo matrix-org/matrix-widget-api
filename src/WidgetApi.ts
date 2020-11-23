@@ -178,7 +178,7 @@ export class WidgetApi extends EventEmitter {
                 } else {
                     reject(new Error("Invalid state: " + rdata.state));
                 }
-            });
+            }).catch(reject);
         });
     }
 
