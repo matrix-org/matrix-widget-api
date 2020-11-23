@@ -61,6 +61,7 @@ export * from "./models/WidgetParser";
 
 // Utilities
 export * from "./templating/url-template";
+export * from "./util/SimpleObservable";
 
 // Drivers
 export * from "./driver/WidgetDriver";

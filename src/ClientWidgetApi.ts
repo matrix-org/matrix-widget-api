@@ -24,7 +24,7 @@ import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { Capability } from "./interfaces/Capabilities";
-import { ISendEventDetails, WidgetDriver } from "./driver/WidgetDriver";
+import { IOpenIDUpdate, ISendEventDetails, WidgetDriver } from "./driver/WidgetDriver";
 import { ICapabilitiesActionResponseData, INotifyCapabilitiesActionRequestData } from "./interfaces/CapabilitiesAction";
 import {
     ISupportedVersionsActionRequest,
@@ -47,6 +47,14 @@ import {
 } from "./interfaces/SendEventAction";
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
+import {
+    IGetOpenIDActionRequest,
+    IGetOpenIDActionResponseData,
+    IOpenIDCredentials,
+    OpenIDRequestState,
+} from "./interfaces/GetOpenIDAction";
+import { SimpleObservable } from "./util/SimpleObservable";
+import { IOpenIDCredentialsActionRequestData } from "./interfaces/OpenIDCredentialsAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -203,6 +211,67 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
+    private handleOIDC(request: IGetOpenIDActionRequest) {
+        let phase = 1; // 1 = initial request, 2 = after user manual confirmation
+
+        const replyState = (state: OpenIDRequestState, credential?: IOpenIDCredentials) => {
+            credential = credential || {};
+            if (phase > 1) {
+                return this.transport.send<IOpenIDCredentialsActionRequestData>(
+                    WidgetApiToWidgetAction.OpenIDCredentials,
+                    {
+                        state: state,
+                        original_request_id: request.requestId,
+                        ...credential,
+                    },
+                );
+            } else {
+                return this.transport.reply<IGetOpenIDActionResponseData>(request, {
+                    state: state,
+                    ...credential,
+                });
+            }
+        };
+
+        const replyError = (msg: string) => {
+            console.error("[ClientWidgetApi] Failed to handle OIDC: ", msg);
+            if (phase > 1) {
+                // We don't have a way to indicate that a random error happened in this flow, so
+                // just block the attempt.
+                return replyState(OpenIDRequestState.Blocked);
+            } else {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: msg},
+                });
+            }
+        };
+
+        const observer = new SimpleObservable<IOpenIDUpdate>(update => {
+            if (update.state === OpenIDRequestState.PendingUserConfirmation && phase > 1) {
+                observer.close();
+                return replyError("client provided out-of-phase response to OIDC flow");
+            }
+
+            if (update.state === OpenIDRequestState.PendingUserConfirmation) {
+                replyState(update.state);
+                phase++;
+                return;
+            }
+
+            if (update.state === OpenIDRequestState.Allowed && !update.token) {
+                return replyError("client provided invalid OIDC token for an allowed request");
+            }
+            if (update.state === OpenIDRequestState.Blocked) {
+                update.token = null; // just in case the client did something weird
+            }
+
+            observer.close();
+            return replyState(update.state, update.token);
+        });
+
+        this.driver.askOpenID(observer);
+    }
+
     private handleSendEvent(request: ISendEventFromWidgetActionRequest) {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -268,6 +337,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.SendEvent:
                     return this.handleSendEvent(<ISendEventFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.GetOpenIDCredentials:
+                    return this.handleOIDC(<IGetOpenIDActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
