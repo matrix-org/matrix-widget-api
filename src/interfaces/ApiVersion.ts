@@ -17,7 +17,7 @@
 export enum MatrixApiVersion {
     Prerelease1 = "0.0.1",
     Prerelease2 = "0.0.2",
-    V010 = "0.1.0", // first release
+    //V010 = "0.1.0", // first release
 }
 
 export enum UnstableApiVersion {
@@ -29,6 +29,6 @@ export type ApiVersion = MatrixApiVersion | UnstableApiVersion | string;
 export const CurrentApiVersions: ApiVersion[] = [
     MatrixApiVersion.Prerelease1,
     MatrixApiVersion.Prerelease2,
-    MatrixApiVersion.V010,
+    //MatrixApiVersion.V010,
     UnstableApiVersion.MSC2762,
 ];
