@@ -1,5 +1,6 @@
 # Custom
 lib/
+dist/
 .npmrc
 .idea
 

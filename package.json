@@ -11,9 +11,12 @@
     "prepublishOnly": "yarn build",
     "start": "tsc -w",
     "clean": "rimraf lib dist",
-    "build": "yarn clean && yarn build:compile && yarn build:types",
+    "build": "yarn clean && yarn build:compile && yarn build:types && yarn build:browser",
     "build:compile": "babel -d lib --verbose --extensions \".ts\" src",
     "build:types": "tsc --emitDeclarationOnly",
+    "build:browser": "yarn build:browser:dev && yarn build:browser:prod",
+    "build:browser:dev": "browserify lib/index.js --debug --s mxwidgets -o dist/api.js",
+    "build:browser:prod": "browserify lib/index.js --s mxwidgets -p tinyify -o dist/api.min.js",
     "lint": "yarn lint:types && yarn lint:ts",
     "lint:ts": "eslint src",
     "lint:types": "tsc --noEmit",
@@ -22,6 +25,7 @@
   "files": [
     "src",
     "lib",
+    "dist",
     "package.json",
     "README.md",
     "LICENSE",
@@ -35,10 +39,12 @@
     "@babel/preset-typescript": "^7.10.4",
     "@types/events": "^3.0.0",
     "babel-eslint": "^10.1.0",
+    "browserify": "^17.0.0",
     "eslint": "^7.8.1",
     "eslint-config-matrix-org": "^0.1.2",
     "eslint-plugin-babel": "^5.3.1",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "tinyify": "^3.0.0"
   },
   "dependencies": {
     "events": "^3.2.0"
