@@ -22,8 +22,12 @@ import {
     ISupportedVersionsActionRequest,
     ISupportedVersionsActionResponseData,
 } from "./interfaces/SupportedVersionsAction";
-import { CurrentApiVersions } from "./interfaces/ApiVersion";
-import { ICapabilitiesActionRequest, ICapabilitiesActionResponseData } from "./interfaces/CapabilitiesAction";
+import { ApiVersion, CurrentApiVersions, UnstableApiVersion } from "./interfaces/ApiVersion";
+import {
+    ICapabilitiesActionRequest,
+    ICapabilitiesActionResponseData,
+    INotifyCapabilitiesActionRequest,
+} from "./interfaces/CapabilitiesAction";
 import { ITransport } from "./transport/ITransport";
 import { PostmessageTransport } from "./transport/PostmessageTransport";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
@@ -39,11 +43,11 @@ import {
 import { IOpenIDCredentialsActionRequest } from "./interfaces/OpenIDCredentialsAction";
 import { MatrixWidgetType, WidgetType } from "./interfaces/WidgetType";
 import {
+    BuiltInModalButtonID,
     IModalWidgetCreateData,
     IModalWidgetOpenRequestData,
     IModalWidgetOpenRequestDataButton,
     IModalWidgetReturnData,
-    BuiltInModalButtonID,
     ModalButtonID,
 } from "./interfaces/ModalWidgetActions";
 import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
@@ -71,6 +75,8 @@ export class WidgetApi extends EventEmitter {
 
     private capabilitiesFinished = false;
     private requestedCapabilities: Capability[] = [];
+    private approvedCapabilities: Capability[];
+    private cachedClientVersions: ApiVersion[];
 
     /**
      * Creates a new API handler for the given widget.
@@ -91,6 +97,20 @@ export class WidgetApi extends EventEmitter {
         );
         this.transport.targetOrigin = clientOrigin;
         this.transport.on("message", this.handleMessage.bind(this));
+    }
+
+    /**
+     * Determines if the widget was granted a particular capability. Note that on
+     * clients where the capabilities are not fed back to the widget this function
+     * will rely on requested capabilities instead.
+     * @param {Capability} capability The capability to check for approval of.
+     * @returns {boolean} True if the widget has approval for the given capability.
+     */
+    public hasCapability(capability: Capability): boolean {
+        if (Array.isArray(this.approvedCapabilities)) {
+            return this.approvedCapabilities.includes(capability);
+        }
+        return this.requestedCapabilities.includes(capability);
     }
 
     /**
@@ -277,6 +297,8 @@ export class WidgetApi extends EventEmitter {
                     return this.handleCapabilities(<ICapabilitiesActionRequest>ev.detail);
                 case WidgetApiToWidgetAction.UpdateVisibility:
                     return this.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{}); // ack to avoid error spam
+                case WidgetApiToWidgetAction.NotifyCapabilities:
+                    return this.transport.reply(ev.detail, <IWidgetApiRequestEmptyData>{}); // ack to avoid error spam
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
@@ -293,6 +315,22 @@ export class WidgetApi extends EventEmitter {
         });
     }
 
+    private getClientVersions(): Promise<ApiVersion[]> {
+        if (Array.isArray(this.cachedClientVersions)) {
+            return Promise.resolve(this.cachedClientVersions);
+        }
+
+        return this.transport.send<IWidgetApiRequestEmptyData, ISupportedVersionsActionResponseData>(
+            WidgetApiFromWidgetAction.SupportedApiVersions, {},
+        ).then(r => {
+            this.cachedClientVersions = r.supported_versions;
+            return r.supported_versions;
+        }).catch(e => {
+            console.warn("non-fatal error getting supported client versions: ", e);
+            return [];
+        });
+    }
+
     private handleCapabilities(request: ICapabilitiesActionRequest) {
         if (this.capabilitiesFinished) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -301,10 +339,27 @@ export class WidgetApi extends EventEmitter {
                 },
             });
         }
-        this.capabilitiesFinished = true;
-        this.emit("ready");
-        return this.transport.reply<ICapabilitiesActionResponseData>(request, {
-            capabilities: this.requestedCapabilities,
+
+        // See if we can expect a capabilities notification or not
+        return this.getClientVersions().then(v => {
+            if (v.includes(UnstableApiVersion.MSC2871)) {
+                this.once(
+                    `action:${WidgetApiToWidgetAction.NotifyCapabilities}`,
+                    (ev: CustomEvent<INotifyCapabilitiesActionRequest>) => {
+                        this.approvedCapabilities = ev.detail.data.approved;
+                        this.emit("ready");
+                    },
+                );
+            } else {
+                // if we can't expect notification, we're as done as we can be
+                this.emit("ready");
+            }
+
+            // in either case, reply to that capabilities request
+            this.capabilitiesFinished = true;
+            return this.transport.reply<ICapabilitiesActionResponseData>(request, {
+                capabilities: this.requestedCapabilities,
+            });
         });
     }
 }

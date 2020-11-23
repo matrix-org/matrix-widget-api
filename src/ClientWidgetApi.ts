@@ -25,7 +25,7 @@ import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { Capability } from "./interfaces/Capabilities";
 import { ISendEventDetails, WidgetDriver } from "./driver/WidgetDriver";
-import { ICapabilitiesActionResponseData } from "./interfaces/CapabilitiesAction";
+import { ICapabilitiesActionResponseData, INotifyCapabilitiesActionRequestData } from "./interfaces/CapabilitiesAction";
 import {
     ISupportedVersionsActionRequest,
     ISupportedVersionsActionResponseData,
@@ -163,15 +163,23 @@ export class ClientWidgetApi extends EventEmitter {
         // widget has loaded - tell all the listeners that
         this.emit("preparing");
 
+        let requestedCaps: Capability[];
         this.transport.send<IWidgetApiRequestEmptyData, ICapabilitiesActionResponseData>(
             WidgetApiToWidgetAction.Capabilities, {},
         ).then(caps => {
+            requestedCaps = caps.capabilities;
             return this.driver.validateCapabilities(new Set(caps.capabilities));
         }).then(allowedCaps => {
             console.log(`Widget ${this.widget.id} is allowed capabilities:`, Array.from(allowedCaps));
             this.allowedCapabilities = allowedCaps;
             this.allowedEvents = WidgetEventCapability.findEventCapabilities(allowedCaps);
             this.capabilitiesFinished = true;
+            this.transport.send(WidgetApiToWidgetAction.NotifyCapabilities, <INotifyCapabilitiesActionRequestData>{
+                requested: requestedCaps,
+                approved: Array.from(allowedCaps),
+            }).catch(e => {
+                console.warn("non-fatal error notifying widget of approved capabilities:", e);
+            });
             this.emit("ready");
         });
     }
