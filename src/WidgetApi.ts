@@ -204,7 +204,9 @@ export class WidgetApi extends EventEmitter {
 
     /**
      * Requests an OpenID Connect token from the client for the currently logged in
-     * user. This token can be validated server-side with the federation API.
+     * user. This token can be validated server-side with the federation API. Note
+     * that the widget is responsible for validating the token and caching any results
+     * it needs.
      * @returns {Promise<IOpenIDCredentials>} Resolves to a token for verification.
      * @throws Throws if the user rejected the request or the request failed.
      */
@@ -243,7 +245,7 @@ export class WidgetApi extends EventEmitter {
                 } else {
                     reject(new Error("Invalid state: " + rdata.state));
                 }
-            });
+            }).catch(reject);
         });
     }
 

@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-import { Capability } from "..";
+import { Capability, IOpenIDCredentials, OpenIDRequestState, SimpleObservable } from "..";
 
 export interface ISendEventDetails {
     roomId: string;
     eventId: string;
+}
+
+export interface IOpenIDUpdate {
+    state: OpenIDRequestState;
+    token?: IOpenIDCredentials;
 }
 
 /**
@@ -60,5 +65,22 @@ export abstract class WidgetDriver {
      */
     public sendEvent(eventType: string, content: unknown, stateKey: string = null): Promise<ISendEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
+     * Asks the user for permission to validate their identity through OpenID Connect. The
+     * interface for this function is an observable which accepts the state machine of the
+     * OIDC exchange flow. For example, if the client/user blocks the request then it would
+     * feed back a `{state: Blocked}` into the observable. Similarly, if the user already
+     * approved the widget then a `{state: Allowed}` would be fed into the observable alongside
+     * the token itself. If the client is asking for permission, it should feed in a
+     * `{state: PendingUserConfirmation}` followed by the relevant Allowed or Blocked state.
+     *
+     * The widget API will reject the widget's request with an error if this contract is not
+     * met properly. By default, the widget driver will block all OIDC requests.
+     * @param {SimpleObservable<IOpenIDUpdate>} observer The observable to feed updates into.
+     */
+    public askOpenID(observer: SimpleObservable<IOpenIDUpdate>) {
+        observer.update({state: OpenIDRequestState.Blocked});
     }
 }
