@@ -62,6 +62,7 @@ export class WidgetEventCapability {
         stateKey?: string,
     ): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
+        // https://github.com/matrix-org/matrix-widget-api/issues/22
         eventType = eventType.replace(/#/g, '\\#');
         stateKey = stateKey !== null && stateKey !== undefined ? `#${stateKey}` : '';
         const str = `org.matrix.msc2762.${direction}.state_event:${eventType}${stateKey}`;
@@ -72,6 +73,7 @@ export class WidgetEventCapability {
 
     public static forRoomEvent(direction: EventDirection, eventType: string): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
+        // https://github.com/matrix-org/matrix-widget-api/issues/22
         const str = `org.matrix.msc2762.${direction}.event:${eventType}`;
 
         // cheat by sending it through the processor
@@ -80,6 +82,7 @@ export class WidgetEventCapability {
 
     public static forRoomMessageEvent(direction: EventDirection, msgtype?: string): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
+        // https://github.com/matrix-org/matrix-widget-api/issues/22
         msgtype = msgtype === null || msgtype === undefined ? '' : msgtype;
         const str = `org.matrix.msc2762.${direction}.event:m.room.message#${msgtype}`;
 
@@ -100,6 +103,7 @@ export class WidgetEventCapability {
             let isState = false;
 
             // TODO: Enable support for m.* namespace once the MSC lands.
+            // https://github.com/matrix-org/matrix-widget-api/issues/22
 
             if (cap.startsWith("org.matrix.msc2762.send.")) {
                 if (cap.startsWith("org.matrix.msc2762.send.event:")) {
