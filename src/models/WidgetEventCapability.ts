@@ -127,7 +127,7 @@ export class WidgetEventCapability {
             // so we split on that. However, a # is also valid in either one of those so we
             // join accordingly.
             // Eg: `m.room.message##m.text` is "m.room.message" event with msgtype "#m.text".
-            let expectingKeyStr = eventSegment.startsWith("m.room.message#") || isState;
+            const expectingKeyStr = eventSegment.startsWith("m.room.message#") || isState;
             let keyStr: string = null;
             if (eventSegment.includes('#') && expectingKeyStr) {
                 // Dev note: regex is difficult to write, so instead the rules are manually written
