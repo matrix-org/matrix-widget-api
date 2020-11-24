@@ -17,8 +17,8 @@
 import { Capability } from "..";
 
 export enum EventDirection {
-    Send,
-    Receive,
+    Send = "send",
+    Receive = "receive",
 }
 
 export class WidgetEventCapability {
@@ -54,6 +54,37 @@ export class WidgetEventCapability {
 
         // Default not allowed
         return false;
+    }
+
+    public static forStateEvent(
+        direction: EventDirection,
+        eventType: string,
+        stateKey?: string,
+    ): WidgetEventCapability {
+        // TODO: Enable support for m.* namespace once the MSC lands.
+        eventType = eventType.replace(/#/g, '\\#');
+        stateKey = stateKey !== null && stateKey !== undefined ? `#${stateKey}` : '';
+        const str = `org.matrix.msc2762.${direction}.state_event:${eventType}${stateKey}`;
+
+        // cheat by sending it through the processor
+        return WidgetEventCapability.findEventCapabilities([str])[0];
+    }
+
+    public static forRoomEvent(direction: EventDirection, eventType: string): WidgetEventCapability {
+        // TODO: Enable support for m.* namespace once the MSC lands.
+        const str = `org.matrix.msc2762.${direction}.event:${eventType}`;
+
+        // cheat by sending it through the processor
+        return WidgetEventCapability.findEventCapabilities([str])[0];
+    }
+
+    public static forRoomMessageEvent(direction: EventDirection, msgtype?: string): WidgetEventCapability {
+        // TODO: Enable support for m.* namespace once the MSC lands.
+        msgtype = msgtype === null || msgtype === undefined ? '' : msgtype;
+        const str = `org.matrix.msc2762.${direction}.event:m.room.message#${msgtype}`;
+
+        // cheat by sending it through the processor
+        return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
     /**
@@ -96,11 +127,37 @@ export class WidgetEventCapability {
             // so we split on that. However, a # is also valid in either one of those so we
             // join accordingly.
             // Eg: `m.room.message##m.text` is "m.room.message" event with msgtype "#m.text".
+            let expectingKeyStr = eventSegment.startsWith("m.room.message#") || isState;
             let keyStr: string = null;
-            if (eventSegment.includes('#')) {
+            if (eventSegment.includes('#') && expectingKeyStr) {
+                // Dev note: regex is difficult to write, so instead the rules are manually written
+                // out. This is probably just as understandable as a boring regex though, so win-win?
+
+                // Test cases:
+                // str                      eventSegment        keyStr
+                // -------------------------------------------------------------
+                // m.room.message#          m.room.message      <empty string>
+                // m.room.message#test      m.room.message      test
+                // m.room.message\#         m.room.message#     test
+                // m.room.message##test     m.room.message      #test
+                // m.room.message\##test    m.room.message#     test
+                // m.room.message\\##test   m.room.message\#    test
+                // m.room.message\\###test  m.room.message\#    #test
+
+                // First step: explode the string
                 const parts = eventSegment.split('#');
-                eventSegment = parts[0];
-                keyStr = parts.slice(1).join('#');
+
+                // To form the eventSegment, we'll keep finding parts of the exploded string until
+                // there's one that doesn't end with the escape character (\). We'll then join those
+                // segments together with the exploding character. We have to remember to consume the
+                // escape character as well.
+                const idx = parts.findIndex(p => !p.endsWith("\\"));
+                eventSegment = parts.slice(0, idx + 1)
+                    .map(p => p.endsWith('\\') ? p.substring(0, p.length - 1) : p)
+                    .join('#');
+
+                // The keyStr is whatever is left over.
+                keyStr = parts.slice(idx + 1).join('#');
             }
 
             parsed.push(new WidgetEventCapability(direction, eventSegment, isState, keyStr, cap));
