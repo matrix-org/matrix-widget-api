@@ -52,6 +52,7 @@ import {
 } from "./interfaces/ModalWidgetActions";
 import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
 import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } from "./interfaces/SendEventAction";
+import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -135,6 +136,70 @@ export class WidgetApi extends EventEmitter {
      */
     public requestCapabilities(capabilities: Capability[]) {
         capabilities.forEach(cap => this.requestCapability(cap));
+    }
+
+    /**
+     * Requests the capability to send a given state event with optional explicit
+     * state key. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} eventType The state event type to ask for.
+     * @param {string} stateKey If specified, the specific state key to request.
+     * Otherwise all state keys will be requested.
+     */
+    public requestCapabilityToSendState(eventType: string, stateKey?: string) {
+        this.requestCapability(WidgetEventCapability.forStateEvent(EventDirection.Send, eventType, stateKey).raw);
+    }
+
+    /**
+     * Requests the capability to receive a given state event with optional explicit
+     * state key. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} eventType The state event type to ask for.
+     * @param {string} stateKey If specified, the specific state key to request.
+     * Otherwise all state keys will be requested.
+     */
+    public requestCapabilityToReceiveState(eventType: string, stateKey?: string) {
+        this.requestCapability(WidgetEventCapability.forStateEvent(EventDirection.Receive, eventType, stateKey).raw);
+    }
+
+    /**
+     * Requests the capability to send a given room event. It is not guaranteed to be
+     * allowed, but will be asked for if the negotiation has not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToSendEvent(eventType: string) {
+        this.requestCapability(WidgetEventCapability.forRoomEvent(EventDirection.Send, eventType).raw);
+    }
+
+    /**
+     * Requests the capability to receive a given room event. It is not guaranteed to be
+     * allowed, but will be asked for if the negotiation has not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToReceiveEvent(eventType: string) {
+        this.requestCapability(WidgetEventCapability.forRoomEvent(EventDirection.Receive, eventType).raw);
+    }
+
+    /**
+     * Requests the capability to send a given message event with optional explicit
+     * `msgtype`. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} msgtype If specified, the specific msgtype to request.
+     * Otherwise all message types will be requested.
+     */
+    public requestCapabilityToSendMessage(msgtype?: string) {
+        this.requestCapability(WidgetEventCapability.forRoomMessageEvent(EventDirection.Send, msgtype).raw);
+    }
+
+    /**
+     * Requests the capability to receive a given message event with optional explicit
+     * `msgtype`. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} msgtype If specified, the specific msgtype to request.
+     * Otherwise all message types will be requested.
+     */
+    public requestCapabilityToReceiveMessage(msgtype?: string) {
+        this.requestCapability(WidgetEventCapability.forRoomMessageEvent(EventDirection.Receive, msgtype).raw);
     }
 
     /**
