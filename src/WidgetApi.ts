@@ -343,6 +343,14 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
+     * Tell the client that we have completed with whatever we might have wanted to do.
+     * @returns {Promise} Resolves when the client acknowledges the request.
+     */
+    public sendCompleted(): Promise<void> {
+        return this.transport.send(WidgetApiFromWidgetAction.Completed, <IWidgetApiRequestEmptyData>{}).then();
+    }
+
+    /**
      * Starts the communication channel. This should be done early to ensure
      * that messages are not missed. Communication can only be stopped by the client.
      */
