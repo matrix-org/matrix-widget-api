@@ -83,4 +83,17 @@ export abstract class WidgetDriver {
     public askOpenID(observer: SimpleObservable<IOpenIDUpdate>) {
         observer.update({state: OpenIDRequestState.Blocked});
     }
+
+    /**
+     * Navigates the client with a matrix.to URI. In future this function will also be provided
+     * with the Matrix URIs once matrix.to is replaced. The given URI will have already been
+     * lightly checked to ensure it looks like a valid URI, though the implementation is recommended
+     * to do further checks on the URI.
+     * @param {string} uri The URI to navigate to.
+     * @returns {Promise<void>} Resolves when complete.
+     * @throws Throws if there's a problem with the navigation, such as invalid format.
+     */
+    public async navigate(uri: string): Promise<void> {
+        throw new Error("Navigation is not implemented");
+    }
 }

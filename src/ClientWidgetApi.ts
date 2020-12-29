@@ -33,7 +33,7 @@ import {
 import { CurrentApiVersions } from "./interfaces/ApiVersion";
 import { IScreenshotActionResponseData } from "./interfaces/ScreenshotAction";
 import { IVisibilityActionRequestData } from "./interfaces/VisibilityAction";
-import { IWidgetApiResponseData } from "./interfaces/IWidgetApiResponse";
+import { IWidgetApiAcknowledgeResponseData, IWidgetApiResponseData } from "./interfaces/IWidgetApiResponse";
 import {
     IModalWidgetButtonClickedRequestData,
     IModalWidgetOpenRequestData,
@@ -55,6 +55,7 @@ import {
 } from "./interfaces/GetOpenIDAction";
 import { SimpleObservable } from "./util/SimpleObservable";
 import { IOpenIDCredentialsActionRequestData } from "./interfaces/OpenIDCredentialsAction";
+import { INavigateActionRequest } from "./interfaces/NavigateAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -211,6 +212,25 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
+    private async handleNavigate(request: INavigateActionRequest) {
+        if (!request.data?.uri || !request.data?.uri.toString().startsWith("https://matrix.to/#")) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid matrix.to URI"},
+            });
+        }
+
+        try {
+            await this.driver.navigate(request.data.uri.toString());
+        } catch (e) {
+            console.error("[ClientWidgetApi] Failed to handle navigation: ", e);
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Error handling navigation"},
+            });
+        }
+
+        return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+    }
+
     private handleOIDC(request: IGetOpenIDActionRequest) {
         let phase = 1; // 1 = initial request, 2 = after user manual confirmation
 
@@ -339,6 +359,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleSendEvent(<ISendEventFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.GetOpenIDCredentials:
                     return this.handleOIDC(<IGetOpenIDActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC2931Navigate:
+                    return this.handleNavigate(<INavigateActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {

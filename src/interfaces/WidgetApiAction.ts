@@ -37,6 +37,11 @@ export enum WidgetApiFromWidgetAction {
     OpenModalWidget = "open_modal",
     SetModalButtonEnabled = "set_button_enabled",
     SendEvent = "send_event",
+
+    /**
+     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC2931Navigate = "org.matrix.msc2931.navigate",
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;
