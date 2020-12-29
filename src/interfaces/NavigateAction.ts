@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestData, IWidgetApiRequestEmptyData } from "./IWidgetApiRequest";
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiAcknowledgeResponseData } from "./IWidgetApiResponse";
 
