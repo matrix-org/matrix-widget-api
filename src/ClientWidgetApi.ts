@@ -212,23 +212,27 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private async handleNavigate(request: INavigateActionRequest) {
+    private handleNavigate(request: INavigateActionRequest) {
         if (!request.data?.uri || !request.data?.uri.toString().startsWith("https://matrix.to/#")) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid matrix.to URI"},
             });
         }
 
-        try {
-            await this.driver.navigate(request.data.uri.toString());
-        } catch (e) {
+        const onErr = (e) => {
             console.error("[ClientWidgetApi] Failed to handle navigation: ", e);
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Error handling navigation"},
             });
-        }
+        };
 
-        return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+        try {
+            this.driver.navigate(request.data.uri.toString()).catch(e => onErr(e)).then(() => {
+                return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+            });
+        } catch (e) {
+            return onErr(e);
+        }
     }
 
     private handleOIDC(request: IGetOpenIDActionRequest) {

@@ -93,7 +93,7 @@ export abstract class WidgetDriver {
      * @returns {Promise<void>} Resolves when complete.
      * @throws Throws if there's a problem with the navigation, such as invalid format.
      */
-    public async navigate(uri: string): Promise<void> {
+    public navigate(uri: string): Promise<void> {
         throw new Error("Navigation is not implemented");
     }
 }
