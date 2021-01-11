@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-export enum MatrixCapabilities {
-    Screenshots = "m.capability.screenshot",
-    StickerSending = "m.sticker",
-    AlwaysOnScreen = "m.always_on_screen",
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
+import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
+import { IWidgetApiAcknowledgeResponseData } from "./IWidgetApiResponse";
 
-    /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
-     */
-    MSC2931Navigate = "org.matrix.msc2931.navigate",
+export interface INavigateActionRequest extends IWidgetApiRequest {
+    action: WidgetApiFromWidgetAction.MSC2931Navigate;
+    data: INavigateActionRequestData;
 }
 
-export type Capability = MatrixCapabilities | string;
+export interface INavigateActionRequestData extends IWidgetApiRequestData {
+    uri: string;
+}
 
-export const StickerpickerCapabilities: Capability[] = [MatrixCapabilities.StickerSending];
-export const VideoConferenceCapabilities: Capability[] = [MatrixCapabilities.AlwaysOnScreen];
+export interface INavigateActionResponse extends INavigateActionRequest {
+    response: IWidgetApiAcknowledgeResponseData;
+}

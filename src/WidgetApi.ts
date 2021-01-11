@@ -53,6 +53,7 @@ import {
 import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
 import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } from "./interfaces/SendEventAction";
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
+import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -339,6 +340,24 @@ export class WidgetApi extends EventEmitter {
         }
         return this.transport.send<ISetModalButtonEnabledActionRequestData>(
             WidgetApiFromWidgetAction.SetModalButtonEnabled, {button: buttonId, enabled: isEnabled},
+        ).then();
+    }
+
+    /**
+     * Attempts to navigate the client to the given URI. This can only be called with Matrix URIs
+     * (currently only matrix.to, but in future a Matrix URI scheme will be defined).
+     * @param {string} uri The URI to navigate to.
+     * @returns {Promise<void>} Resolves when complete.
+     * @throws Throws if the URI is invalid or cannot be processed.
+     * @deprecated This currently relies on an unstable MSC (MSC2931).
+     */
+    public navigateTo(uri: string): Promise<void> {
+        if (!uri || !uri.startsWith("https://matrix.to/#")) {
+            throw new Error("Invalid matrix.to URI");
+        }
+
+        return this.transport.send<INavigateActionRequestData>(
+            WidgetApiFromWidgetAction.MSC2931Navigate, {uri},
         ).then();
     }
 
