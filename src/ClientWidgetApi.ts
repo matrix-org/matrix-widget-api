@@ -28,7 +28,7 @@ import { IOpenIDUpdate, ISendEventDetails, WidgetDriver } from "./driver/WidgetD
 import {
     ICapabilitiesActionResponseData,
     INotifyCapabilitiesActionRequestData,
-    IRenegotiateCapabilitiesActionRequest
+    IRenegotiateCapabilitiesActionRequest,
 } from "./interfaces/CapabilitiesAction";
 import {
     ISupportedVersionsActionRequest,
