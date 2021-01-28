@@ -15,7 +15,7 @@
  */
 
 import { IWidgetApiRequest, IWidgetApiRequestData, IWidgetApiRequestEmptyData } from "./IWidgetApiRequest";
-import { WidgetApiToWidgetAction } from "./WidgetApiAction";
+import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { Capability } from "./Capabilities";
 import { IWidgetApiAcknowledgeResponseData, IWidgetApiResponseData } from "./IWidgetApiResponse";
 
@@ -44,4 +44,17 @@ export interface INotifyCapabilitiesActionRequest extends IWidgetApiRequest {
 
 export interface INotifyCapabilitiesActionResponse extends INotifyCapabilitiesActionRequest {
     response: IWidgetApiAcknowledgeResponseData;
+}
+
+export interface IRenegotiateCapabilitiesActionRequest extends IWidgetApiRequest {
+    action: WidgetApiFromWidgetAction.MSC2974RenegotiateCapabilities;
+    data: IRenegotiateCapabilitiesRequestData;
+}
+
+export interface IRenegotiateCapabilitiesRequestData extends IWidgetApiResponseData {
+    capabilities: Capability[];
+}
+
+export interface IRenegotiateCapabilitiesActionResponse extends IRenegotiateCapabilitiesActionRequest {
+    // nothing
 }
