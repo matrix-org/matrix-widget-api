@@ -27,6 +27,7 @@ import {
     ICapabilitiesActionRequest,
     ICapabilitiesActionResponseData,
     INotifyCapabilitiesActionRequest,
+    IRenegotiateCapabilitiesRequestData,
 } from "./interfaces/CapabilitiesAction";
 import { ITransport } from "./transport/ITransport";
 import { PostmessageTransport } from "./transport/PostmessageTransport";
@@ -76,6 +77,7 @@ export class WidgetApi extends EventEmitter {
     public readonly transport: ITransport;
 
     private capabilitiesFinished = false;
+    private supportsMSC2974Renegotiate = false;
     private requestedCapabilities: Capability[] = [];
     private approvedCapabilities: Capability[];
     private cachedClientVersions: ApiVersion[];
@@ -117,12 +119,13 @@ export class WidgetApi extends EventEmitter {
 
     /**
      * Request a capability from the client. It is not guaranteed to be allowed,
-     * but will be asked for if the negotiation has not already happened.
+     * but will be asked for.
      * @param {Capability} capability The capability to request.
-     * @throws Throws if the capabilities negotiation has already started.
+     * @throws Throws if the capabilities negotiation has already started and the
+     * widget is unable to request additional capabilities.
      */
     public requestCapability(capability: Capability) {
-        if (this.capabilitiesFinished) {
+        if (this.capabilitiesFinished && !this.supportsMSC2974Renegotiate) {
             throw new Error("Capabilities have already been negotiated");
         }
 
@@ -251,6 +254,20 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
+     * Asks the client for additional capabilities. Capabilities can be queued for this
+     * request with the requestCapability() functions.
+     * @returns {Promise<void>} Resolves when complete. Note that the promise resolves when
+     * the capabilities request has gone through, not when the capabilities are approved/denied.
+     * Use the WidgetApiToWidgetAction.NotifyCapabilities action to detect changes.
+     */
+    public updateRequestedCapabilities(): Promise<void> {
+        return this.transport.send(WidgetApiFromWidgetAction.MSC2974RenegotiateCapabilities,
+            <IRenegotiateCapabilitiesRequestData>{
+                capabilities: this.requestedCapabilities,
+            }).then();
+    }
+
+    /**
      * Tell the client that the content has been loaded.
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
@@ -367,6 +384,11 @@ export class WidgetApi extends EventEmitter {
      */
     public start() {
         this.transport.start();
+        this.getClientVersions().then(v => {
+            if (v.includes(UnstableApiVersion.MSC2974)) {
+                this.supportsMSC2974Renegotiate = true;
+            }
+        });
     }
 
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {

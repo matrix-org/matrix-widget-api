@@ -23,9 +23,13 @@ import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWid
 import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
-import { Capability } from "./interfaces/Capabilities";
+import { Capability, MatrixCapabilities } from "./interfaces/Capabilities";
 import { IOpenIDUpdate, ISendEventDetails, WidgetDriver } from "./driver/WidgetDriver";
-import { ICapabilitiesActionResponseData, INotifyCapabilitiesActionRequestData } from "./interfaces/CapabilitiesAction";
+import {
+    ICapabilitiesActionResponseData,
+    INotifyCapabilitiesActionRequestData,
+    IRenegotiateCapabilitiesActionRequest,
+} from "./interfaces/CapabilitiesAction";
 import {
     ISupportedVersionsActionRequest,
     ISupportedVersionsActionResponseData,
@@ -183,13 +187,17 @@ export class ClientWidgetApi extends EventEmitter {
             this.allowedCapabilities = allowedCaps;
             this.allowedEvents = WidgetEventCapability.findEventCapabilities(allowedCaps);
             this.capabilitiesFinished = true;
-            this.transport.send(WidgetApiToWidgetAction.NotifyCapabilities, <INotifyCapabilitiesActionRequestData>{
-                requested: requestedCaps,
-                approved: Array.from(allowedCaps),
-            }).catch(e => {
-                console.warn("non-fatal error notifying widget of approved capabilities:", e);
-            });
+            this.notifyCapabilities(requestedCaps);
             this.emit("ready");
+        });
+    }
+
+    private notifyCapabilities(requested: Capability[]) {
+        this.transport.send(WidgetApiToWidgetAction.NotifyCapabilities, <INotifyCapabilitiesActionRequestData>{
+            requested: requested,
+            approved: Array.from(this.allowedCapabilities),
+        }).catch(e => {
+            console.warn("non-fatal error notifying widget of approved capabilities:", e);
         });
     }
 
@@ -212,7 +220,34 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
+    private handleCapabilitiesRenegotiate(request: IRenegotiateCapabilitiesActionRequest) {
+        // acknowledge first
+        this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+
+        const requested = request.data?.capabilities || [];
+        const newlyRequested = new Set(requested.filter(r => !this.hasCapability(r)));
+        if (newlyRequested.size === 0) {
+            // Nothing to do - notify capabilities
+            return this.notifyCapabilities([]);
+        }
+
+        this.driver.validateCapabilities(newlyRequested).then(allowed => {
+            allowed.forEach(c => this.allowedCapabilities.add(c));
+
+            const allowedEvents = WidgetEventCapability.findEventCapabilities(allowed);
+            allowedEvents.forEach(c => this.allowedEvents.push(c));
+
+            return this.notifyCapabilities(Array.from(newlyRequested));
+        });
+    }
+
     private handleNavigate(request: INavigateActionRequest) {
+        if (!this.hasCapability(MatrixCapabilities.MSC2931Navigate)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Missing capability"},
+            });
+        }
+
         if (!request.data?.uri || !request.data?.uri.toString().startsWith("https://matrix.to/#")) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid matrix.to URI"},
@@ -365,6 +400,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleOIDC(<IGetOpenIDActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC2931Navigate:
                     return this.handleNavigate(<INavigateActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC2974RenegotiateCapabilities:
+                    return this.handleCapabilitiesRenegotiate(<IRenegotiateCapabilitiesActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
