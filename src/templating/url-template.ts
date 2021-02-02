@@ -17,7 +17,7 @@
 import { IWidget } from "..";
 
 export interface ITemplateParams {
-    currentRoomId?: string;
+    widgetRoomId?: string;
     currentUserId: string;
     userDisplayName?: string;
     userHttpAvatarUrl?: string;
@@ -26,7 +26,7 @@ export interface ITemplateParams {
 export function runTemplate(url: string, widget: IWidget, params: ITemplateParams): string {
     // Always apply the supplied params over top of data to ensure the data can't lie about them.
     const variables = Object.assign({}, widget.data, {
-        matrix_room_id: params.currentRoomId || "",
+        matrix_room_id: params.widgetRoomId || "",
         matrix_user_id: params.currentUserId,
         matrix_display_name: params.userDisplayName || params.currentUserId,
         matrix_avatar_url: params.userHttpAvatarUrl || "",
