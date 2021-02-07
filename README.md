@@ -4,7 +4,7 @@
 
 JavaScript/TypeScript SDK for widgets & clients to communicate.
 
-For help and support, visit [#matrix-dev:matrix.org](https://matrix.to/#/#matrix-dev:matrix.org) on Matrix.
+For help and support, visit [#matrix-dev:matrix.org](https://matrix.to/#/#matrix-widgets:matrix.org) on Matrix.
 
 ## Not yet ready for usage
 
