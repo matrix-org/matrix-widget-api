@@ -19,6 +19,7 @@ import { Capability } from "..";
 export enum EventDirection {
     Send = "send",
     Receive = "receive",
+    Read = "read",
 }
 
 export class WidgetEventCapability {
@@ -122,6 +123,15 @@ export class WidgetEventCapability {
                     direction = EventDirection.Receive;
                     isState = true;
                     eventSegment = cap.substring("org.matrix.msc2762.receive.state_event:".length);
+                }
+            } else if (cap.startsWith("org.matrix.msc2762.read.")) {
+                if (cap.startsWith("org.matrix.msc2762.read.event:")) {
+                    direction = EventDirection.Read;
+                    eventSegment = cap.substring("org.matrix.msc2762.read.event:".length);
+                } else if (cap.startsWith("org.matrix.msc2762.read.state_event:")) {
+                    direction = EventDirection.Read;
+                    isState = true;
+                    eventSegment = cap.substring("org.matrix.msc2762.read.state_event:".length);
                 }
             }
 

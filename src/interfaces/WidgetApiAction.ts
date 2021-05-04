@@ -41,6 +41,11 @@ export enum WidgetApiFromWidgetAction {
     /**
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
      */
+    MSC2876ReadEvents = "org.matrix.msc2876.read_events",
+
+    /**
+     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     */
     MSC2931Navigate = "org.matrix.msc2931.navigate",
 
     /**
