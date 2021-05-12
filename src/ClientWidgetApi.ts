@@ -60,6 +60,7 @@ import {
 import { SimpleObservable } from "./util/SimpleObservable";
 import { IOpenIDCredentialsActionRequestData } from "./interfaces/OpenIDCredentialsAction";
 import { INavigateActionRequest } from "./interfaces/NavigateAction";
+import { IReadEventFromWidgetActionRequest, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -154,6 +155,16 @@ export class ClientWidgetApi extends EventEmitter {
     public canReceiveStateEvent(eventType: string, stateKey: string): boolean {
         return this.allowedEvents.some(e =>
             e.matchesAsStateEvent(eventType, stateKey) && e.direction === EventDirection.Receive);
+    }
+
+    public canReadRoomEvent(eventType: string, msgtype: string = null): boolean {
+        return this.allowedEvents.some(e =>
+            e.matchesAsRoomEvent(eventType, msgtype) && e.direction === EventDirection.Read);
+    }
+
+    public canReadStateEvent(eventType: string, stateKey: string): boolean {
+        return this.allowedEvents.some(e =>
+            e.matchesAsStateEvent(eventType, stateKey) && e.direction === EventDirection.Read);
     }
 
     public stop() {
@@ -331,6 +342,41 @@ export class ClientWidgetApi extends EventEmitter {
         this.driver.askOpenID(observer);
     }
 
+    private handleReadEvents(request: IReadEventFromWidgetActionRequest) {
+        if (!request.data.type) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - missing event type"},
+            });
+        }
+        if (request.data.limit !== undefined && (!request.data.limit || request.data.limit < 0)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - limit out of range"},
+            });
+        }
+
+        const limit = request.data.limit || 0;
+
+        let events: Promise<unknown[]> = Promise.resolve([]);
+        if (request.data.state_key !== undefined) {
+            const stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
+            if (!this.canReadStateEvent(request.data.type, stateKey)) {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Cannot read state events of this type"},
+                });
+            }
+            events = this.driver.readStateEvents(request.data.type, stateKey, limit);
+        } else {
+            if (!this.canReadRoomEvent(request.data.type, request.data.msgtype)) {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Cannot read room events of this type"},
+                });
+            }
+            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit);
+        }
+
+        return events.then(evs => this.transport.reply<IReadEventFromWidgetResponseData>(request, {events: evs}));
+    }
+
     private handleSendEvent(request: ISendEventFromWidgetActionRequest) {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -402,6 +448,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleNavigate(<INavigateActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC2974RenegotiateCapabilities:
                     return this.handleCapabilitiesRenegotiate(<IRenegotiateCapabilitiesActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC2876ReadEvents:
+                    return this.handleReadEvents(<IReadEventFromWidgetActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {

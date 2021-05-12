@@ -50,6 +50,7 @@ export * from "./interfaces/ModalWidgetActions";
 export * from "./interfaces/SetModalButtonEnabledAction";
 export * from "./interfaces/WidgetConfigAction";
 export * from "./interfaces/SendEventAction";
+export * from "./interfaces/ReadEventAction";
 export * from "./interfaces/IRoomEvent";
 export * from "./interfaces/NavigateAction";
 

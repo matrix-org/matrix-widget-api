@@ -68,6 +68,36 @@ export abstract class WidgetDriver {
     }
 
     /**
+     * Reads all events of the given type, and optionally `msgtype` (if applicable/defined),
+     * the user has access to. The widget API will have already verified that the widget is
+     * capable of receiving the events. Less events than the limit are allowed to be returned,
+     * but not more.
+     * @param eventType The event type to be read.
+     * @param msgtype The msgtype of the events to be read, if applicable/defined.
+     * @param limit The maximum number of events to retrieve. Will be zero to denote "as many
+     * as possible".
+     * @returns {Promise<*[]>} Resolves to the room events, or an empty array.
+     */
+    public readRoomEvents(eventType: string, msgtype: string | undefined, limit: number): Promise<unknown[]> {
+        return Promise.resolve([]);
+    }
+
+    /**
+     * Reads all events of the given type, and optionally state key (if applicable/defined),
+     * the user has access to. The widget API will have already verified that the widget is
+     * capable of receiving the events. Less events than the limit are allowed to be returned,
+     * but not more.
+     * @param eventType The event type to be read.
+     * @param stateKey The state key of the events to be read, if applicable/defined.
+     * @param limit The maximum number of events to retrieve. Will be zero to denote "as many
+     * as possible".
+     * @returns {Promise<*[]>} Resolves to the state events, or an empty array.
+     */
+    public readStateEvents(eventType: string, stateKey: string | undefined, limit: number): Promise<unknown[]> {
+        return Promise.resolve([]);
+    }
+
+    /**
      * Asks the user for permission to validate their identity through OpenID Connect. The
      * interface for this function is an observable which accepts the state machine of the
      * OIDC exchange flow. For example, if the client/user blocks the request then it would
