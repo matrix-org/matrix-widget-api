@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020, 2021 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,24 @@ export interface ITemplateParams {
     currentUserId: string;
     userDisplayName?: string;
     userHttpAvatarUrl?: string;
+    clientId?: string;
+    clientTheme?: string;
+    clientLanguage?: string;
 }
 
 export function runTemplate(url: string, widget: IWidget, params: ITemplateParams): string {
     // Always apply the supplied params over top of data to ensure the data can't lie about them.
     const variables = Object.assign({}, widget.data, {
-        matrix_room_id: params.widgetRoomId || "",
-        matrix_user_id: params.currentUserId,
-        matrix_display_name: params.userDisplayName || params.currentUserId,
-        matrix_avatar_url: params.userHttpAvatarUrl || "",
-        matrix_widget_id: widget.id,
+        'matrix_room_id': params.widgetRoomId || "",
+        'matrix_user_id': params.currentUserId,
+        'matrix_display_name': params.userDisplayName || params.currentUserId,
+        'matrix_avatar_url': params.userHttpAvatarUrl || "",
+        'matrix_widget_id': widget.id,
+
+        // TODO: Convert to stable (https://github.com/matrix-org/matrix-doc/pull/2873)
+        'org.matrix.msc2873.client_id': params.clientId || "",
+        'org.matrix.msc2873.client_theme': params.clientTheme || "",
+        'org.matrix.msc2873.client_language': params.clientLanguage || "",
     });
     let result = url;
     for (const key of Object.keys(variables)) {
