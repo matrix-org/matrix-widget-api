@@ -168,18 +168,6 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
-     * Requests the capability to read a given state event with optional explicit
-     * state key. It is not guaranteed to be allowed, but will be asked for if the
-     * negotiation has not already happened.
-     * @param {string} eventType The state event type to ask for.
-     * @param {string} stateKey If specified, the specific state key to request.
-     * Otherwise all state keys will be requested.
-     */
-    public requestCapabilityToReadState(eventType: string, stateKey?: string) {
-        this.requestCapability(WidgetEventCapability.forStateEvent(EventDirection.Read, eventType, stateKey).raw);
-    }
-
-    /**
      * Requests the capability to send a given room event. It is not guaranteed to be
      * allowed, but will be asked for if the negotiation has not already happened.
      * @param {string} eventType The room event type to ask for.
@@ -195,15 +183,6 @@ export class WidgetApi extends EventEmitter {
      */
     public requestCapabilityToReceiveEvent(eventType: string) {
         this.requestCapability(WidgetEventCapability.forRoomEvent(EventDirection.Receive, eventType).raw);
-    }
-
-    /**
-     * Requests the capability to read a given room event. It is not guaranteed to be allowed,
-     * but will be asked for if the negotiation has not already happened.
-     * @param {string} eventType The room event type to ask for.
-     */
-    public requestCapabilityToReadEvent(eventType: string) {
-        this.requestCapability(WidgetEventCapability.forRoomEvent(EventDirection.Read, eventType).raw);
     }
 
     /**
@@ -226,17 +205,6 @@ export class WidgetApi extends EventEmitter {
      */
     public requestCapabilityToReceiveMessage(msgtype?: string) {
         this.requestCapability(WidgetEventCapability.forRoomMessageEvent(EventDirection.Receive, msgtype).raw);
-    }
-
-    /**
-     * Requests the capability to read a given message event with optional explicit
-     * `msgtype`. It is not guaranteed to be allowed, but will be asked for if the
-     * negotiation has not already happened.
-     * @param {string} msgtype If specified, the specific msgtype to request.
-     * Otherwise all message types will be requested.
-     */
-    public requestCapabilityToReadMessage(msgtype?: string) {
-        this.requestCapability(WidgetEventCapability.forRoomMessageEvent(EventDirection.Read, msgtype).raw);
     }
 
     /**
