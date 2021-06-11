@@ -38,6 +38,7 @@ export interface IModalWidgetOpenRequestDataButton {
     id: ModalButtonID;
     label: string;
     kind: ModalButtonKind | string;
+    disabled: boolean;
 }
 
 export interface IModalWidgetOpenRequestData extends IModalWidgetCreateData, Omit<IWidget, "id" | "creatorUserId"> {
