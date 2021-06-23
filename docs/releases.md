@@ -3,7 +3,7 @@
 While this project is considered unstable/beta quality, the following steps should be taken:
 
 1. Ensure all changes are merged and that `master` is locally updated.
-2. Ensure you're logged in as the `matrixdotorg` npm user (for at least the project).
+2. Ensure you're logged in as the `matrixdotorg` npm user (for at least the project). `npm whoami` will tell you this.
 3. Run `npm version 0.1.0-beta.15` (using whatever beta number is next).
 4. Push `master` and the created `v0.1.0-beta.15` tag
 5. Run `npm publish` to update npm
