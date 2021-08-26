@@ -1,22 +1,17 @@
-Contributing code to matrix-widget-api
-======================================
+# Contributing code to matrix-widget-api
 
 Everyone is welcome to contribute code to matrix-widget-api, provided that they are
 willing to license their contributions under the same license as the project
 itself. We follow a simple 'inbound=outbound' model for contributions: the act
 of submitting an 'inbound' contribution means that the contributor agrees to
 license the code under the same terms as the project's overall 'outbound'
-license - in this case, Apache Software License v2 (see `<LICENSE>`_).
+license - in this case, Apache Software License v2 (see [LICENSE](./LICENSE)).
 
-How to contribute
-~~~~~~~~~~~~~~~~~
+## How to contribute
 
 The preferred and easiest way to contribute changes to the project is to fork
 it on github, and then create a pull request to ask us to pull your changes
 into our repo (https://help.github.com/articles/using-pull-requests/)
-
-**The single biggest thing you need to know is: please base your changes on
-the develop branch - /not/ master.**
 
 We use the master branch to track the most recent release, so that folks who
 blindly clone the repo and automatically check out master get something that
@@ -32,8 +27,7 @@ We use continuous integration, and all pull requests get automatically tested
 by it: if your change breaks the build, then the PR will show that there are
 failed checks, so please check back after a few minutes.
 
-Code style
-~~~~~~~~~~
+## Code style
 
 This project aims to target TypeScript with published versions having JS-compatible
 code. All files should be written in TypeScript.
@@ -44,16 +38,15 @@ introduce naming problems (as default exports get aliased upon import). In
 general, avoid using `export default`.
 
 The remaining code-style for matrix-widget-api is not formally documented, but
-contributors are encouraged to read the code style document for matrix-react-sdk
-(`<https://github.com/matrix-org/matrix-react-sdk/blob/master/code_style.md>`_)
+contributors are encouraged to read the
+[code style document for matrix-react-sdk](https://github.com/matrix-org/matrix-react-sdk/blob/master/code_style.md)
 and follow the principles set out there.
 
 Please ensure your changes match the cosmetic style of the existing project,
 and **never** mix cosmetic and functional changes in the same commit, as it
 makes it horribly hard to review otherwise.
 
-Sign off
-~~~~~~~~
+## Sign off
 
 In order to have a concrete record that your contribution is intentional
 and you agree to license it under the same terms as the project's license, we've
@@ -62,8 +55,9 @@ adopted the same lightweight approach that the Linux Kernel
 (https://github.com/docker/docker/blob/master/CONTRIBUTING.md), and many other
 projects use: the DCO (Developer Certificate of Origin:
 http://developercertificate.org/). This is a simple declaration that you wrote
-the contribution or otherwise have the right to contribute it to Matrix::
+the contribution or otherwise have the right to contribute it to Matrix:
 
+```
     Developer Certificate of Origin
     Version 1.1
 
@@ -99,22 +93,27 @@ the contribution or otherwise have the right to contribute it to Matrix::
         personal information I submit with it, including my sign-off) is
         maintained indefinitely and may be redistributed consistent with
         this project or the open source license(s) involved.
+```
 
 If you agree to this for your contribution, then all that's needed is to
-include the line in your commit or pull request comment::
+include the line in your commit or pull request comment:
 
-    Signed-off-by: Your Name <your@email.example.org>
+```
+Signed-off-by: Your Name <your@email.example.org>
+```
 
 We accept contributions under a legally identifiable name, such as your name on
 government documentation or common-law names (names claimed by legitimate usage
 or repute). Unfortunately, we cannot accept anonymous contributions at this
 time.
 
-Git allows you to add this signoff automatically when using the ``-s`` flag to
-``git commit``, which uses the name and email set in your ``user.name`` and
-``user.email`` git configs.
+Git allows you to add this signoff automatically when using the `-s` flag to
+`git commit`, which uses the name and email set in your `user.name` and
+`user.email` git configs.
 
 If you forgot to sign off your commits before making your pull request and are
-on Git 2.17+ you can mass signoff using rebase::
+on Git 2.17+ you can mass signoff using rebase:
 
-    git rebase --signoff origin/develop
+```
+git rebase --signoff origin/develop
+```
