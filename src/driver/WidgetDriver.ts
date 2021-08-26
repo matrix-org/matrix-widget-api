@@ -66,7 +66,12 @@ export abstract class WidgetDriver {
      * details of that event.
      * @throws Rejected when the event could not be sent.
      */
-    public sendEvent(eventType: string, content: unknown, stateKey: string = null, roomId: string = null): Promise<ISendEventDetails> {
+    public sendEvent(
+        eventType: string,
+        content: unknown,
+        stateKey: string = null,
+        roomId: string = null,
+    ): Promise<ISendEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
     }
 
@@ -85,7 +90,12 @@ export abstract class WidgetDriver {
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<*[]>} Resolves to the room events, or an empty array.
      */
-    public readRoomEvents(eventType: string, msgtype: string | undefined, limit: number, roomIds: string[] = null): Promise<unknown[]> {
+    public readRoomEvents(
+        eventType: string,
+        msgtype: string | undefined,
+        limit: number,
+        roomIds: string[] = null,
+    ): Promise<unknown[]> {
         return Promise.resolve([]);
     }
 
@@ -104,7 +114,12 @@ export abstract class WidgetDriver {
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<*[]>} Resolves to the state events, or an empty array.
      */
-    public readStateEvents(eventType: string, stateKey: string | undefined, limit: number, roomIds: string[] = null): Promise<unknown[]> {
+    public readStateEvents(
+        eventType: string,
+        stateKey: string | undefined,
+        limit: number,
+        roomIds: string[] = null,
+    ): Promise<unknown[]> {
         return Promise.resolve([]);
     }
 

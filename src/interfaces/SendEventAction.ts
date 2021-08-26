@@ -18,7 +18,6 @@ import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 import { IRoomEvent } from "./IRoomEvent";
-import { Symbols } from "../Symbols";
 
 export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
     state_key?: string; // eslint-disable-line camelcase

@@ -338,7 +338,11 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<IModalWidgetReturnData>(WidgetApiFromWidgetAction.CloseModalWidget, data).then();
     }
 
-    public sendRoomEvent(eventType: string, content: unknown, roomId?: string): Promise<ISendEventFromWidgetResponseData> {
+    public sendRoomEvent(
+        eventType: string,
+        content: unknown,
+        roomId?: string,
+    ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
             {type: eventType, content, room_id: roomId},
@@ -357,7 +361,12 @@ export class WidgetApi extends EventEmitter {
         );
     }
 
-    public readRoomEvents(eventType: string, limit = 25, msgtype?: string, roomIds?: (string | Symbols.AnyRoom)[]): Promise<unknown> {
+    public readRoomEvents(
+        eventType: string,
+        limit = 25,
+        msgtype?: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<unknown> {
         const data: IReadEventFromWidgetRequestData = {type: eventType, msgtype: msgtype, limit};
         if (roomIds) {
             if (roomIds.includes(Symbols.AnyRoom)) {
@@ -372,8 +381,17 @@ export class WidgetApi extends EventEmitter {
         ).then(r => r.events);
     }
 
-    public readStateEvents(eventType: string, limit = 25, stateKey?: string, roomIds?: (string | Symbols.AnyRoom)[]): Promise<unknown> {
-        const data: IReadEventFromWidgetRequestData = {type: eventType, state_key: stateKey === undefined ? true : stateKey, limit};
+    public readStateEvents(
+        eventType: string,
+        limit = 25,
+        stateKey?: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<unknown> {
+        const data: IReadEventFromWidgetRequestData = {
+            type: eventType,
+            state_key: stateKey === undefined ? true : stateKey,
+            limit,
+        };
         if (roomIds) {
             if (roomIds.includes(Symbols.AnyRoom)) {
                 data.room_ids = Symbols.AnyRoom;
