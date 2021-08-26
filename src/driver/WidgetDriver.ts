@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,17 +53,20 @@ export abstract class WidgetDriver {
     }
 
     /**
-     * Sends an event into the room the user is currently looking at. The widget API
-     * will have already verified that the widget is capable of sending the event.
+     * Sends an event into a room. If `roomId` is falsy, the client should send the event
+     * into the room the user is currently looking at. The widget API will have already
+     * verified that the widget is capable of sending the event to that room.
      * @param {string} eventType The event type to be sent.
      * @param {*} content The content for the event.
      * @param {string|null} stateKey The state key if this is a state event, otherwise null.
      * May be an empty string.
+     * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
+     * user is currently looking at.
      * @returns {Promise<ISendEventDetails>} Resolves when the event has been sent with
      * details of that event.
      * @throws Rejected when the event could not be sent.
      */
-    public sendEvent(eventType: string, content: unknown, stateKey: string = null): Promise<ISendEventDetails> {
+    public sendEvent(eventType: string, content: unknown, stateKey: string = null, roomId: string = null): Promise<ISendEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
     }
 
@@ -71,14 +74,18 @@ export abstract class WidgetDriver {
      * Reads all events of the given type, and optionally `msgtype` (if applicable/defined),
      * the user has access to. The widget API will have already verified that the widget is
      * capable of receiving the events. Less events than the limit are allowed to be returned,
-     * but not more.
+     * but not more. If `roomIds` is supplied, it may contain `Symbols.AnyRoom` to denote that
+     * `limit` in each of the client's known rooms should be returned. When `null`, only the
+     * room the user is currently looking at should be considered.
      * @param eventType The event type to be read.
      * @param msgtype The msgtype of the events to be read, if applicable/defined.
-     * @param limit The maximum number of events to retrieve. Will be zero to denote "as many
+     * @param limit The maximum number of events to retrieve per room. Will be zero to denote "as many
      * as possible".
+     * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
+     * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<*[]>} Resolves to the room events, or an empty array.
      */
-    public readRoomEvents(eventType: string, msgtype: string | undefined, limit: number): Promise<unknown[]> {
+    public readRoomEvents(eventType: string, msgtype: string | undefined, limit: number, roomIds: string[] = null): Promise<unknown[]> {
         return Promise.resolve([]);
     }
 
@@ -86,14 +93,18 @@ export abstract class WidgetDriver {
      * Reads all events of the given type, and optionally state key (if applicable/defined),
      * the user has access to. The widget API will have already verified that the widget is
      * capable of receiving the events. Less events than the limit are allowed to be returned,
-     * but not more.
+     * but not more. If `roomIds` is supplied, it may contain `Symbols.AnyRoom` to denote that
+     * `limit` in each of the client's known rooms should be returned. When `null`, only the
+     * room the user is currently looking at should be considered.
      * @param eventType The event type to be read.
      * @param stateKey The state key of the events to be read, if applicable/defined.
      * @param limit The maximum number of events to retrieve. Will be zero to denote "as many
      * as possible".
+     * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
+     * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<*[]>} Resolves to the state events, or an empty array.
      */
-    public readStateEvents(eventType: string, stateKey: string | undefined, limit: number): Promise<unknown[]> {
+    public readStateEvents(eventType: string, stateKey: string | undefined, limit: number, roomIds: string[] = null): Promise<unknown[]> {
         return Promise.resolve([]);
     }
 

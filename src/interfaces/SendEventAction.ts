@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 import { IRoomEvent } from "./IRoomEvent";
+import { Symbols } from "../Symbols";
 
 export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
     state_key?: string; // eslint-disable-line camelcase
     type: string;
     content: unknown;
+    room_id?: string; // eslint-disable-line camelcase
 }
 
 export interface ISendEventFromWidgetActionRequest extends IWidgetApiRequest {
