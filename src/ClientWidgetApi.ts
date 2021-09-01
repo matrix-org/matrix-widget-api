@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ import { SimpleObservable } from "./util/SimpleObservable";
 import { IOpenIDCredentialsActionRequestData } from "./interfaces/OpenIDCredentialsAction";
 import { INavigateActionRequest } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetActionRequest, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
+import { Symbols } from "./Symbols";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -135,6 +136,11 @@ export class ClientWidgetApi extends EventEmitter {
 
     public hasCapability(capability: Capability): boolean {
         return this.allowedCapabilities.has(capability);
+    }
+
+    public canUseRoomTimeline(roomId: string | Symbols.AnyRoom): boolean {
+        return this.hasCapability(`org.matrix.msc2762.timeline:${Symbols.AnyRoom}`)
+            || this.hasCapability(`org.matrix.msc2762.timeline:${roomId}`);
     }
 
     public canSendRoomEvent(eventType: string, msgtype: string = null): boolean {
@@ -344,6 +350,21 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
+        let askRoomIds: string[] = null; // null denotes current room only
+        if (request.data.room_ids) {
+            askRoomIds = request.data.room_ids as string[];
+            if (!Array.isArray(askRoomIds)) {
+                askRoomIds = [askRoomIds as any as string];
+            }
+            for (const roomId of askRoomIds) {
+                if (!this.canUseRoomTimeline(roomId)) {
+                    return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                        error: {message: `Unable to access room timeline: ${roomId}`},
+                    });
+                }
+            }
+        }
+
         const limit = request.data.limit || 0;
 
         let events: Promise<unknown[]> = Promise.resolve([]);
@@ -354,14 +375,14 @@ export class ClientWidgetApi extends EventEmitter {
                     error: {message: "Cannot read state events of this type"},
                 });
             }
-            events = this.driver.readStateEvents(request.data.type, stateKey, limit);
+            events = this.driver.readStateEvents(request.data.type, stateKey, limit, askRoomIds);
         } else {
             if (!this.canReceiveRoomEvent(request.data.type, request.data.msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot read room events of this type"},
                 });
             }
-            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit);
+            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit, askRoomIds);
         }
 
         return events.then(evs => this.transport.reply<IReadEventFromWidgetResponseData>(request, {events: evs}));
@@ -371,6 +392,12 @@ export class ClientWidgetApi extends EventEmitter {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing event type"},
+            });
+        }
+
+        if (!!request.data.room_id && !this.canUseRoomTimeline(request.data.room_id)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: `Unable to access room timeline: ${request.data.room_id}`},
             });
         }
 
@@ -387,6 +414,7 @@ export class ClientWidgetApi extends EventEmitter {
                 request.data.type,
                 request.data.content || {},
                 request.data.state_key,
+                request.data.room_id,
             );
         } else {
             const content = request.data.content || {};
@@ -401,6 +429,7 @@ export class ClientWidgetApi extends EventEmitter {
                 request.data.type,
                 content,
                 null, // not sending a state event
+                request.data.room_id,
             );
         }
 
@@ -491,9 +520,15 @@ export class ClientWidgetApi extends EventEmitter {
      * permissions, this will no-op and return calmly. If the widget failed to handle the
      * event, this will raise an error.
      * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
+     * @param {string} currentViewedRoomId The room ID the user is currently interacting with.
+     * Not the room ID of the event.
      * @returns {Promise<void>} Resolves when complete, rejects if there was an error sending.
      */
-    public feedEvent(rawEvent: IRoomEvent): Promise<void> {
+    public feedEvent(rawEvent: IRoomEvent, currentViewedRoomId: string): Promise<void> {
+        if (rawEvent.room_id !== currentViewedRoomId && !this.canUseRoomTimeline(rawEvent.room_id)) {
+            return Promise.resolve(); // no-op
+        }
+
         if (rawEvent.state_key !== undefined && rawEvent.state_key !== null) {
             // state event
             if (!this.canReceiveStateEvent(rawEvent.type, rawEvent.state_key)) {

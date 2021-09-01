@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } fro
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
+import { Symbols } from "./Symbols";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -141,6 +142,16 @@ export class WidgetApi extends EventEmitter {
      */
     public requestCapabilities(capabilities: Capability[]) {
         capabilities.forEach(cap => this.requestCapability(cap));
+    }
+
+    /**
+     * Requests the capability to interact with rooms other than the user's currently
+     * viewed room. Applies to event receiving and sending.
+     * @param {string | Symbols.AnyRoom} roomId The room ID, or `Symbols.AnyRoom` to
+     * denote all known rooms.
+     */
+    public requestCapabilityForRoomTimeline(roomId: string | Symbols.AnyRoom) {
+        this.requestCapability(`org.matrix.msc2762.timeline:${roomId}`);
     }
 
     /**
@@ -327,10 +338,14 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<IModalWidgetReturnData>(WidgetApiFromWidgetAction.CloseModalWidget, data).then();
     }
 
-    public sendRoomEvent(eventType: string, content: unknown): Promise<ISendEventFromWidgetResponseData> {
+    public sendRoomEvent(
+        eventType: string,
+        content: unknown,
+        roomId?: string,
+    ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content},
+            {type: eventType, content, room_id: roomId},
         );
     }
 
@@ -338,24 +353,55 @@ export class WidgetApi extends EventEmitter {
         eventType: string,
         stateKey: string,
         content: unknown,
+        roomId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, state_key: stateKey},
+            {type: eventType, content, state_key: stateKey, room_id: roomId},
         );
     }
 
-    public readRoomEvents(eventType: string, limit = 25, msgtype?: string): Promise<unknown> {
+    public readRoomEvents(
+        eventType: string,
+        limit = 25,
+        msgtype?: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<unknown> {
+        const data: IReadEventFromWidgetRequestData = {type: eventType, msgtype: msgtype, limit};
+        if (roomIds) {
+            if (roomIds.includes(Symbols.AnyRoom)) {
+                data.room_ids = Symbols.AnyRoom;
+            } else {
+                data.room_ids = roomIds;
+            }
+        }
         return this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC2876ReadEvents,
-            {type: eventType, msgtype: msgtype, limit},
+            data,
         ).then(r => r.events);
     }
 
-    public readStateEvents(eventType: string, limit = 25, stateKey?: string): Promise<unknown> {
+    public readStateEvents(
+        eventType: string,
+        limit = 25,
+        stateKey?: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<unknown> {
+        const data: IReadEventFromWidgetRequestData = {
+            type: eventType,
+            state_key: stateKey === undefined ? true : stateKey,
+            limit,
+        };
+        if (roomIds) {
+            if (roomIds.includes(Symbols.AnyRoom)) {
+                data.room_ids = Symbols.AnyRoom;
+            } else {
+                data.room_ids = roomIds;
+            }
+        }
         return this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC2876ReadEvents,
-            {type: eventType, state_key: stateKey === undefined ? true : stateKey, limit},
+            data,
         ).then(r => r.events);
     }
 
