@@ -20,7 +20,7 @@ export enum MatrixCapabilities {
     Screenshots = "m.capability.screenshot",
     StickerSending = "m.sticker",
     AlwaysOnScreen = "m.always_on_screen",
-    // Ask Element to not give the option to move the widget into a seperate tab.
+    // Ask Element to not give the option to move the widget into a separate tab.
     RequiresClient = "io.element.requires_client",
     /**
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
