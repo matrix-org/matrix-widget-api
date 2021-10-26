@@ -171,14 +171,9 @@ export class ClientWidgetApi extends EventEmitter {
     private onIframeLoad(ev: Event) {
         this.beginCapabilities();
 
-        // We don't need the listener anymore
-        this.iframe.removeEventListener("onload", this.onIframeLoad.bind(this));
     }
 
     private beginCapabilities() {
-        if (this.capabilitiesFinished) {
-            throw new Error("Capabilities exchange already completed");
-        }
 
         // widget has loaded - tell all the listeners that
         this.emit("preparing");
