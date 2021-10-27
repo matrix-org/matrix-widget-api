@@ -205,8 +205,8 @@ export class ClientWidgetApi extends EventEmitter {
             approved: Array.from(this.allowedCapabilities),
         }).catch(e => {
             console.warn("non-fatal error notifying widget of approved capabilities:", e);
-        }).then(_ => {
-            this.emit("capabilities_renegotiated")
+        }).then(() => {
+            this.emit("capabilitiesNotified")
         });
     }
 
