@@ -170,11 +170,9 @@ export class ClientWidgetApi extends EventEmitter {
 
     private onIframeLoad(ev: Event) {
         this.beginCapabilities();
-
     }
 
     private beginCapabilities() {
-
         // widget has loaded - tell all the listeners that
         this.emit("preparing");
 
