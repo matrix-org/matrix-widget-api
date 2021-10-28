@@ -90,10 +90,8 @@ import { Symbols } from "./Symbols";
 export class ClientWidgetApi extends EventEmitter {
     public readonly transport: ITransport;
 
-    // contentLoadedActionSent is used to check that only one ContentLoaded request is send in the correct order.
-    // To enforce the correct order, the initial value is true and gets set to false after the Iframe load event.
-    // Only than ContentLoaded actions are allowed.
-    private contentLoadedActionSent = true;
+    // contentLoadedActionSent is used to check that only one ContentLoaded request is send.
+    private contentLoadedActionSent = false;
     private allowedCapabilities = new Set<Capability>();
     private allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
