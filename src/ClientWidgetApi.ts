@@ -90,8 +90,10 @@ import { Symbols } from "./Symbols";
 export class ClientWidgetApi extends EventEmitter {
     public readonly transport: ITransport;
 
-    // It needs to be checked that for each IframeLoad onle one ContentLoaded request is send!
-    private ContentLoadedActionSent = false;
+    // contentLoadedActionSent is used to check that only one ContentLoaded request is send in the correct order.
+    // To enforce the correct order, the initial value is true and gets set to false after the Iframe load event.
+    // Only than ContentLoaded actions are allowed.
+    private contentLoadedActionSent = true;
     private allowedCapabilities = new Set<Capability>();
     private allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
@@ -203,28 +205,27 @@ export class ClientWidgetApi extends EventEmitter {
         } else {
             // Reaching this means, that the Iframe got reloaded/loaded and
             // the clientApi is awaiting the FIRST ContentLoaded action.
-            this.ContentLoadedActionSent = false;
+            this.contentLoadedActionSent = false;
         }
     }
 
     private handleContentLoadedAction(action: IContentLoadedActionRequest) {
-        if (this.ContentLoadedActionSent) {
-            throw new Error(`ContentLoaded Action can only be sent once after the widget loaded 
-            and should only be used if waitForIFrame is false (default=true)`);
+        if (this.contentLoadedActionSent) {
+            throw new Error("Improper sequence: ContentLoaded Action can only be send once after the widget loaded "
+                            +"and should only be used if waitForIframeLoad is false (default=true)");
         }
-        this.ContentLoadedActionSent = true;
-
         if (this.widget.waitForIframeLoad) {
             this.transport.reply(action, <IWidgetApiErrorResponseData>{
                 error: {
-                    message: `Improper sequence: not expecting ContentLoaded event if 
-                    waitForIframLoad is true (default=true)`,
+                    message: "Improper sequence: not expecting ContentLoaded event if "
+                    +"waitForIframLoad is true (default=true)",
                 },
             });
         } else {
             this.transport.reply(action, <IWidgetApiRequestEmptyData>{});
             this.beginCapabilities();
         }
+        this.contentLoadedActionSent = true;
     }
 
     private replyVersions(request: ISupportedVersionsActionRequest) {
