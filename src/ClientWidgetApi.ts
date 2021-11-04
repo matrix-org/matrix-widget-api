@@ -90,7 +90,8 @@ import { Symbols } from "./Symbols";
 export class ClientWidgetApi extends EventEmitter {
     public readonly transport: ITransport;
 
-    private capabilitiesFinished = false;
+    // contentLoadedActionSent is used to check that only one ContentLoaded request is send.
+    private contentLoadedActionSent = false;
     private allowedCapabilities = new Set<Capability>();
     private allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
@@ -127,9 +128,7 @@ export class ClientWidgetApi extends EventEmitter {
         this.transport.targetOrigin = widget.origin;
         this.transport.on("message", this.handleMessage.bind(this));
 
-        if (widget.waitForIframeLoad) {
-            iframe.addEventListener("load", this.onIframeLoad.bind(this));
-        }
+        iframe.addEventListener("load", this.onIframeLoad.bind(this));
 
         this.transport.start();
     }
@@ -168,18 +167,7 @@ export class ClientWidgetApi extends EventEmitter {
         this.transport.stop();
     }
 
-    private onIframeLoad(ev: Event) {
-        this.beginCapabilities();
-
-        // We don't need the listener anymore
-        this.iframe.removeEventListener("onload", this.onIframeLoad.bind(this));
-    }
-
     private beginCapabilities() {
-        if (this.capabilitiesFinished) {
-            throw new Error("Capabilities exchange already completed");
-        }
-
         // widget has loaded - tell all the listeners that
         this.emit("preparing");
 
@@ -193,7 +181,6 @@ export class ClientWidgetApi extends EventEmitter {
             console.log(`Widget ${this.widget.id} is allowed capabilities:`, Array.from(allowedCaps));
             this.allowedCapabilities = allowedCaps;
             this.allowedEvents = WidgetEventCapability.findEventCapabilities(allowedCaps);
-            this.capabilitiesFinished = true;
             this.notifyCapabilities(requestedCaps);
             this.emit("ready");
         });
@@ -210,17 +197,35 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
+    private onIframeLoad(ev: Event) {
+        if (this.widget.waitForIframeLoad) {
+            // If the widget is set to waitForIframeLoad the capabilities immediatly get setup after load.
+            // The client does not wait for the ContentLoaded action.
+            this.beginCapabilities();
+        } else {
+            // Reaching this means, that the Iframe got reloaded/loaded and
+            // the clientApi is awaiting the FIRST ContentLoaded action.
+            this.contentLoadedActionSent = false;
+        }
+    }
+
     private handleContentLoadedAction(action: IContentLoadedActionRequest) {
+        if (this.contentLoadedActionSent) {
+            throw new Error("Improper sequence: ContentLoaded Action can only be send once after the widget loaded "
+                            +"and should only be used if waitForIframeLoad is false (default=true)");
+        }
         if (this.widget.waitForIframeLoad) {
             this.transport.reply(action, <IWidgetApiErrorResponseData>{
                 error: {
-                    message: "Improper sequence: not expecting load event",
+                    message: "Improper sequence: not expecting ContentLoaded event if "
+                    +"waitForIframLoad is true (default=true)",
                 },
             });
         } else {
             this.transport.reply(action, <IWidgetApiRequestEmptyData>{});
             this.beginCapabilities();
         }
+        this.contentLoadedActionSent = true;
     }
 
     private replyVersions(request: ISupportedVersionsActionRequest) {
