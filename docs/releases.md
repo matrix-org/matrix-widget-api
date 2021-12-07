@@ -30,6 +30,6 @@ Now, for the consumer update steps:
 
 *Note on why the lockfile version is important*: Dependency resolution works in very strange ways when two versions seemingly
 collide, particularly during release builds. Development environments are rarely affected by the conflict, however the inner
-workings of depdency resolution can cause webpack to bundle two copies of the widget-api: one which works, and one that doesn't.
+workings of dependency resolution can cause webpack to bundle two copies of the widget-api: one which works, and one that doesn't.
 Depending on the conditions, the code path which gets the "wrong" version changes. Typically, the Jitsi widget will receive a
 different version of the widget-api from the code which involves the react-sdk.
