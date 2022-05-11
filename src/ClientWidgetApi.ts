@@ -73,6 +73,7 @@ import {
     IUpdateTurnServersRequestData,
 } from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
+import { ICreateRoomFromWidgetActionRequest, ICreateRoomFromWidgetResponseData } from "./interfaces/CreateRoomAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -564,6 +565,26 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async handleCreateRoom(request: ICreateRoomFromWidgetActionRequest) {
+        if (!this.hasCapability(MatrixCapabilities.MSC3817CreateRoom)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const { roomId } = await this.driver.createRoom(request.data);
+            return this.transport.reply<ICreateRoomFromWidgetResponseData>(request, {
+                room_id: roomId,
+            });
+        } catch (e) {
+            console.error("Failed to create a room: ", e);
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Error creating a room" },
+            });
+        }
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -593,6 +614,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleWatchTurnServers(<IWatchTurnServersRequest>ev.detail);
                 case WidgetApiFromWidgetAction.UnwatchTurnServers:
                     return this.handleUnwatchTurnServers(<IUnwatchTurnServersRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC3817CreateRoom:
+                    return this.handleCreateRoom(<ICreateRoomFromWidgetActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {

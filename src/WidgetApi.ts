@@ -64,6 +64,8 @@ import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } fro
 import { IRoomEvent } from "./interfaces/IRoomEvent";
 import { ITurnServer, IUpdateTurnServersRequest } from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
+import { ICreateRoomFromWidgetRequestData, ICreateRoomFromWidgetResponseData } from "./interfaces/CreateRoomAction";
+import { ICreateRoom } from "./interfaces/ICreateRoom";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -548,6 +550,19 @@ export class WidgetApi extends EventEmitter {
                 this.supportsMSC2974Renegotiate = true;
             }
         });
+    }
+
+    /**
+     * Create a new matrix room
+     * @param {ICreateRoom} opts The properties of the created room.
+     * @returns {Promise<ICreateRoomFromWidgetResponseData>} Information about the newly created room.
+     * @deprecated This currently relies on an unstable MSC (MSC3817).
+     */
+    public createRoom(opts: ICreateRoom): Promise<ICreateRoomFromWidgetResponseData> {
+        return this.transport.send<ICreateRoomFromWidgetRequestData, ICreateRoomFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC3817CreateRoom,
+            { ...opts },
+        );
     }
 
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {

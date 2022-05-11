@@ -15,6 +15,7 @@
  */
 
 import { Capability, IOpenIDCredentials, OpenIDRequestState, SimpleObservable, IRoomEvent, ITurnServer } from "..";
+import { ICreateRoom } from "../interfaces/ICreateRoom";
 
 export interface ISendEventDetails {
     roomId: string;
@@ -138,6 +139,17 @@ export abstract class WidgetDriver {
         roomIds: string[] = null,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
+    }
+
+
+    /**
+     * Creates a new room with the given option. The widget API will have already
+     * verified that the widget is capable of performing this action.
+     * @param opts The properties of the created room.
+     * @returns Information about the created room.
+     */
+    public createRoom(opts: ICreateRoom): Promise<{ roomId: string }> {
+        return Promise.reject(new Error("Failed to override function"));
     }
 
     /**

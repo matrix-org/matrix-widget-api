@@ -24,6 +24,7 @@ export * from "./transport/ITransport";
 export * from "./transport/PostmessageTransport";
 
 // Interfaces and simple models
+export * from "./interfaces/ICreateRoom";
 export * from "./interfaces/ICustomWidgetData";
 export * from "./interfaces/IJitsiWidgetData";
 export * from "./interfaces/IStickerpickerWidgetData";
