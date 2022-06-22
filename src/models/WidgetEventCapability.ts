@@ -91,7 +91,7 @@ export class WidgetEventCapability {
     public static forToDeviceEvent(direction: EventDirection, eventType: string): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
         // https://github.com/matrix-org/matrix-widget-api/issues/56
-        const str = `org.matrix.msc3189.${direction}.to_device:${eventType}`;
+        const str = `org.matrix.msc3819.${direction}.to_device:${eventType}`;
 
         // cheat by sending it through the processor
         return WidgetEventCapability.findEventCapabilities([str])[0];
