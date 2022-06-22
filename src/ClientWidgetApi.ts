@@ -49,6 +49,11 @@ import {
     ISendEventFromWidgetResponseData,
     ISendEventToWidgetRequestData,
 } from "./interfaces/SendEventAction";
+import {
+    ISendToDeviceFromWidgetActionRequest,
+    ISendToDeviceFromWidgetResponseData,
+    ISendToDeviceToWidgetRequestData,
+} from "./interfaces/SendToDeviceAction";
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
 import {
@@ -143,23 +148,27 @@ export class ClientWidgetApi extends EventEmitter {
     }
 
     public canSendRoomEvent(eventType: string, msgtype: string = null): boolean {
-        return this.allowedEvents.some(e =>
-            e.matchesAsRoomEvent(eventType, msgtype) && e.direction === EventDirection.Send);
+        return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Send, eventType, msgtype));
     }
 
     public canSendStateEvent(eventType: string, stateKey: string): boolean {
-        return this.allowedEvents.some(e =>
-            e.matchesAsStateEvent(eventType, stateKey) && e.direction === EventDirection.Send);
+        return this.allowedEvents.some(e => e.matchesAsStateEvent(EventDirection.Send, eventType, stateKey));
+    }
+
+    public canSendToDeviceEvent(eventType: string): boolean {
+        return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Send, eventType));
     }
 
     public canReceiveRoomEvent(eventType: string, msgtype: string = null): boolean {
-        return this.allowedEvents.some(e =>
-            e.matchesAsRoomEvent(eventType, msgtype) && e.direction === EventDirection.Receive);
+        return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Receive, eventType, msgtype));
     }
 
     public canReceiveStateEvent(eventType: string, stateKey: string): boolean {
-        return this.allowedEvents.some(e =>
-            e.matchesAsStateEvent(eventType, stateKey) && e.direction === EventDirection.Receive);
+        return this.allowedEvents.some(e => e.matchesAsStateEvent(EventDirection.Receive, eventType, stateKey));
+    }
+
+    public canReceiveToDeviceEvent(eventType: string): boolean {
+        return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Receive, eventType));
     }
 
     public stop() {
@@ -453,6 +462,32 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
+    private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {
+        if (!request.data.type) {
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - missing event type"},
+            });
+        } else if (!request.data.messages) {
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - missing event contents"},
+            });
+        } else if (!this.canSendToDeviceEvent(request.data.type)) {
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Cannot send to-device events of this type"},
+            });
+        } else {
+            try {
+                await this.driver.sendToDevice(request.data.type, request.data.messages);
+                await this.transport.reply<ISendToDeviceFromWidgetResponseData>(request, {});
+            } catch (e) {
+                console.error("error sending to-device event", e);
+                await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Error sending event"},
+                });
+            }
+        }
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -468,6 +503,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.SendEvent:
                     return this.handleSendEvent(<ISendEventFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.SendToDevice:
+                    return this.handleSendToDevice(<ISendToDeviceFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.GetOpenIDCredentials:
                     return this.handleOIDC(<IGetOpenIDActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC2931Navigate:
@@ -531,27 +568,43 @@ export class ClientWidgetApi extends EventEmitter {
      * Not the room ID of the event.
      * @returns {Promise<void>} Resolves when complete, rejects if there was an error sending.
      */
-    public feedEvent(rawEvent: IRoomEvent, currentViewedRoomId: string): Promise<void> {
+    public async feedEvent(rawEvent: IRoomEvent, currentViewedRoomId: string): Promise<void> {
         if (rawEvent.room_id !== currentViewedRoomId && !this.canUseRoomTimeline(rawEvent.room_id)) {
-            return Promise.resolve(); // no-op
+            return; // no-op
         }
 
         if (rawEvent.state_key !== undefined && rawEvent.state_key !== null) {
             // state event
             if (!this.canReceiveStateEvent(rawEvent.type, rawEvent.state_key)) {
-                return Promise.resolve(); // no-op
+                return; // no-op
             }
         } else {
             // message event
-            if (!this.canReceiveRoomEvent(rawEvent.type, (rawEvent.content || {})['msgtype'])) {
-                return Promise.resolve(); // no-op
+            if (!this.canReceiveRoomEvent(rawEvent.type, rawEvent.content?.["msgtype"])) {
+                return; // no-op
             }
         }
 
         // Feed the event into the widget
-        return this.transport.send<ISendEventToWidgetRequestData>(
+        await this.transport.send<ISendEventToWidgetRequestData>(
             WidgetApiToWidgetAction.SendEvent,
             rawEvent as ISendEventToWidgetRequestData, // it's compatible, but missing the index signature
-        ).then();
+        );
+    }
+
+    /**
+     * Feeds a to-device event to the widget. If the widget is not able to accept the
+     * event due to permissions, this will no-op and return calmly. If the widget failed
+     * to handle the event, this will raise an error.
+     * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
+     * @returns {Promise<void>} Resolves when complete, rejects if there was an error sending.
+     */
+    public async feedToDevice(rawEvent: IRoomEvent): Promise<void> {
+        if (this.canReceiveToDeviceEvent(rawEvent.type)) {
+            await this.transport.send<ISendToDeviceToWidgetRequestData>(
+                WidgetApiToWidgetAction.SendToDevice,
+                rawEvent as ISendToDeviceToWidgetRequestData, // it's compatible, but missing the index signature
+            );
+        }
     }
 }

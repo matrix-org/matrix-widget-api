@@ -76,6 +76,21 @@ export abstract class WidgetDriver {
     }
 
     /**
+     * Sends a to-device event. The widget API will have already verified that the widget
+     * is capable of sending the event.
+     * @param {string} eventType The event type to be sent.
+     * @param {Object} contentMap A map from user ID and device ID to event content.
+     * @returns {Promise<void>} Resolves when the event has been sent.
+     * @throws Rejected when the event could not be sent.
+     */
+    public sendToDevice(
+        eventType: string,
+        contentMap: { [userId: string]: { [deviceId: string]: unknown } },
+    ): Promise<void> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
      * Reads all events of the given type, and optionally `msgtype` (if applicable/defined),
      * the user has access to. The widget API will have already verified that the widget is
      * capable of receiving the events. Less events than the limit are allowed to be returned,
