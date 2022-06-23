@@ -363,11 +363,14 @@ export class WidgetApi extends EventEmitter {
 
     public readRoomEvents(
         eventType: string,
-        limit = 25,
+        limit?: number,
         msgtype?: string,
         roomIds?: (string | Symbols.AnyRoom)[],
     ): Promise<unknown> {
-        const data: IReadEventFromWidgetRequestData = {type: eventType, msgtype: msgtype, limit};
+        const data: IReadEventFromWidgetRequestData = {type: eventType, msgtype: msgtype};
+        if (limit !== undefined) {
+            data.limit = limit;
+        }
         if (roomIds) {
             if (roomIds.includes(Symbols.AnyRoom)) {
                 data.room_ids = Symbols.AnyRoom;
@@ -383,15 +386,17 @@ export class WidgetApi extends EventEmitter {
 
     public readStateEvents(
         eventType: string,
-        limit = 25,
+        limit?: number,
         stateKey?: string,
         roomIds?: (string | Symbols.AnyRoom)[],
     ): Promise<unknown> {
         const data: IReadEventFromWidgetRequestData = {
             type: eventType,
             state_key: stateKey === undefined ? true : stateKey,
-            limit,
         };
+        if (limit !== undefined) {
+            data.limit = limit;
+        }
         if (roomIds) {
             if (roomIds.includes(Symbols.AnyRoom)) {
                 data.room_ids = Symbols.AnyRoom;
