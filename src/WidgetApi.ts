@@ -56,6 +56,7 @@ import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } fro
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
+import { IRoomEvent } from "./interfaces/IRoomEvent";
 import { Symbols } from "./Symbols";
 
 /**
@@ -366,7 +367,7 @@ export class WidgetApi extends EventEmitter {
         limit?: number,
         msgtype?: string,
         roomIds?: (string | Symbols.AnyRoom)[],
-    ): Promise<unknown> {
+    ): Promise<IRoomEvent[]> {
         const data: IReadEventFromWidgetRequestData = {type: eventType, msgtype: msgtype};
         if (limit !== undefined) {
             data.limit = limit;
@@ -389,7 +390,7 @@ export class WidgetApi extends EventEmitter {
         limit?: number,
         stateKey?: string,
         roomIds?: (string | Symbols.AnyRoom)[],
-    ): Promise<unknown> {
+    ): Promise<IRoomEvent[]> {
         const data: IReadEventFromWidgetRequestData = {
             type: eventType,
             state_key: stateKey === undefined ? true : stateKey,
