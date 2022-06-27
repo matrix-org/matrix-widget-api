@@ -84,16 +84,17 @@ export abstract class WidgetDriver {
      * room the user is currently looking at should be considered.
      * @param eventType The event type to be read.
      * @param msgtype The msgtype of the events to be read, if applicable/defined.
+     * @param limit The maximum number of events to retrieve per room. Will be zero to denote "as many
+     * as possible".
      * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
-     * @param limit A maximum number of events to retrieve per room.
      * @returns {Promise<*[]>} Resolves to the room events, or an empty array.
      */
     public readRoomEvents(
         eventType: string,
         msgtype: string | undefined,
+        limit: number,
         roomIds: string[] = null,
-        limit?: number,
     ): Promise<unknown[]> {
         return Promise.resolve([]);
     }
@@ -107,7 +108,8 @@ export abstract class WidgetDriver {
      * room the user is currently looking at should be considered.
      * @param eventType The event type to be read.
      * @param stateKey The state key of the events to be read, if applicable/defined.
-     * @param limit A maximum number of events to retrieve.
+     * @param limit The maximum number of events to retrieve. Will be zero to denote "as many
+     * as possible".
      * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<*[]>} Resolves to the state events, or an empty array.
@@ -115,8 +117,8 @@ export abstract class WidgetDriver {
     public readStateEvents(
         eventType: string,
         stateKey: string | undefined,
+        limit: number,
         roomIds: string[] = null,
-        limit?: number,
     ): Promise<unknown[]> {
         return Promise.resolve([]);
     }

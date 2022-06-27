@@ -372,6 +372,8 @@ export class ClientWidgetApi extends EventEmitter {
             }
         }
 
+        const limit = request.data.limit || 0;
+
         let events: Promise<unknown[]> = Promise.resolve([]);
         if (request.data.state_key !== undefined) {
             const stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
@@ -380,16 +382,14 @@ export class ClientWidgetApi extends EventEmitter {
                     error: {message: "Cannot read state events of this type"},
                 });
             }
-            events = this.driver.readStateEvents(request.data.type, stateKey, askRoomIds, request.data.limit);
+            events = this.driver.readStateEvents(request.data.type, stateKey, limit, askRoomIds);
         } else {
             if (!this.canReceiveRoomEvent(request.data.type, request.data.msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot read room events of this type"},
                 });
             }
-            events = this.driver.readRoomEvents(
-                request.data.type, request.data.msgtype, askRoomIds, request.data.limit,
-            );
+            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit, askRoomIds);
         }
 
         return events.then(evs => this.transport.reply<IReadEventFromWidgetResponseData>(request, {events: evs}));
