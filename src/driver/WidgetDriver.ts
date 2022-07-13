@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Capability, IOpenIDCredentials, OpenIDRequestState, SimpleObservable } from "..";
+import { Capability, IOpenIDCredentials, OpenIDRequestState, SimpleObservable, IRoomEvent } from "..";
 
 export interface ISendEventDetails {
     roomId: string;
@@ -103,14 +103,14 @@ export abstract class WidgetDriver {
      * as possible".
      * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
-     * @returns {Promise<*[]>} Resolves to the room events, or an empty array.
+     * @returns {Promise<IRoomEvent[]>} Resolves to the room events, or an empty array.
      */
     public readRoomEvents(
         eventType: string,
         msgtype: string | undefined,
         limit: number,
         roomIds: string[] = null,
-    ): Promise<unknown[]> {
+    ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
 
@@ -127,14 +127,14 @@ export abstract class WidgetDriver {
      * as possible".
      * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
-     * @returns {Promise<*[]>} Resolves to the state events, or an empty array.
+     * @returns {Promise<IRoomEvent[]>} Resolves to the state events, or an empty array.
      */
     public readStateEvents(
         eventType: string,
         stateKey: string | undefined,
         limit: number,
         roomIds: string[] = null,
-    ): Promise<unknown[]> {
+    ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
 

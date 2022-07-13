@@ -383,7 +383,7 @@ export class ClientWidgetApi extends EventEmitter {
 
         const limit = request.data.limit || 0;
 
-        let events: Promise<unknown[]> = Promise.resolve([]);
+        let events: Promise<IRoomEvent[]> = Promise.resolve([]);
         if (request.data.state_key !== undefined) {
             const stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
             if (!this.canReceiveStateEvent(request.data.type, stateKey)) {
