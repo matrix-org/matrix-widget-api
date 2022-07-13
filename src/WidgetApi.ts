@@ -53,6 +53,10 @@ import {
 } from "./interfaces/ModalWidgetActions";
 import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
 import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } from "./interfaces/SendEventAction";
+import {
+    ISendToDeviceFromWidgetRequestData,
+    ISendToDeviceFromWidgetResponseData,
+} from "./interfaces/SendToDeviceAction";
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
@@ -177,6 +181,26 @@ export class WidgetApi extends EventEmitter {
      */
     public requestCapabilityToReceiveState(eventType: string, stateKey?: string) {
         this.requestCapability(WidgetEventCapability.forStateEvent(EventDirection.Receive, eventType, stateKey).raw);
+    }
+
+    /**
+     * Requests the capability to send a given to-device event. It is not
+     * guaranteed to be allowed, but will be asked for if the negotiation has
+     * not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToSendToDevice(eventType: string) {
+        this.requestCapability(WidgetEventCapability.forToDeviceEvent(EventDirection.Send, eventType).raw);
+    }
+
+    /**
+     * Requests the capability to receive a given to-device event. It is not
+     * guaranteed to be allowed, but will be asked for if the negotiation has
+     * not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToReceiveToDevice(eventType: string) {
+        this.requestCapability(WidgetEventCapability.forToDeviceEvent(EventDirection.Receive, eventType).raw);
     }
 
     /**
@@ -359,6 +383,16 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
             {type: eventType, content, state_key: stateKey, room_id: roomId},
+        );
+    }
+
+    public sendToDevice(
+        eventType: string,
+        contentMap: { [userId: string]: { [deviceId: string]: unknown } },
+    ): Promise<ISendToDeviceFromWidgetResponseData> {
+        return this.transport.send<ISendToDeviceFromWidgetRequestData, ISendToDeviceFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.SendToDevice,
+            {type: eventType, messages: contentMap},
         );
     }
 

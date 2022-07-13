@@ -25,6 +25,7 @@ export enum WidgetApiToWidgetAction {
     CloseModalWidget = "close_modal",
     ButtonClicked = "button_clicked",
     SendEvent = "send_event",
+    SendToDevice = "send_to_device",
 }
 
 export enum WidgetApiFromWidgetAction {
@@ -37,6 +38,7 @@ export enum WidgetApiFromWidgetAction {
     OpenModalWidget = "open_modal",
     SetModalButtonEnabled = "set_button_enabled",
     SendEvent = "send_event",
+    SendToDevice = "send_to_device",
 
     /**
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
