@@ -26,6 +26,7 @@ export enum UnstableApiVersion {
     MSC2931 = "org.matrix.msc2931",
     MSC2974 = "org.matrix.msc2974",
     MSC2876 = "org.matrix.msc2876",
+    MSC3819 = "org.matrix.msc3819",
 }
 
 export type ApiVersion = MatrixApiVersion | UnstableApiVersion | string;
@@ -39,4 +40,5 @@ export const CurrentApiVersions: ApiVersion[] = [
     UnstableApiVersion.MSC2931,
     UnstableApiVersion.MSC2974,
     UnstableApiVersion.MSC2876,
+    UnstableApiVersion.MSC3819,
 ];
