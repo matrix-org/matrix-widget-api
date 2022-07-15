@@ -386,13 +386,21 @@ export class WidgetApi extends EventEmitter {
         );
     }
 
+    /**
+     * Sends a to-device event.
+     * @param {string} eventType The type of events being sent.
+     * @param {boolean} encrypt Whether to encrypt the message payloads.
+     * @param {Object} contentMap A map from user IDs to device IDs to message contents.
+     * @returns {Promise<ISendToDeviceFromWidgetResponseData>} Resolves when complete.
+     */
     public sendToDevice(
         eventType: string,
+        encrypt: boolean,
         contentMap: { [userId: string]: { [deviceId: string]: unknown } },
     ): Promise<ISendToDeviceFromWidgetResponseData> {
         return this.transport.send<ISendToDeviceFromWidgetRequestData, ISendToDeviceFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendToDevice,
-            {type: eventType, messages: contentMap},
+            {type: eventType, encrypt, messages: contentMap},
         );
     }
 
