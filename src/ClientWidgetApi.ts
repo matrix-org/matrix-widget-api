@@ -471,13 +471,17 @@ export class ClientWidgetApi extends EventEmitter {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing event contents"},
             });
+        } else if (typeof request.data.encrypted !== "boolean") {
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - missing encryption flag"},
+            });
         } else if (!this.canSendToDeviceEvent(request.data.type)) {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Cannot send to-device events of this type"},
             });
         } else {
             try {
-                await this.driver.sendToDevice(request.data.type, request.data.messages);
+                await this.driver.sendToDevice(request.data.type, request.data.encrypted, request.data.messages);
                 await this.transport.reply<ISendToDeviceFromWidgetResponseData>(request, {});
             } catch (e) {
                 console.error("error sending to-device event", e);
@@ -597,13 +601,15 @@ export class ClientWidgetApi extends EventEmitter {
      * event due to permissions, this will no-op and return calmly. If the widget failed
      * to handle the event, this will raise an error.
      * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
+     * @param {boolean} encrypted Whether the event contents were encrypted.
      * @returns {Promise<void>} Resolves when complete, rejects if there was an error sending.
      */
-    public async feedToDevice(rawEvent: IRoomEvent): Promise<void> {
+    public async feedToDevice(rawEvent: IRoomEvent, encrypted: boolean): Promise<void> {
         if (this.canReceiveToDeviceEvent(rawEvent.type)) {
             await this.transport.send<ISendToDeviceToWidgetRequestData>(
                 WidgetApiToWidgetAction.SendToDevice,
-                rawEvent as ISendToDeviceToWidgetRequestData, // it's compatible, but missing the index signature
+                // it's compatible, but missing the index signature
+                { ...rawEvent, encrypted } as ISendToDeviceToWidgetRequestData,
             );
         }
     }

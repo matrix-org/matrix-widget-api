@@ -20,8 +20,9 @@ import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 import { IRoomEvent } from "./IRoomEvent";
 
 export interface ISendToDeviceFromWidgetRequestData extends IWidgetApiRequestData {
-    type: string,
-    messages: { [userId: string]: { [deviceId: string]: unknown } },
+    type: string;
+    encrypted: boolean;
+    messages: { [userId: string]: { [deviceId: string]: unknown } };
 }
 
 export interface ISendToDeviceFromWidgetActionRequest extends IWidgetApiRequest {
@@ -38,6 +39,7 @@ export interface ISendToDeviceFromWidgetActionResponse extends ISendToDeviceFrom
 }
 
 export interface ISendToDeviceToWidgetRequestData extends IWidgetApiRequestData, IRoomEvent {
+    encrypted: boolean;
 }
 
 export interface ISendToDeviceToWidgetActionRequest extends IWidgetApiRequest {
