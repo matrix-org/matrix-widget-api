@@ -21,7 +21,7 @@ import { IRoomEvent } from "./IRoomEvent";
 
 export interface ISendToDeviceFromWidgetRequestData extends IWidgetApiRequestData {
     type: string;
-    encrypt: boolean;
+    encrypted: boolean;
     messages: { [userId: string]: { [deviceId: string]: unknown } };
 }
 

@@ -471,7 +471,7 @@ export class ClientWidgetApi extends EventEmitter {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing event contents"},
             });
-        } else if (typeof request.data.encrypt !== "boolean") {
+        } else if (typeof request.data.encrypted !== "boolean") {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing encryption flag"},
             });
@@ -481,7 +481,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         } else {
             try {
-                await this.driver.sendToDevice(request.data.type, request.data.encrypt, request.data.messages);
+                await this.driver.sendToDevice(request.data.type, request.data.encrypted, request.data.messages);
                 await this.transport.reply<ISendToDeviceFromWidgetResponseData>(request, {});
             } catch (e) {
                 console.error("error sending to-device event", e);
