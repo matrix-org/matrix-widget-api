@@ -10,7 +10,12 @@ For help and support, visit [#matrix-widgets:matrix.org](https://matrix.to/#/#ma
 
 ## Building
 
-To transpile this project to JavaScript, run `yarn build`.
+To transpile this project to JavaScript, run:
+
+```
+yarn install
+yarn build
+```
 
 ## Using the API without a bundler
 
