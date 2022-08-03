@@ -399,7 +399,7 @@ export class WidgetApi extends EventEmitter {
     public sendToDevice(
         eventType: string,
         encrypted: boolean,
-        contentMap: { [userId: string]: { [deviceId: string]: unknown } },
+        contentMap: { [userId: string]: { [deviceId: string]: object } },
     ): Promise<ISendToDeviceFromWidgetResponseData> {
         return this.transport.send<ISendToDeviceFromWidgetRequestData, ISendToDeviceFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendToDevice,
