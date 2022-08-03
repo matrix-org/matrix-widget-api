@@ -66,6 +66,12 @@ import { SimpleObservable } from "./util/SimpleObservable";
 import { IOpenIDCredentialsActionRequestData } from "./interfaces/OpenIDCredentialsAction";
 import { INavigateActionRequest } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetActionRequest, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
+import {
+    ITurnServer,
+    IWatchTurnServersRequest,
+    IUnwatchTurnServersRequest,
+    IUpdateTurnServersRequestData,
+} from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
 
 /**
@@ -100,6 +106,7 @@ export class ClientWidgetApi extends EventEmitter {
     private allowedCapabilities = new Set<Capability>();
     private allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
+    private turnServers: AsyncGenerator<ITurnServer> | null = null;
 
     /**
      * Creates a new client widget API. This will instantiate the transport
@@ -492,6 +499,71 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async pollTurnServers(turnServers: AsyncGenerator<ITurnServer>, initialServer: ITurnServer) {
+        try {
+            await this.transport.send<IUpdateTurnServersRequestData>(
+                WidgetApiToWidgetAction.UpdateTurnServers,
+                initialServer as IUpdateTurnServersRequestData, // it's compatible, but missing the index signature
+            );
+
+            // Pick the generator up where we left off
+            for await (const server of turnServers) {
+                await this.transport.send<IUpdateTurnServersRequestData>(
+                    WidgetApiToWidgetAction.UpdateTurnServers,
+                    server as IUpdateTurnServersRequestData, // it's compatible, but missing the index signature
+                );
+            }
+        } catch (e) {
+            console.error("error polling for TURN servers", e);
+        }
+    }
+
+    private async handleWatchTurnServers(request: IWatchTurnServersRequest): Promise<void> {
+        if (!this.hasCapability(MatrixCapabilities.MSC3846TurnServers)) {
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Missing capability"},
+            });
+        } else if (this.turnServers) {
+            // We're already polling, so this is a no-op
+            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+        } else {
+            try {
+                const turnServers = this.driver.getTurnServers();
+
+                // Peek at the first result, so we can at least verify that the
+                // client isn't banned from getting TURN servers entirely
+                const { done, value } = await turnServers.next();
+                if (done) throw new Error("Client refuses to provide any TURN servers");
+                await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+
+                // Start the poll loop, sending the widget the initial result
+                this.pollTurnServers(turnServers, value);
+                this.turnServers = turnServers;
+            } catch (e) {
+                console.error("error getting first TURN server results", e);
+                await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "TURN servers not available"},
+                });
+            }
+        }
+    }
+
+    private async handleUnwatchTurnServers(request: IUnwatchTurnServersRequest): Promise<void> {
+        if (!this.hasCapability(MatrixCapabilities.MSC3846TurnServers)) {
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Missing capability"},
+            });
+        } else if (!this.turnServers) {
+            // We weren't polling anyways, so this is a no-op
+            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+        } else {
+            // Stop the generator, allowing it to clean up
+            await this.turnServers.return(undefined);
+            this.turnServers = null;
+            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+        }
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -517,6 +589,10 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleCapabilitiesRenegotiate(<IRenegotiateCapabilitiesActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC2876ReadEvents:
                     return this.handleReadEvents(<IReadEventFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.WatchTurnServers:
+                    return this.handleWatchTurnServers(<IWatchTurnServersRequest>ev.detail);
+                case WidgetApiFromWidgetAction.UnwatchTurnServers:
+                    return this.handleUnwatchTurnServers(<IUnwatchTurnServersRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {

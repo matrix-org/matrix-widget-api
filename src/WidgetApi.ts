@@ -17,6 +17,7 @@
 import { EventEmitter } from "events";
 import { Capability } from "./interfaces/Capabilities";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
+import { IWidgetApiAcknowledgeResponseData } from "./interfaces/IWidgetApiResponse";
 import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
 import {
     ISupportedVersionsActionRequest,
@@ -61,6 +62,7 @@ import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapab
 import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
+import { ITurnServer, IUpdateTurnServersRequest } from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
 
 /**
@@ -88,6 +90,7 @@ export class WidgetApi extends EventEmitter {
     private requestedCapabilities: Capability[] = [];
     private approvedCapabilities: Capability[];
     private cachedClientVersions: ApiVersion[];
+    private turnServerWatchers = 0;
 
     /**
      * Creates a new API handler for the given widget.
@@ -485,6 +488,53 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<INavigateActionRequestData>(
             WidgetApiFromWidgetAction.MSC2931Navigate, {uri},
         ).then();
+    }
+
+    /**
+     * Starts watching for TURN servers, yielding an initial set of credentials as soon as possible,
+     * and thereafter yielding new credentials whenever the previous ones expire.
+     * @yields {ITurnServer} The TURN server URIs and credentials currently available to the widget.
+     */
+    public async* getTurnServers(): AsyncGenerator<ITurnServer> {
+        let setTurnServer: (server: ITurnServer) => void;
+
+        const onUpdateTurnServers = async (ev: CustomEvent<IUpdateTurnServersRequest>) => {
+            ev.preventDefault();
+            setTurnServer(ev.detail.data);
+            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
+        };
+
+        // Start listening for updates before we even start watching, to catch
+        // TURN data that is sent immediately
+        this.on(`action:${WidgetApiToWidgetAction.UpdateTurnServers}`, onUpdateTurnServers);
+
+        // Only send the 'watch' action if we aren't already watching
+        if (this.turnServerWatchers === 0) {
+            try {
+                await this.transport.send<IWidgetApiRequestEmptyData>(WidgetApiFromWidgetAction.WatchTurnServers, {});
+            } catch (e) {
+                this.off(`action:${WidgetApiToWidgetAction.UpdateTurnServers}`, onUpdateTurnServers);
+                throw e;
+            }
+        }
+        this.turnServerWatchers++;
+
+        try {
+            // Watch for new data indefinitely (until this generator's return method is called)
+            while (true) {
+                yield await new Promise<ITurnServer>(resolve => setTurnServer = resolve);
+            }
+        } finally {
+            // The loop was broken by the caller - clean up
+            this.off(`action:${WidgetApiToWidgetAction.UpdateTurnServers}`, onUpdateTurnServers);
+
+            // Since sending the 'unwatch' action will end updates for all other
+            // consumers, only send it if we're the only consumer remaining
+            this.turnServerWatchers--;
+            if (this.turnServerWatchers === 0) {
+                await this.transport.send<IWidgetApiRequestEmptyData>(WidgetApiFromWidgetAction.UnwatchTurnServers, {});
+            }
+        }
     }
 
     /**

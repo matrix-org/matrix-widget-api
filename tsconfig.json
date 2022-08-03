@@ -10,7 +10,11 @@
     "sourceMap": true,
     "outDir": "./lib",
     "declaration": true,
-    "types": []
+    "types": [],
+    "lib": [
+      "es2020",
+      "dom"
+    ]
   },
   "include": [
     "./src/**/*.ts"

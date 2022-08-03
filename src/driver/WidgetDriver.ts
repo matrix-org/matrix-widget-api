@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Capability, IOpenIDCredentials, OpenIDRequestState, SimpleObservable, IRoomEvent } from "..";
+import { Capability, IOpenIDCredentials, OpenIDRequestState, SimpleObservable, IRoomEvent, ITurnServer } from "..";
 
 export interface ISendEventDetails {
     roomId: string;
@@ -168,5 +168,15 @@ export abstract class WidgetDriver {
      */
     public navigate(uri: string): Promise<void> {
         throw new Error("Navigation is not implemented");
+    }
+
+    /**
+     * Polls for TURN server data, yielding an initial set of credentials as soon as possible, and
+     * thereafter yielding new credentials whenever the previous ones expire. The widget API will
+     * have already verified that the widget has permission to access TURN servers.
+     * @yields {ITurnServer} The TURN server URIs and credentials currently available to the client.
+     */
+    public getTurnServers(): AsyncGenerator<ITurnServer> {
+        throw new Error("TURN server support is not implemented");
     }
 }

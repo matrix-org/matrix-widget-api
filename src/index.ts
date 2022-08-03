@@ -55,6 +55,7 @@ export * from "./interfaces/SendToDeviceAction";
 export * from "./interfaces/ReadEventAction";
 export * from "./interfaces/IRoomEvent";
 export * from "./interfaces/NavigateAction";
+export * from "./interfaces/TurnServerActions";
 
 // Complex models
 export * from "./models/WidgetEventCapability";
