@@ -87,7 +87,7 @@ export abstract class WidgetDriver {
     public sendToDevice(
         eventType: string,
         encrypted: boolean,
-        contentMap: { [userId: string]: { [deviceId: string]: unknown } },
+        contentMap: { [userId: string]: { [deviceId: string]: object } },
     ): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
     }
