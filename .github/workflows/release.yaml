@@ -12,6 +12,8 @@ on:
           - minor
           - major
 concurrency: release
+permissions:
+  contents: write
 jobs:
   release:
     name: "Release & Publish"
