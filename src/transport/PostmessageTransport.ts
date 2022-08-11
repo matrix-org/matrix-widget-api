@@ -33,7 +33,6 @@ interface IOutboundRequest {
     request: IWidgetApiRequest;
     resolve: (response: IWidgetApiResponse) => void;
     reject: (err: Error) => void;
-    timerId: number;
 }
 
 /**
@@ -47,7 +46,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     private _ready = false;
     private _widgetId = null;
     private outboundRequests = new Map<string, IOutboundRequest>();
-    private isStopped = false;
+    private stopController = new AbortController();
 
     public get ready(): boolean {
         return this._ready;
@@ -118,15 +117,31 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
             // TODO: Fix scalar
             request['visible'] = data['visible'];
         }
-        return new Promise<R>((prResolve, reject) => {
-            const timerId = setTimeout(() => {
-                const req = this.outboundRequests.get(request.requestId);
-                if (!req) return; // it finished!
+        return new Promise<R>((prResolve, prReject) => {
+            const resolve = (response: IWidgetApiResponse) => {
+                cleanUp();
+                prResolve(<R>response);
+            };
+            const reject = (err: Error) => {
+                cleanUp();
+                prReject(err);
+            };
+
+            const timerId = setTimeout(
+                () => reject(new Error("Request timed out")),
+                (this.timeoutSeconds || 1) * 1000,
+            );
+
+            const onStop = () => reject(new Error("Transport stopped"));
+            this.stopController.signal.addEventListener("abort", onStop);
+
+            const cleanUp = () => {
                 this.outboundRequests.delete(request.requestId);
-                req.reject(new Error("Request timed out"));
-            }, (this.timeoutSeconds || 1) * 1000);
-            const resolve = (r: IWidgetApiResponse) => prResolve(<R>r);
-            this.outboundRequests.set(request.requestId, {request, resolve, reject, timerId});
+                clearTimeout(timerId);
+                this.stopController.signal.removeEventListener("abort", onStop);
+            };
+
+            this.outboundRequests.set(request.requestId, { request, resolve, reject });
             this.sendInternal(request);
         });
     }
@@ -140,11 +155,11 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
 
     public stop() {
         this._ready = false;
-        this.isStopped = true;
+        this.stopController.abort();
     }
 
     private handleMessage(ev: MessageEvent) {
-        if (this.isStopped) return;
+        if (this.stopController.signal.aborted) return;
         if (!ev.data) return; // invalid event
 
         if (this.strictOriginCheck && ev.origin !== window.origin) return; // bad origin
@@ -181,8 +196,6 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         const req = this.outboundRequests.get(response.requestId);
         if (!req) return; // response to an unknown request
 
-        this.outboundRequests.delete(response.requestId);
-        clearTimeout(req.timerId);
         if (isErrorResponse(response.response)) {
             const err = <IWidgetApiErrorResponseData>response.response;
             req.reject(new Error(err.error.message));
