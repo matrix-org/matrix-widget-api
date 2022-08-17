@@ -10,7 +10,7 @@
     "sourceMap": true,
     "outDir": "./lib",
     "declaration": true,
-    "types": [],
+    "types": ["jest"],
     "lib": [
       "es2020",
       "dom"
