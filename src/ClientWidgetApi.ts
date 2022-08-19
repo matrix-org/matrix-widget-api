@@ -73,6 +73,10 @@ import {
     IUpdateTurnServersRequestData,
 } from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
+import {
+    IReadRelationsFromWidgetActionRequest,
+    IReadRelationsFromWidgetResponseData,
+} from "./interfaces/ReadRelationsAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -564,6 +568,67 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async handleReadRelations(request: IReadRelationsFromWidgetActionRequest) {
+        if (!request.data.event_id) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - missing event id" },
+            });
+        }
+
+        if (request.data.limit !== undefined && request.data.limit < 0) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - limit out of range" },
+            });
+        }
+
+        if (request.data.room_id !== undefined && !this.canUseRoomTimeline(request.data.room_id)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: `Unable to access room timeline: ${request.data.room_id}` },
+            });
+        }
+
+        const result = await this.driver.readEventRelations(
+            request.data.event_id, request.data.room_id, request.data.rel_type,
+            request.data.event_type, request.data.from, request.data.to,
+            request.data.limit, request.data.direction);
+
+        // check if the user is permitted to receive the event in question
+        if (result.originalEvent) {
+            if (result.originalEvent.state_key !== undefined) {
+                if (!this.canReceiveStateEvent(result.originalEvent.type, result.originalEvent.state_key)) {
+                    return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                        error: { message: "Cannot read state events of this type" },
+                    });
+                }
+            } else {
+                if (!this.canReceiveRoomEvent(result.originalEvent.type, result.originalEvent.content['msgtype'])) {
+                    return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                        error: { message: "Cannot read room events of this type" },
+                    });
+                }
+            }
+        }
+
+        // only return events that the user has the permission to receive
+        const chunk = result.chunk.filter(e => {
+            if (e.state_key !== undefined) {
+                return this.canReceiveStateEvent(e.type, e.state_key);
+            } else {
+                return this.canReceiveRoomEvent(e.type, e.content['msgtype']);
+            }
+        });
+
+        return this.transport.reply<IReadRelationsFromWidgetResponseData>(
+            request,
+            {
+                original_event: result.originalEvent,
+                chunk,
+                prev_batch: result.prevBatch,
+                next_batch: result.nextBatch,
+            },
+        );
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -593,6 +658,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleWatchTurnServers(<IWatchTurnServersRequest>ev.detail);
                 case WidgetApiFromWidgetAction.UnwatchTurnServers:
                     return this.handleUnwatchTurnServers(<IUnwatchTurnServersRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC3869ReadRelations:
+                    return this.handleReadRelations(<IReadRelationsFromWidgetActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
