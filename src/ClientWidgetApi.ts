@@ -571,7 +571,7 @@ export class ClientWidgetApi extends EventEmitter {
     private async handleReadRelations(request: IReadRelationsFromWidgetActionRequest) {
         if (!request.data.event_id) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Invalid request - missing event id" },
+                error: { message: "Invalid request - missing event ID" },
             });
         }
 

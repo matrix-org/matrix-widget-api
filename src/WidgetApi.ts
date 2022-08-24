@@ -453,7 +453,7 @@ export class WidgetApi extends EventEmitter {
      * @param direction The direction to search for according to MSC3715.
      * @returns Resolves to the room relations.
      */
-    public readEventRelations(
+    public async readEventRelations(
         eventId: string,
         roomId?: string,
         relationType?: string,
@@ -463,6 +463,11 @@ export class WidgetApi extends EventEmitter {
         to?: string,
         direction?: 'f' | 'b',
     ): Promise<IReadRelationsFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC3869)) {
+            throw new Error("The read_relations action is not supported by the client.")
+        }
+
         const data: IReadRelationsFromWidgetRequestData = {
             event_id: eventId,
             rel_type: relationType,

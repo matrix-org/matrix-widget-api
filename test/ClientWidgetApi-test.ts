@@ -21,6 +21,7 @@ import { Capability } from '../src/interfaces/Capabilities';
 import { IRoomEvent } from '../src/interfaces/IRoomEvent';
 import { IWidgetApiRequest } from '../src/interfaces/IWidgetApiRequest';
 import { IReadRelationsFromWidgetActionRequest } from '../src/interfaces/ReadRelationsAction';
+import { ISupportedVersionsActionRequest } from '../src/interfaces/SupportedVersionsAction';
 import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
@@ -108,6 +109,24 @@ describe('ClientWidgetApi', () => {
     });
 
     describe('org.matrix.msc3869.read_relations action', () => {
+        it('should present as supported api version', () => {
+            const event: ISupportedVersionsActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SupportedApiVersions,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                supported_versions: expect.arrayContaining([
+                    'org.matrix.msc3869',
+                ]),
+            });
+        });
+
         it('should handle and process the request', async () => {
             driver.readEventRelations.mockResolvedValue({
                 originalEvent: createRoomEvent(),
@@ -238,7 +257,7 @@ describe('ClientWidgetApi', () => {
             emitEvent(new CustomEvent('', { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Invalid request - missing event id' },
+                error: { message: 'Invalid request - missing event ID' },
             });
         });
 

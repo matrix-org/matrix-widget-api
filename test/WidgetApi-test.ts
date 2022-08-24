@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { ISupportedVersionsActionResponseData } from '../src';
 import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import { WidgetApi } from '../src/WidgetApi';
@@ -27,8 +28,15 @@ describe('WidgetApi', () => {
         widgetApi = new WidgetApi()
     });
 
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
+
     describe('readEventRelations', () => {
         it('should forward the request to the ClientWidgetApi', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: ['org.matrix.msc3869'] } as ISupportedVersionsActionResponseData,
+            );
             jest.mocked(PostmessageTransport.prototype.send).mockResolvedValue(
                 {
                     original_event: undefined,
@@ -56,7 +64,24 @@ describe('WidgetApi', () => {
             });
         });
 
+        it('should reject the request if the api is not supported', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [] } as ISupportedVersionsActionResponseData,
+            );
+
+            await expect(widgetApi.readEventRelations(
+                '$event', '!room-id', 'm.reference', 'm.room.message', 25,
+                'from-token', 'to-token', 'f',
+            )).rejects.toThrow("The read_relations action is not supported by the client.");
+
+            expect(PostmessageTransport.prototype.send)
+                .not.toBeCalledWith("org.matrix.msc3869.read_relations", expect.anything());
+        });
+
         it('should handle an error', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: ['org.matrix.msc3869'] } as ISupportedVersionsActionResponseData,
+            );
             jest.mocked(PostmessageTransport.prototype.send).mockRejectedValue(
                 new Error('An error occurred'),
             );
