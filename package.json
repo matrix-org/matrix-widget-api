@@ -58,9 +58,6 @@
     "testEnvironment": "jsdom",
     "testMatch": [
       "<rootDir>/test/**/*-test.[jt]s?(x)"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/setupTests.js"
     ]
   }
 }
