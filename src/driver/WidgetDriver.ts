@@ -26,6 +26,13 @@ export interface IOpenIDUpdate {
     token?: IOpenIDCredentials;
 }
 
+export interface IReadEventRelationsResult {
+    originalEvent?: IRoomEvent;
+    chunk: IRoomEvent[];
+    nextBatch?: string;
+    prevBatch?: string;
+}
+
 /**
  * Represents the functions and behaviour the widget-api is unable to
  * do, such as prompting the user for information or interacting with
@@ -173,7 +180,7 @@ export abstract class WidgetDriver {
         to?: string,
         limit?: number,
         direction?: 'f' | 'b',
-    ): Promise<{originalEvent?: IRoomEvent; chunk: IRoomEvent[], nextBatch?: string, prevBatch?: string}> {
+    ): Promise<IReadEventRelationsResult> {
         return Promise.resolve({ chunk: [] });
     }
 
