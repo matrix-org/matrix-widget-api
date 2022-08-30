@@ -28,7 +28,7 @@ module.exports = {
         "no-async-promise-executor": "off",
     },
     overrides: [{
-        "files": ["src/**/*.ts"],
+        "files": ["src/**/*.ts", "test/**/*.ts"],
         "extends": ["matrix-org/ts"],
         "rules": {
             "quotes": "off",

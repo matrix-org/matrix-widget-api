@@ -56,6 +56,7 @@ export * from "./interfaces/ReadEventAction";
 export * from "./interfaces/IRoomEvent";
 export * from "./interfaces/NavigateAction";
 export * from "./interfaces/TurnServerActions";
+export * from "./interfaces/ReadRelationsAction";
 
 // Complex models
 export * from "./models/WidgetEventCapability";

@@ -26,6 +26,13 @@ export interface IOpenIDUpdate {
     token?: IOpenIDCredentials;
 }
 
+export interface IReadEventRelationsResult {
+    originalEvent?: IRoomEvent;
+    chunk: IRoomEvent[];
+    nextBatch?: string;
+    prevBatch?: string;
+}
+
 /**
  * Represents the functions and behaviour the widget-api is unable to
  * do, such as prompting the user for information or interacting with
@@ -138,6 +145,43 @@ export abstract class WidgetDriver {
         roomIds: string[] = null,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
+    }
+
+    /**
+     * Reads all events that are related to a given event. The widget API will
+     * have already verified that the widget is capable of receiving the event,
+     * or will make sure to reject access to events which are returned from this
+     * function, but are not capable of receiving. If `relationType` or `eventType`
+     * are set, the returned events should already be filtered. Less events than
+     * the limit are allowed to be returned, but not more.
+     * @param eventId The id of the parent event to be read.
+     * @param roomId The room to look within. When undefined, the user's
+     * currently viewed room.
+     * @param relationType The relationship type of child events to search for.
+     * When undefined, all relations are returned.
+     * @param eventType The event type of child events to search for. When undefined,
+     * all related events are returned.
+     * @param from The pagination token to start returning results from, as
+     * received from a previous call. If not supplied, results start at the most
+     * recent topological event known to the server.
+     * @param to The pagination token to stop returning results at. If not
+     * supplied, results continue up to limit or until there are no more events.
+     * @param limit The maximum number of events to retrieve per room. If not
+     * supplied, the server will apply a default limit.
+     * @param direction The direction to search for according to MSC3715
+     * @returns Resolves to the room relations.
+     */
+    public readEventRelations(
+        eventId: string,
+        roomId?: string,
+        relationType?: string,
+        eventType?: string,
+        from?: string,
+        to?: string,
+        limit?: number,
+        direction?: 'f' | 'b',
+    ): Promise<IReadEventRelationsResult> {
+        return Promise.resolve({ chunk: [] });
     }
 
     /**

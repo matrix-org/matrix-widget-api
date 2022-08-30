@@ -57,6 +57,11 @@ export enum WidgetApiFromWidgetAction {
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC2974RenegotiateCapabilities = "org.matrix.msc2974.request_capabilities",
+
+    /**
+     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC3869ReadRelations = "org.matrix.msc3869.read_relations",
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;

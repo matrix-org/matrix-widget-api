@@ -64,6 +64,10 @@ import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } fro
 import { IRoomEvent } from "./interfaces/IRoomEvent";
 import { ITurnServer, IUpdateTurnServersRequest } from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
+import {
+    IReadRelationsFromWidgetRequestData,
+    IReadRelationsFromWidgetResponseData,
+} from "./interfaces/ReadRelationsAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -428,6 +432,57 @@ export class WidgetApi extends EventEmitter {
             WidgetApiFromWidgetAction.MSC2876ReadEvents,
             data,
         ).then(r => r.events);
+    }
+
+    /**
+     * Reads all related events given a known eventId.
+     * @param eventId The id of the parent event to be read.
+     * @param roomId The room to look within. When undefined, the user's currently
+     * viewed room.
+     * @param relationType The relationship type of child events to search for.
+     * When undefined, all relations are returned.
+     * @param eventType The event type of child events to search for. When undefined,
+     * all related events are returned.
+     * @param limit The maximum number of events to retrieve per room. If not
+     * supplied, the server will apply a default limit.
+     * @param from The pagination token to start returning results from, as
+     * received from a previous call. If not supplied, results start at the most
+     * recent topological event known to the server.
+     * @param to The pagination token to stop returning results at. If not
+     * supplied, results continue up to limit or until there are no more events.
+     * @param direction The direction to search for according to MSC3715.
+     * @returns Resolves to the room relations.
+     */
+    public async readEventRelations(
+        eventId: string,
+        roomId?: string,
+        relationType?: string,
+        eventType?: string,
+        limit?: number,
+        from?: string,
+        to?: string,
+        direction?: 'f' | 'b',
+    ): Promise<IReadRelationsFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC3869)) {
+            throw new Error("The read_relations action is not supported by the client.")
+        }
+
+        const data: IReadRelationsFromWidgetRequestData = {
+            event_id: eventId,
+            rel_type: relationType,
+            event_type: eventType,
+            room_id: roomId,
+            to,
+            from,
+            limit,
+            direction,
+        };
+
+        return this.transport.send<IReadRelationsFromWidgetRequestData, IReadRelationsFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC3869ReadRelations,
+            data,
+        )
     }
 
     public readStateEvents(

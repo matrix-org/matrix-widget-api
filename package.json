@@ -18,9 +18,10 @@
     "build:browser:dev": "browserify lib/index.js --debug --s mxwidgets -o dist/api.js",
     "build:browser:prod": "browserify lib/index.js --s mxwidgets -p tinyify -o dist/api.min.js",
     "lint": "yarn lint:types && yarn lint:ts",
-    "lint:ts": "eslint src",
+    "lint:ts": "eslint src test",
     "lint:types": "tsc --noEmit",
-    "lint:fix": "eslint src --fix"
+    "lint:fix": "eslint src test --fix",
+    "test": "jest"
   },
   "files": [
     "src",
@@ -37,16 +38,26 @@
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-typescript": "^7.10.4",
+    "@testing-library/dom": "^8.0.0",
+    "@types/jest": "^27.4.0",
     "babel-eslint": "^10.1.0",
     "browserify": "^17.0.0",
     "eslint": "^7.8.1",
     "eslint-config-matrix-org": "^0.1.2",
     "eslint-plugin-babel": "^5.3.1",
+    "jest": "^27.4.0",
+    "jest-environment-jsdom": "^27.0.6",
     "rimraf": "^3.0.2",
     "tinyify": "^3.0.0"
   },
   "dependencies": {
     "@types/events": "^3.0.0",
     "events": "^3.2.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "<rootDir>/test/**/*-test.[jt]s?(x)"
+    ]
   }
 }
