@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import { ISupportedVersionsActionResponseData } from '../src';
+import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
 import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
+import { ISupportedVersionsActionResponseData } from '../src/interfaces/SupportedVersionsAction';
+import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import { WidgetApi } from '../src/WidgetApi';
 
@@ -35,7 +37,7 @@ describe('WidgetApi', () => {
     describe('readEventRelations', () => {
         it('should forward the request to the ClientWidgetApi', async () => {
             jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
-                { supported_versions: ['org.matrix.msc3869'] } as ISupportedVersionsActionResponseData,
+                { supported_versions: [UnstableApiVersion.MSC3869] } as ISupportedVersionsActionResponseData,
             );
             jest.mocked(PostmessageTransport.prototype.send).mockResolvedValue(
                 {
@@ -52,7 +54,7 @@ describe('WidgetApi', () => {
                 chunk: [],
             });
 
-            expect(PostmessageTransport.prototype.send).toBeCalledWith("org.matrix.msc3869.read_relations", {
+            expect(PostmessageTransport.prototype.send).toBeCalledWith(WidgetApiFromWidgetAction.MSC3869ReadRelations, {
                 event_id: '$event',
                 room_id: '!room-id',
                 rel_type: 'm.reference',
@@ -75,12 +77,12 @@ describe('WidgetApi', () => {
             )).rejects.toThrow("The read_relations action is not supported by the client.");
 
             expect(PostmessageTransport.prototype.send)
-                .not.toBeCalledWith("org.matrix.msc3869.read_relations", expect.anything());
+                .not.toBeCalledWith(WidgetApiFromWidgetAction.MSC3869ReadRelations, expect.anything());
         });
 
         it('should handle an error', async () => {
             jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
-                { supported_versions: ['org.matrix.msc3869'] } as ISupportedVersionsActionResponseData,
+                { supported_versions: [UnstableApiVersion.MSC3869] } as ISupportedVersionsActionResponseData,
             );
             jest.mocked(PostmessageTransport.prototype.send).mockRejectedValue(
                 new Error('An error occurred'),

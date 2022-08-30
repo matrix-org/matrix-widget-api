@@ -17,6 +17,7 @@
 import { waitFor } from '@testing-library/dom';
 import { ClientWidgetApi } from "../src/ClientWidgetApi";
 import { WidgetDriver } from "../src/driver/WidgetDriver";
+import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
 import { Capability } from '../src/interfaces/Capabilities';
 import { IRoomEvent } from '../src/interfaces/IRoomEvent';
 import { IWidgetApiRequest } from '../src/interfaces/IWidgetApiRequest';
@@ -87,7 +88,7 @@ describe('ClientWidgetApi', () => {
             driver,
         );
 
-        ([transport] = jest.mocked(PostmessageTransport).mock.instances);
+        [transport] = jest.mocked(PostmessageTransport).mock.instances;
         emitEvent = jest.mocked(transport.on).mock.calls[0][1];
 
         jest.mocked(transport.send).mockResolvedValue({});
@@ -122,7 +123,7 @@ describe('ClientWidgetApi', () => {
 
             expect(transport.reply).toBeCalledWith(event, {
                 supported_versions: expect.arrayContaining([
-                    'org.matrix.msc3869',
+                    UnstableApiVersion.MSC3869,
                 ]),
             });
         });
