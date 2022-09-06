@@ -587,46 +587,53 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const result = await this.driver.readEventRelations(
-            request.data.event_id, request.data.room_id, request.data.rel_type,
-            request.data.event_type, request.data.from, request.data.to,
-            request.data.limit, request.data.direction);
+        try {
+            const result = await this.driver.readEventRelations(
+                request.data.event_id, request.data.room_id, request.data.rel_type,
+                request.data.event_type, request.data.from, request.data.to,
+                request.data.limit, request.data.direction);
 
-        // check if the user is permitted to receive the event in question
-        if (result.originalEvent) {
-            if (result.originalEvent.state_key !== undefined) {
-                if (!this.canReceiveStateEvent(result.originalEvent.type, result.originalEvent.state_key)) {
-                    return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                        error: { message: "Cannot read state events of this type" },
-                    });
-                }
-            } else {
-                if (!this.canReceiveRoomEvent(result.originalEvent.type, result.originalEvent.content['msgtype'])) {
-                    return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                        error: { message: "Cannot read room events of this type" },
-                    });
+            // check if the user is permitted to receive the event in question
+            if (result.originalEvent) {
+                if (result.originalEvent.state_key !== undefined) {
+                    if (!this.canReceiveStateEvent(result.originalEvent.type, result.originalEvent.state_key)) {
+                        return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                            error: { message: "Cannot read state events of this type" },
+                        });
+                    }
+                } else {
+                    if (!this.canReceiveRoomEvent(result.originalEvent.type, result.originalEvent.content['msgtype'])) {
+                        return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                            error: { message: "Cannot read room events of this type" },
+                        });
+                    }
                 }
             }
+
+            // only return events that the user has the permission to receive
+            const chunk = result.chunk.filter(e => {
+                if (e.state_key !== undefined) {
+                    return this.canReceiveStateEvent(e.type, e.state_key);
+                } else {
+                    return this.canReceiveRoomEvent(e.type, e.content['msgtype']);
+                }
+            });
+
+            return this.transport.reply<IReadRelationsFromWidgetResponseData>(
+                request,
+                {
+                    original_event: result.originalEvent,
+                    chunk,
+                    prev_batch: result.prevBatch,
+                    next_batch: result.nextBatch,
+                },
+            );
+        } catch (e) {
+            console.error("error getting the relations", e);
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Unexpected error while reading relations" },
+            });
         }
-
-        // only return events that the user has the permission to receive
-        const chunk = result.chunk.filter(e => {
-            if (e.state_key !== undefined) {
-                return this.canReceiveStateEvent(e.type, e.state_key);
-            } else {
-                return this.canReceiveRoomEvent(e.type, e.content['msgtype']);
-            }
-        });
-
-        return this.transport.reply<IReadRelationsFromWidgetResponseData>(
-            request,
-            {
-                original_event: result.originalEvent,
-                chunk,
-                prev_batch: result.prevBatch,
-                next_batch: result.nextBatch,
-            },
-        );
     }
 
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
