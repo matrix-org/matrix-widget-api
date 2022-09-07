@@ -245,7 +245,6 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-
         it('should reject requests without event_id', async () => {
             const event: IWidgetApiRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -342,6 +341,30 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Cannot read state events of this type' },
+                });
+            });
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.readEventRelations.mockRejectedValue(
+                new Error("M_FORBIDDEN: You don't have permission to access that event"),
+            );
+
+            const event: IReadRelationsFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
+                data: { event_id: '$event' },
+            };
+
+            await loadIframe();
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Unexpected error while reading relations' },
                 });
             });
         });
