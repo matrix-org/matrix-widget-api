@@ -591,7 +591,8 @@ export class ClientWidgetApi extends EventEmitter {
             const result = await this.driver.readEventRelations(
                 request.data.event_id, request.data.room_id, request.data.rel_type,
                 request.data.event_type, request.data.from, request.data.to,
-                request.data.limit, request.data.direction);
+                request.data.limit, request.data.direction,
+            );
 
             // check if the user is permitted to receive the event in question
             if (result.originalEvent) {
