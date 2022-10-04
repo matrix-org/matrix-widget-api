@@ -37,7 +37,6 @@ export interface IReadRelationsFromWidgetActionRequest extends IWidgetApiRequest
 }
 
 export interface IReadRelationsFromWidgetResponseData extends IWidgetApiResponseData {
-    original_event: IRoomEvent | undefined; // eslint-disable-line camelcase
     chunk: IRoomEvent[];
 
     next_batch?: string; // eslint-disable-line camelcase

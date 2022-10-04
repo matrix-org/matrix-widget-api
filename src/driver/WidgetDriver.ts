@@ -27,7 +27,6 @@ export interface IOpenIDUpdate {
 }
 
 export interface IReadEventRelationsResult {
-    originalEvent?: IRoomEvent;
     chunk: IRoomEvent[];
     nextBatch?: string;
     prevBatch?: string;
