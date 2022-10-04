@@ -41,7 +41,6 @@ describe('WidgetApi', () => {
             );
             jest.mocked(PostmessageTransport.prototype.send).mockResolvedValue(
                 {
-                    original_event: undefined,
                     chunk: [],
                 } as IReadRelationsFromWidgetResponseData,
             );
@@ -50,7 +49,6 @@ describe('WidgetApi', () => {
                 '$event', '!room-id', 'm.reference', 'm.room.message', 25,
                 'from-token', 'to-token', 'f',
             )).resolves.toEqual({
-                original_event: undefined,
                 chunk: [],
             });
 

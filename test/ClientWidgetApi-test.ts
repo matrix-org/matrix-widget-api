@@ -130,7 +130,6 @@ describe('ClientWidgetApi', () => {
 
         it('should handle and process the request', async () => {
             driver.readEventRelations.mockResolvedValue({
-                originalEvent: createRoomEvent(),
                 chunk: [createRoomEvent()],
             });
 
@@ -150,7 +149,6 @@ describe('ClientWidgetApi', () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    original_event: createRoomEvent(),
                     chunk: [createRoomEvent()],
                 });
             });
@@ -163,7 +161,6 @@ describe('ClientWidgetApi', () => {
 
         it('should only return events that match requested capabilities', async () => {
             driver.readEventRelations.mockResolvedValue({
-                originalEvent: createRoomEvent(),
                 chunk: [
                     createRoomEvent(),
                     createRoomEvent({ type: 'm.reaction' }),
@@ -189,7 +186,6 @@ describe('ClientWidgetApi', () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    original_event: createRoomEvent(),
                     chunk: [
                         createRoomEvent(),
                         createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
@@ -205,7 +201,6 @@ describe('ClientWidgetApi', () => {
 
         it('should accept all options and pass it to the driver', async () => {
             driver.readEventRelations.mockResolvedValue({
-                originalEvent: undefined,
                 chunk: [],
             });
 
@@ -234,7 +229,6 @@ describe('ClientWidgetApi', () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    original_event: undefined,
                     chunk: [],
                 });
             });
@@ -296,52 +290,6 @@ describe('ClientWidgetApi', () => {
 
             expect(transport.reply).toBeCalledWith(event, {
                 error: { message: 'Unable to access room timeline: !another-room-id' },
-            });
-        });
-
-        it('should reject requests when the widget misses the capability to receive the room event type', async () => {
-            driver.readEventRelations.mockResolvedValue({
-                originalEvent: createRoomEvent(),
-                chunk: [],
-            });
-
-            const event: IReadRelationsFromWidgetActionRequest = {
-                api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
-                action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
-                data: { event_id: '$event' },
-            };
-
-            emitEvent(new CustomEvent('', { detail: event }));
-
-            await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Cannot read room events of this type' },
-                });
-            });
-        });
-
-        it('should reject requests when the widget misses the capability to receive the state event type', async () => {
-            driver.readEventRelations.mockResolvedValue({
-                originalEvent: createRoomEvent({ state_key: '' }),
-                chunk: [],
-            });
-
-            const event: IReadRelationsFromWidgetActionRequest = {
-                api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
-                action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
-                data: { event_id: '$event' },
-            };
-
-            emitEvent(new CustomEvent('', { detail: event }));
-
-            await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Cannot read state events of this type' },
-                });
             });
         });
 

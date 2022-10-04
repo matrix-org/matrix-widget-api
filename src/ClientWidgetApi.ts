@@ -594,23 +594,6 @@ export class ClientWidgetApi extends EventEmitter {
                 request.data.limit, request.data.direction,
             );
 
-            // check if the user is permitted to receive the event in question
-            if (result.originalEvent) {
-                if (result.originalEvent.state_key !== undefined) {
-                    if (!this.canReceiveStateEvent(result.originalEvent.type, result.originalEvent.state_key)) {
-                        return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                            error: { message: "Cannot read state events of this type" },
-                        });
-                    }
-                } else {
-                    if (!this.canReceiveRoomEvent(result.originalEvent.type, result.originalEvent.content['msgtype'])) {
-                        return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                            error: { message: "Cannot read room events of this type" },
-                        });
-                    }
-                }
-            }
-
             // only return events that the user has the permission to receive
             const chunk = result.chunk.filter(e => {
                 if (e.state_key !== undefined) {
@@ -623,7 +606,6 @@ export class ClientWidgetApi extends EventEmitter {
             return this.transport.reply<IReadRelationsFromWidgetResponseData>(
                 request,
                 {
-                    original_event: result.originalEvent,
                     chunk,
                     prev_batch: result.prevBatch,
                     next_batch: result.nextBatch,
