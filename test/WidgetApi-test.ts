@@ -92,4 +92,34 @@ describe('WidgetApi', () => {
             )).rejects.toThrow('An error occurred');
         });
     });
+
+    describe('getClientVersions', () => {
+        beforeEach(() => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                {
+                    supported_versions: [
+                        UnstableApiVersion.MSC3869, UnstableApiVersion.MSC2762,
+                    ],
+                } as ISupportedVersionsActionResponseData,
+            );
+        })
+
+        it('should request supported client versions', async () => {
+            await expect(widgetApi.getClientVersions()).resolves.toEqual([
+                'org.matrix.msc3869', 'org.matrix.msc2762',
+            ]);
+        })
+
+        it('should cache supported client versions on successive calls', async () => {
+            await expect(widgetApi.getClientVersions()).resolves.toEqual([
+                'org.matrix.msc3869', 'org.matrix.msc2762',
+            ]);
+
+            await expect(widgetApi.getClientVersions()).resolves.toEqual([
+                'org.matrix.msc3869', 'org.matrix.msc2762',
+            ]);
+
+            expect(PostmessageTransport.prototype.send).toBeCalledTimes(1);
+        })
+    });
 });

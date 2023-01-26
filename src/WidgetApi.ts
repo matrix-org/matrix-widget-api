@@ -637,7 +637,7 @@ export class WidgetApi extends EventEmitter {
         });
     }
 
-    private getClientVersions(): Promise<ApiVersion[]> {
+    public getClientVersions(): Promise<ApiVersion[]> {
         if (Array.isArray(this.cachedClientVersions)) {
             return Promise.resolve(this.cachedClientVersions);
         }
