@@ -24,6 +24,7 @@ export interface ITemplateParams {
     clientId?: string;
     clientTheme?: string;
     clientLanguage?: string;
+    deviceId?: string;
 }
 
 export function runTemplate(url: string, widget: IWidget, params: ITemplateParams): string {
@@ -39,6 +40,9 @@ export function runTemplate(url: string, widget: IWidget, params: ITemplateParam
         'org.matrix.msc2873.client_id': params.clientId || "",
         'org.matrix.msc2873.client_theme': params.clientTheme || "",
         'org.matrix.msc2873.client_language': params.clientLanguage || "",
+
+        // TODO: Convert to stable (https://github.com/matrix-org/matrix-spec-proposals/pull/3819)
+        'org.matrix.msc3819.device_id': params.deviceId || "",
     });
     let result = url;
     for (const key of Object.keys(variables)) {
