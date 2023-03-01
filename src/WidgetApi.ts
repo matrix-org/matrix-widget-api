@@ -68,6 +68,10 @@ import {
     IReadRelationsFromWidgetRequestData,
     IReadRelationsFromWidgetResponseData,
 } from "./interfaces/ReadRelationsAction";
+import {
+    IUserDirectorySearchFromWidgetRequestData,
+    IUserDirectorySearchFromWidgetResponseData,
+} from "./interfaces/UserDirectorySearchAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -590,6 +594,32 @@ export class WidgetApi extends EventEmitter {
                 await this.transport.send<IWidgetApiRequestEmptyData>(WidgetApiFromWidgetAction.UnwatchTurnServers, {});
             }
         }
+    }
+
+    /**
+     * Search for users in the user directory.
+     * @param searchTerm The term to search for.
+     * @param limit The maximum number of results to return. If not supplied, the
+     * @returns Resolves to the search results.
+     */
+    public async searchUserDirectory(
+        searchTerm: string,
+        limit?: number,
+    ): Promise<IUserDirectorySearchFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC3973)) {
+            throw new Error("The user_directory_search action is not supported by the client.")
+        }
+
+        const data: IUserDirectorySearchFromWidgetRequestData = {
+            search_term: searchTerm,
+            limit,
+        };
+
+        return this.transport.send<
+            IUserDirectorySearchFromWidgetRequestData,
+            IUserDirectorySearchFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC3973UserDirectorySearch, data);
     }
 
     /**

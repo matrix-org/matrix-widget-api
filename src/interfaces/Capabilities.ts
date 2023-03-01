@@ -30,6 +30,10 @@ export enum MatrixCapabilities {
      */
     MSC2931Navigate = "org.matrix.msc2931.navigate",
     MSC3846TurnServers = "town.robin.msc3846.turn_servers",
+    /**
+    * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+    */
+    MSC3973UserDirectorySearch = "org.matrix.msc3973.user_directory_search",
 }
 
 export type Capability = MatrixCapabilities | string;

@@ -17,6 +17,7 @@
 import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
 import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
 import { ISupportedVersionsActionResponseData } from '../src/interfaces/SupportedVersionsAction';
+import { IUserDirectorySearchFromWidgetResponseData } from '../src/interfaces/UserDirectorySearchAction';
 import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import { WidgetApi } from '../src/WidgetApi';
@@ -121,5 +122,60 @@ describe('WidgetApi', () => {
 
             expect(PostmessageTransport.prototype.send).toBeCalledTimes(1);
         })
+    });
+
+    describe('searchUserDirectory', () => {
+        it('should forward the request to the ClientWidgetApi', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC3973] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValue(
+                {
+                    limited: false,
+                    results: [],
+                } as IUserDirectorySearchFromWidgetResponseData,
+            );
+
+            await expect(widgetApi.searchUserDirectory(
+                'foo', 10,
+            )).resolves.toEqual({
+                limited: false,
+                results: [],
+            });
+
+            expect(PostmessageTransport.prototype.send).toBeCalledWith(
+                WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                {
+                    search_term: 'foo',
+                    limit: 10,
+                },
+            );
+        });
+
+        it('should reject the request if the api is not supported', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [] } as ISupportedVersionsActionResponseData,
+            );
+
+            await expect(widgetApi.searchUserDirectory(
+                'foo', 10,
+            )).rejects.toThrow("The user_directory_search action is not supported by the client.");
+
+            expect(PostmessageTransport.prototype.send)
+                .not.toBeCalledWith(WidgetApiFromWidgetAction.MSC3973UserDirectorySearch, expect.anything());
+        });
+
+        it('should handle an error', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC3973] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockRejectedValue(
+                new Error('An error occurred'),
+            );
+
+            await expect(widgetApi.searchUserDirectory(
+                'foo', 10,
+            )).rejects.toThrow('An error occurred');
+        });
     });
 });

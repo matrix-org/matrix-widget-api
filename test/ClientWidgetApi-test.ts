@@ -23,6 +23,7 @@ import { IRoomEvent } from '../src/interfaces/IRoomEvent';
 import { IWidgetApiRequest } from '../src/interfaces/IWidgetApiRequest';
 import { IReadRelationsFromWidgetActionRequest } from '../src/interfaces/ReadRelationsAction';
 import { ISupportedVersionsActionRequest } from '../src/interfaces/SupportedVersionsAction';
+import { IUserDirectorySearchFromWidgetActionRequest } from '../src/interfaces/UserDirectorySearchAction';
 import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
@@ -75,6 +76,7 @@ describe('ClientWidgetApi', () => {
         driver = {
             readEventRelations: jest.fn(),
             validateCapabilities: jest.fn(),
+            searchUserDirectory: jest.fn(),
         } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
 
         clientWidgetApi = new ClientWidgetApi(
@@ -313,6 +315,236 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Unexpected error while reading relations' },
+                });
+            });
+        });
+    });
+
+    describe('org.matrix.msc3973.user_directory_search action', () => {
+        it('should present as supported api version', () => {
+            const event: ISupportedVersionsActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SupportedApiVersions,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                supported_versions: expect.arrayContaining([
+                    UnstableApiVersion.MSC3973,
+                ]),
+            });
+        });
+
+        it('should handle and process the request', async () => {
+            driver.searchUserDirectory.mockResolvedValue({
+                limited: true,
+                results: [{
+                    userId: '@foo:bar.com',
+                }],
+            });
+
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: { search_term: 'foo' },
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    limited: true,
+                    results: [{
+                        user_id: '@foo:bar.com',
+                        display_name: undefined,
+                        avatar_url: undefined,
+                    }],
+                });
+            });
+
+            expect(driver.searchUserDirectory).toBeCalledWith('foo', undefined);
+        });
+
+        it('should accept all options and pass it to the driver', async () => {
+            driver.searchUserDirectory.mockResolvedValue({
+                limited: false,
+                results: [
+                    {
+                        userId: '@foo:bar.com',
+                    },
+                    {
+                        userId: '@bar:foo.com',
+                        displayName: 'Bar',
+                        avatarUrl: 'mxc://...',
+                    },
+                ],
+            });
+
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: {
+                    search_term: 'foo',
+                    limit: 5,
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    limited: false,
+                    results: [
+                        {
+                            user_id: '@foo:bar.com',
+                            display_name: undefined,
+                            avatar_url: undefined,
+                        },
+                        {
+                            user_id: '@bar:foo.com',
+                            display_name: 'Bar',
+                            avatar_url: 'mxc://...',
+                        },
+                    ],
+                });
+            });
+
+            expect(driver.searchUserDirectory).toBeCalledWith('foo', 5);
+        });
+
+        it('should accept empty search_term', async () => {
+            driver.searchUserDirectory.mockResolvedValue({
+                limited: false,
+                results: [],
+            });
+
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: { search_term: '' },
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    limited: false,
+                    results: [],
+                });
+            });
+
+            expect(driver.searchUserDirectory).toBeCalledWith('', undefined);
+        });
+
+        it('should reject requests when the capability was not requested', async () => {
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: { search_term: 'foo' },
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                error: { message: 'Missing capability' },
+            });
+
+            expect(driver.searchUserDirectory).not.toBeCalled();
+        });
+
+        it('should reject requests without search_term', async () => {
+            const event: IWidgetApiRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: {},
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                error: { message: 'Invalid request - missing search term' },
+            });
+
+            expect(driver.searchUserDirectory).not.toBeCalled();
+        });
+
+        it('should reject requests with a negative limit', async () => {
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: {
+                    search_term: 'foo',
+                    limit: -1,
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                error: { message: 'Invalid request - limit out of range' },
+            });
+
+            expect(driver.searchUserDirectory).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.searchUserDirectory.mockRejectedValue(
+                new Error("M_LIMIT_EXCEEDED: Too many requests"),
+            );
+
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: { search_term: 'foo' },
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Unexpected error while searching in the user directory' },
                 });
             });
         });
