@@ -46,7 +46,7 @@ export function runTemplate(url: string, widget: IWidget, params: ITemplateParam
         const pattern = `$${key}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
         const rexp = new RegExp(pattern, 'g');
 
-        // This is technically not what we're supposed to do for a couple reasons:
+        // This is technically not what we're supposed to do for a couple of reasons:
         // 1. We are assuming that there won't later be a $key match after we replace a variable.
         // 2. We are assuming that the variable is in a place where it can be escaped (eg: path or query string).
         result = result.replace(rexp, encodeURIComponent(toString(variables[key])));
@@ -58,5 +58,5 @@ export function toString(a: unknown): string {
     if (a === null || a === undefined) {
         return `${a}`;
     }
-    return a.toString();
+    return String(a);
 }

@@ -38,7 +38,7 @@ export interface ITransport extends EventEmitter {
     /**
      * The widget ID, if known. If not known, null.
      */
-    readonly widgetId: string;
+    readonly widgetId: string | null;
 
     /**
      * If true, the transport will refuse requests from origins other than the
@@ -51,7 +51,7 @@ export interface ITransport extends EventEmitter {
      * The origin the transport should be replying/sending to. If not known, leave
      * null.
      */
-    targetOrigin: string;
+    targetOrigin: string | null;
 
     /**
      * The number of seconds an outbound request is allowed to take before it
@@ -62,12 +62,12 @@ export interface ITransport extends EventEmitter {
     /**
      * Starts the transport for listening
      */
-    start();
+    start(): void;
 
     /**
      * Stops the transport. It cannot be re-started.
      */
-    stop();
+    stop(): void;
 
     /**
      * Sends a request to the remote end.
@@ -100,5 +100,5 @@ export interface ITransport extends EventEmitter {
      * @param {IWidgetApiRequest} request The request to reply to.
      * @param {IWidgetApiResponseData} responseData The response data to reply with.
      */
-    reply<T extends IWidgetApiResponseData>(request: IWidgetApiRequest, responseData: T);
+    reply<T extends IWidgetApiResponseData>(request: IWidgetApiRequest, responseData: T): void;
 }

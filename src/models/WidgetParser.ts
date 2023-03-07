@@ -116,7 +116,7 @@ export class WidgetParser {
         // is done against the requirements of the interface because not everyone
         // will have an interface to validate against.
 
-        const content = stateEvent.content || {};
+        const content = stateEvent.content as IWidget || {};
 
         // Form our best approximation of a widget with the information we have
         const estimatedWidget: IWidget = {
