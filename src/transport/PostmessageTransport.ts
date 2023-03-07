@@ -39,26 +39,26 @@ interface IOutboundRequest {
  * Transport for the Widget API over postMessage.
  */
 export class PostmessageTransport extends EventEmitter implements ITransport {
-    public strictOriginCheck: boolean;
-    public targetOrigin: string;
+    public strictOriginCheck = false;
+    public targetOrigin = "*";
     public timeoutSeconds = 10;
 
     private _ready = false;
-    private _widgetId = null;
-    private outboundRequests = new Map<string, IOutboundRequest>();
+    private _widgetId: string | null = null;
+    private outboundRequests = new Map<string, IOutboundRequest | null>();
     private stopController = new AbortController();
 
     public get ready(): boolean {
         return this._ready;
     }
 
-    public get widgetId(): string {
+    public get widgetId(): string | null {
         return this._widgetId || null;
     }
 
     public constructor(
         private sendDirection: WidgetApiDirection,
-        private initialWidgetId: string,
+        private initialWidgetId: string | null,
         private transportWindow: Window,
         private inboundWindow: Window,
     ) {
@@ -81,9 +81,8 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     }
 
     private sendInternal(message: IWidgetApiRequest | IWidgetApiResponse) {
-        const targetOrigin = this.targetOrigin || '*';
-        console.log(`[PostmessageTransport] Sending object to ${targetOrigin}: `, message);
-        this.transportWindow.postMessage(message, targetOrigin);
+        console.log(`[PostmessageTransport] Sending object to ${this.targetOrigin}: `, message);
+        this.transportWindow.postMessage(message, this.targetOrigin);
     }
 
     public reply<T extends IWidgetApiResponseData>(request: IWidgetApiRequest, responseData: T) {
@@ -113,8 +112,6 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
             data: data,
         };
         if (action === WidgetApiToWidgetAction.UpdateVisibility) {
-            // XXX: This is for Scalar support
-            // TODO: Fix scalar
             request['visible'] = data['visible'];
         }
         return new Promise<R>((prResolve, prReject) => {

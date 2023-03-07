@@ -57,7 +57,7 @@ export class WidgetEventCapability {
         return true;
     }
 
-    public matchesAsRoomEvent(direction: EventDirection, eventType: string, msgtype: string = null): boolean {
+    public matchesAsRoomEvent(direction: EventDirection, eventType: string, msgtype: string | null = null): boolean {
         if (this.kind !== EventKind.Event) return false; // not a room event
         if (this.direction !== direction) return false; // direction mismatch
         if (this.eventType !== eventType) return false; // event type mismatch
@@ -124,9 +124,9 @@ export class WidgetEventCapability {
     public static findEventCapabilities(capabilities: Iterable<Capability>): WidgetEventCapability[] {
         const parsed: WidgetEventCapability[] = [];
         for (const cap of capabilities) {
-            let direction: EventDirection = null;
-            let eventSegment: string;
-            let kind: EventKind = null;
+            let direction: EventDirection | null = null;
+            let eventSegment: string | undefined;
+            let kind: EventKind | null = null;
 
             // TODO: Enable support for m.* namespace once the MSCs land.
             // https://github.com/matrix-org/matrix-widget-api/issues/22
@@ -158,14 +158,14 @@ export class WidgetEventCapability {
                 eventSegment = cap.substring("org.matrix.msc3819.receive.to_device:".length);
             }
 
-            if (direction === null || kind === null) continue;
+            if (direction === null || kind === null || eventSegment === undefined) continue;
 
             // The capability uses `#` as a separator between event type and state key/msgtype,
             // so we split on that. However, a # is also valid in either one of those so we
             // join accordingly.
             // Eg: `m.room.message##m.text` is "m.room.message" event with msgtype "#m.text".
             const expectingKeyStr = eventSegment.startsWith("m.room.message#") || kind === EventKind.State;
-            let keyStr: string = null;
+            let keyStr: string | null = null;
             if (eventSegment.includes('#') && expectingKeyStr) {
                 // Dev note: regex is difficult to write, so instead the rules are manually written
                 // out. This is probably just as understandable as a boring regex though, so win-win?

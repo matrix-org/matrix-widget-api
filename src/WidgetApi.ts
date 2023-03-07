@@ -92,8 +92,8 @@ export class WidgetApi extends EventEmitter {
     private capabilitiesFinished = false;
     private supportsMSC2974Renegotiate = false;
     private requestedCapabilities: Capability[] = [];
-    private approvedCapabilities: Capability[];
-    private cachedClientVersions: ApiVersion[];
+    private approvedCapabilities?: Capability[];
+    private cachedClientVersions?: ApiVersion[];
     private turnServerWatchers = 0;
 
     /**
@@ -102,7 +102,7 @@ export class WidgetApi extends EventEmitter {
      * the API will use the widget ID from the first valid request it receives.
      * @param {string} clientOrigin The origin of the client, or null if not known.
      */
-    public constructor(widgetId: string = null, private clientOrigin: string = null) {
+    public constructor(widgetId: string | null = null, private clientOrigin: string | null = null) {
         super();
         if (!window.parent) {
             throw new Error("No parent window. This widget doesn't appear to be embedded properly.");

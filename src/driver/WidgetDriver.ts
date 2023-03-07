@@ -75,8 +75,8 @@ export abstract class WidgetDriver {
     public sendEvent(
         eventType: string,
         content: unknown,
-        stateKey: string = null,
-        roomId: string = null,
+        stateKey: string | null = null,
+        roomId: string | null = null,
     ): Promise<ISendEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
     }
@@ -117,7 +117,7 @@ export abstract class WidgetDriver {
         eventType: string,
         msgtype: string | undefined,
         limit: number,
-        roomIds: string[] = null,
+        roomIds: string[] | null = null,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
@@ -141,7 +141,7 @@ export abstract class WidgetDriver {
         eventType: string,
         stateKey: string | undefined,
         limit: number,
-        roomIds: string[] = null,
+        roomIds: string[] | null = null,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }

@@ -158,7 +158,7 @@ export class ClientWidgetApi extends EventEmitter {
             || this.hasCapability(`org.matrix.msc2762.timeline:${roomId}`);
     }
 
-    public canSendRoomEvent(eventType: string, msgtype: string = null): boolean {
+    public canSendRoomEvent(eventType: string, msgtype: string | null = null): boolean {
         return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Send, eventType, msgtype));
     }
 
@@ -170,7 +170,7 @@ export class ClientWidgetApi extends EventEmitter {
         return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Send, eventType));
     }
 
-    public canReceiveRoomEvent(eventType: string, msgtype: string = null): boolean {
+    public canReceiveRoomEvent(eventType: string, msgtype: string | null = null): boolean {
         return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Receive, eventType, msgtype));
     }
 
@@ -288,7 +288,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const onErr = (e) => {
+        const onErr = (e: any) => {
             console.error("[ClientWidgetApi] Failed to handle navigation: ", e);
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Error handling navigation"},
@@ -355,7 +355,7 @@ export class ClientWidgetApi extends EventEmitter {
                 return replyError("client provided invalid OIDC token for an allowed request");
             }
             if (update.state === OpenIDRequestState.Blocked) {
-                update.token = null; // just in case the client did something weird
+                update.token = undefined; // just in case the client did something weird
             }
 
             observer.close();
@@ -377,7 +377,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        let askRoomIds: string[] = null; // null denotes current room only
+        let askRoomIds: string[] | null = null; // null denotes current room only
         if (request.data.room_ids) {
             askRoomIds = request.data.room_ids as string[];
             if (!Array.isArray(askRoomIds)) {
@@ -397,7 +397,7 @@ export class ClientWidgetApi extends EventEmitter {
         let events: Promise<IRoomEvent[]> = Promise.resolve([]);
         if (request.data.state_key !== undefined) {
             const stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
-            if (!this.canReceiveStateEvent(request.data.type, stateKey)) {
+            if (!stateKey || !this.canReceiveStateEvent(request.data.type, stateKey)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot read state events of this type"},
                 });
@@ -431,7 +431,7 @@ export class ClientWidgetApi extends EventEmitter {
         const isState = request.data.state_key !== null && request.data.state_key !== undefined;
         let sendEventPromise: Promise<ISendEventDetails>;
         if (isState) {
-            if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
+            if (!this.canSendStateEvent(request.data.type, request.data.state_key!)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot send state events of this type"},
                 });
@@ -444,7 +444,7 @@ export class ClientWidgetApi extends EventEmitter {
                 request.data.room_id,
             );
         } else {
-            const content = request.data.content || {};
+            const content = request.data.content as { msgtype?: string } || {};
             const msgtype = content['msgtype'];
             if (!this.canSendRoomEvent(request.data.type, msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -599,7 +599,7 @@ export class ClientWidgetApi extends EventEmitter {
                 if (e.state_key !== undefined) {
                     return this.canReceiveStateEvent(e.type, e.state_key);
                 } else {
-                    return this.canReceiveRoomEvent(e.type, e.content['msgtype']);
+                    return this.canReceiveRoomEvent(e.type, (e.content as { msgtype?: string })['msgtype']);
                 }
             });
 
@@ -717,7 +717,7 @@ export class ClientWidgetApi extends EventEmitter {
             }
         } else {
             // message event
-            if (!this.canReceiveRoomEvent(rawEvent.type, rawEvent.content?.["msgtype"])) {
+            if (!this.canReceiveRoomEvent(rawEvent.type, (rawEvent.content as { msgtype?: string })?.["msgtype"])) {
                 return; // no-op
             }
         }
