@@ -77,6 +77,10 @@ import {
     IReadRelationsFromWidgetActionRequest,
     IReadRelationsFromWidgetResponseData,
 } from "./interfaces/ReadRelationsAction";
+import {
+    IUserDirectorySearchFromWidgetActionRequest,
+    IUserDirectorySearchFromWidgetResponseData,
+} from "./interfaces/UserDirectorySearchAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -619,6 +623,49 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async handleUserDirectorySearch(request: IUserDirectorySearchFromWidgetActionRequest) {
+        if (!this.hasCapability(MatrixCapabilities.MSC3973UserDirectorySearch)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        if (typeof request.data.search_term !== 'string') {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - missing search term" },
+            });
+        }
+
+        if (request.data.limit !== undefined && request.data.limit < 0) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - limit out of range" },
+            });
+        }
+
+        try {
+            const result = await this.driver.searchUserDirectory(
+                request.data.search_term, request.data.limit,
+            );
+
+            return this.transport.reply<IUserDirectorySearchFromWidgetResponseData>(
+                request,
+                {
+                    limited: result.limited,
+                    results: result.results.map(r => ({
+                        user_id: r.userId,
+                        display_name: r.displayName,
+                        avatar_url: r.avatarUrl,
+                    })),
+                },
+            );
+        } catch (e) {
+            console.error("error searching in the user directory", e);
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Unexpected error while searching in the user directory" },
+            });
+        }
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -650,6 +697,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleUnwatchTurnServers(<IUnwatchTurnServersRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC3869ReadRelations:
                     return this.handleReadRelations(<IReadRelationsFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC3973UserDirectorySearch:
+                    return this.handleUserDirectorySearch(<IUserDirectorySearchFromWidgetActionRequest>ev.detail)
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
