@@ -28,6 +28,7 @@ import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
+import { IReadEventFromWidgetActionRequest } from '../src';
 
 jest.mock('../src/transport/PostmessageTransport')
 
@@ -74,6 +75,7 @@ describe('ClientWidgetApi', () => {
         document.body.appendChild(iframe);
 
         driver = {
+            readStateEvents: jest.fn(),
             readEventRelations: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
@@ -110,6 +112,127 @@ describe('ClientWidgetApi', () => {
         expect(clientWidgetApi.hasCapability('m.always_on_screen')).toBe(true);
         expect(clientWidgetApi.hasCapability('m.sticker')).toBe(false);
     });
+
+    describe('org.matrix.msc2876.read_events action', () => {
+        it('reads state events with any state key', async () => {
+            driver.readStateEvents.mockResolvedValue([
+                createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
+                createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
+            ])
+
+            const event: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type: 'net.example.test',
+                    state_key: true,
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    events: [
+                        createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
+                        createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
+                    ],
+                });
+            });
+
+            expect(driver.readStateEvents).toBeCalledWith(
+                'net.example.test', undefined, 0, null,
+            )
+        });
+
+        it('fails to read state events with any state key', async () => {
+            const event: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type: 'net.example.test',
+                    state_key: true,
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.readStateEvents).not.toBeCalled()
+        });
+
+        it('reads state events with a specific state key', async () => {
+            driver.readStateEvents.mockResolvedValue([
+                createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
+            ])
+
+            const event: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type: 'net.example.test',
+                    state_key: 'B',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test#B']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    events: [
+                        createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
+                    ],
+                });
+            });
+
+            expect(driver.readStateEvents).toBeCalledWith(
+                'net.example.test', 'B', 0, null,
+            )
+        });
+
+        it('fails to read state events with a specific state key', async () => {
+            const event: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type: 'net.example.test',
+                    state_key: 'B',
+                },
+            };
+
+            // Request the capability for the wrong state key
+            await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test#A']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.readStateEvents).not.toBeCalled()
+        });
+    })
 
     describe('org.matrix.msc3869.read_relations action', () => {
         it('should present as supported api version', () => {

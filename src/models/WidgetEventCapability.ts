@@ -37,7 +37,7 @@ export class WidgetEventCapability {
     ) {
     }
 
-    public matchesAsStateEvent(direction: EventDirection, eventType: string, stateKey: string): boolean {
+    public matchesAsStateEvent(direction: EventDirection, eventType: string, stateKey: string | null): boolean {
         if (this.kind !== EventKind.State) return false; // not a state event
         if (this.direction !== direction) return false; // direction mismatch
         if (this.eventType !== eventType) return false; // event type mismatch

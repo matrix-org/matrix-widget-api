@@ -178,7 +178,7 @@ export class ClientWidgetApi extends EventEmitter {
         return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Receive, eventType, msgtype));
     }
 
-    public canReceiveStateEvent(eventType: string, stateKey: string): boolean {
+    public canReceiveStateEvent(eventType: string, stateKey: string | null): boolean {
         return this.allowedEvents.some(e => e.matchesAsStateEvent(EventDirection.Receive, eventType, stateKey));
     }
 
@@ -401,7 +401,7 @@ export class ClientWidgetApi extends EventEmitter {
         let events: Promise<IRoomEvent[]> = Promise.resolve([]);
         if (request.data.state_key !== undefined) {
             const stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
-            if (!stateKey || !this.canReceiveStateEvent(request.data.type, stateKey)) {
+            if (!this.canReceiveStateEvent(request.data.type, stateKey ?? null)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot read state events of this type"},
                 });
