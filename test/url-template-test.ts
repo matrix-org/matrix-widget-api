@@ -18,7 +18,7 @@ import { runTemplate } from "../src";
 
 describe("runTemplate", () => {
     it("should replace device id template in url", () => {
-        const url = "https://localhost/?my-query#device_id=$org.matrix.msc3819.device_id";
+        const url = "https://localhost/?my-query#device_id=$org.matrix.msc3819.matrix_device_id";
         const replacedUrl = runTemplate(
             url,
             {
