@@ -31,4 +31,7 @@ export interface IWidgetApiRequest {
     action: WidgetApiAction;
     widgetId: string;
     data: IWidgetApiRequestData;
+    // XXX: This is for Scalar support
+    // TODO: Fix scalar
+    visible?: any;
 }

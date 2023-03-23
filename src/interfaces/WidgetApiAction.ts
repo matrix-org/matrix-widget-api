@@ -62,6 +62,11 @@ export enum WidgetApiFromWidgetAction {
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC3869ReadRelations = "org.matrix.msc3869.read_relations",
+
+    /**
+     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC3973UserDirectorySearch = "org.matrix.msc3973.user_directory_search",
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;

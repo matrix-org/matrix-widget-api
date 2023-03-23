@@ -32,6 +32,15 @@ export interface IReadEventRelationsResult {
     prevBatch?: string;
 }
 
+export interface ISearchUserDirectoryResult {
+    limited: boolean;
+    results: Array<{
+        userId: string;
+        displayName?: string;
+        avatarUrl?: string;
+    }>;
+}
+
 /**
  * Represents the functions and behaviour the widget-api is unable to
  * do, such as prompting the user for information or interacting with
@@ -75,8 +84,8 @@ export abstract class WidgetDriver {
     public sendEvent(
         eventType: string,
         content: unknown,
-        stateKey: string = null,
-        roomId: string = null,
+        stateKey: string | null = null,
+        roomId: string | null = null,
     ): Promise<ISendEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
     }
@@ -117,7 +126,7 @@ export abstract class WidgetDriver {
         eventType: string,
         msgtype: string | undefined,
         limit: number,
-        roomIds: string[] = null,
+        roomIds: string[] | null = null,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
@@ -141,7 +150,7 @@ export abstract class WidgetDriver {
         eventType: string,
         stateKey: string | undefined,
         limit: number,
-        roomIds: string[] = null,
+        roomIds: string[] | null = null,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
@@ -221,5 +230,18 @@ export abstract class WidgetDriver {
      */
     public getTurnServers(): AsyncGenerator<ITurnServer> {
         throw new Error("TURN server support is not implemented");
+    }
+
+    /**
+     * Search for users in the user directory.
+     * @param searchTerm The term to search for.
+     * @param limit The maximum number of results to return. If not supplied, the
+     * @returns Resolves to the search results.
+     */
+    public searchUserDirectory(
+        searchTerm: string,
+        limit?: number,
+    ): Promise<ISearchUserDirectoryResult> {
+        return Promise.resolve({ limited: false, results: [] });
     }
 }

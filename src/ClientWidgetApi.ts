@@ -77,6 +77,10 @@ import {
     IReadRelationsFromWidgetActionRequest,
     IReadRelationsFromWidgetResponseData,
 } from "./interfaces/ReadRelationsAction";
+import {
+    IUserDirectorySearchFromWidgetActionRequest,
+    IUserDirectorySearchFromWidgetResponseData,
+} from "./interfaces/UserDirectorySearchAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -158,7 +162,7 @@ export class ClientWidgetApi extends EventEmitter {
             || this.hasCapability(`org.matrix.msc2762.timeline:${roomId}`);
     }
 
-    public canSendRoomEvent(eventType: string, msgtype: string = null): boolean {
+    public canSendRoomEvent(eventType: string, msgtype: string | null = null): boolean {
         return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Send, eventType, msgtype));
     }
 
@@ -170,11 +174,11 @@ export class ClientWidgetApi extends EventEmitter {
         return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Send, eventType));
     }
 
-    public canReceiveRoomEvent(eventType: string, msgtype: string = null): boolean {
+    public canReceiveRoomEvent(eventType: string, msgtype: string | null = null): boolean {
         return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Receive, eventType, msgtype));
     }
 
-    public canReceiveStateEvent(eventType: string, stateKey: string): boolean {
+    public canReceiveStateEvent(eventType: string, stateKey: string | null): boolean {
         return this.allowedEvents.some(e => e.matchesAsStateEvent(EventDirection.Receive, eventType, stateKey));
     }
 
@@ -288,7 +292,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const onErr = (e) => {
+        const onErr = (e: any) => {
             console.error("[ClientWidgetApi] Failed to handle navigation: ", e);
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Error handling navigation"},
@@ -355,7 +359,7 @@ export class ClientWidgetApi extends EventEmitter {
                 return replyError("client provided invalid OIDC token for an allowed request");
             }
             if (update.state === OpenIDRequestState.Blocked) {
-                update.token = null; // just in case the client did something weird
+                update.token = undefined; // just in case the client did something weird
             }
 
             observer.close();
@@ -377,7 +381,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        let askRoomIds: string[] = null; // null denotes current room only
+        let askRoomIds: string[] | null = null; // null denotes current room only
         if (request.data.room_ids) {
             askRoomIds = request.data.room_ids as string[];
             if (!Array.isArray(askRoomIds)) {
@@ -397,7 +401,7 @@ export class ClientWidgetApi extends EventEmitter {
         let events: Promise<IRoomEvent[]> = Promise.resolve([]);
         if (request.data.state_key !== undefined) {
             const stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
-            if (!this.canReceiveStateEvent(request.data.type, stateKey)) {
+            if (!this.canReceiveStateEvent(request.data.type, stateKey ?? null)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot read state events of this type"},
                 });
@@ -431,7 +435,7 @@ export class ClientWidgetApi extends EventEmitter {
         const isState = request.data.state_key !== null && request.data.state_key !== undefined;
         let sendEventPromise: Promise<ISendEventDetails>;
         if (isState) {
-            if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
+            if (!this.canSendStateEvent(request.data.type, request.data.state_key!)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot send state events of this type"},
                 });
@@ -444,7 +448,7 @@ export class ClientWidgetApi extends EventEmitter {
                 request.data.room_id,
             );
         } else {
-            const content = request.data.content || {};
+            const content = request.data.content as { msgtype?: string } || {};
             const msgtype = content['msgtype'];
             if (!this.canSendRoomEvent(request.data.type, msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -599,7 +603,7 @@ export class ClientWidgetApi extends EventEmitter {
                 if (e.state_key !== undefined) {
                     return this.canReceiveStateEvent(e.type, e.state_key);
                 } else {
-                    return this.canReceiveRoomEvent(e.type, e.content['msgtype']);
+                    return this.canReceiveRoomEvent(e.type, (e.content as { msgtype?: string })['msgtype']);
                 }
             });
 
@@ -615,6 +619,49 @@ export class ClientWidgetApi extends EventEmitter {
             console.error("error getting the relations", e);
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Unexpected error while reading relations" },
+            });
+        }
+    }
+
+    private async handleUserDirectorySearch(request: IUserDirectorySearchFromWidgetActionRequest) {
+        if (!this.hasCapability(MatrixCapabilities.MSC3973UserDirectorySearch)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        if (typeof request.data.search_term !== 'string') {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - missing search term" },
+            });
+        }
+
+        if (request.data.limit !== undefined && request.data.limit < 0) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - limit out of range" },
+            });
+        }
+
+        try {
+            const result = await this.driver.searchUserDirectory(
+                request.data.search_term, request.data.limit,
+            );
+
+            return this.transport.reply<IUserDirectorySearchFromWidgetResponseData>(
+                request,
+                {
+                    limited: result.limited,
+                    results: result.results.map(r => ({
+                        user_id: r.userId,
+                        display_name: r.displayName,
+                        avatar_url: r.avatarUrl,
+                    })),
+                },
+            );
+        } catch (e) {
+            console.error("error searching in the user directory", e);
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Unexpected error while searching in the user directory" },
             });
         }
     }
@@ -650,6 +697,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleUnwatchTurnServers(<IUnwatchTurnServersRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC3869ReadRelations:
                     return this.handleReadRelations(<IReadRelationsFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC3973UserDirectorySearch:
+                    return this.handleUserDirectorySearch(<IUserDirectorySearchFromWidgetActionRequest>ev.detail)
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
@@ -717,7 +766,7 @@ export class ClientWidgetApi extends EventEmitter {
             }
         } else {
             // message event
-            if (!this.canReceiveRoomEvent(rawEvent.type, rawEvent.content?.["msgtype"])) {
+            if (!this.canReceiveRoomEvent(rawEvent.type, (rawEvent.content as { msgtype?: string })?.["msgtype"])) {
                 return; // no-op
             }
         }
