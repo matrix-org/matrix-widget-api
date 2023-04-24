@@ -24,7 +24,15 @@ jobs:
         run: yarn lint
 
       - name: test
-        run: yarn test
+        run: yarn test --coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: |
+            coverage
+            !coverage/lcov-report
 
       - name: build
         run: yarn build
