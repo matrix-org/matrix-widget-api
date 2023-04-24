@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export function assertPresent<O>(obj: O, key: keyof O) {
+export function assertPresent<O extends Record<any, any>>(obj: O, key: keyof O) {
     if (!obj[key]) {
-        throw new Error(`${key} is required`);
+        throw new Error(`${String(key)} is required`);
     }
 }
