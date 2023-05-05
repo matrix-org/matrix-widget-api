@@ -1,6 +1,6 @@
 {
   "name": "matrix-widget-api",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "Matrix Widget API SDK",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
