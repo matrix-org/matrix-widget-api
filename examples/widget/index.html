@@ -1,0 +1,107 @@
+<!--
+ Copyright 2020 The Matrix.org Foundation C.I.C.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Example Widget</title>
+
+    <!--
+        TESTING IN ELEMENT WEB
+        ----------------------
+
+        To test this widget in Element Web, set up the widget library so it
+        can be resolved properly (run `yarn build` and copy api.js from the dist/ to this directory), 
+        then serve this directory off a web server.
+        An easy web server can be made with the http-server NPM package.
+
+        Once served, use the following command to add the widget to a room:
+            /addwidget http://localhost:8080/#/?widgetId=$matrix_widget_id&userId=$matrix_user_id
+
+        The widget should then load and present an interface for sticking the
+        widget to the screen (if approved for the capability). It is recommended
+        to have the JS console open to watch for errors and to see how the widget
+        works.
+
+        Note: this uses the fragment to pass parameters to avoid leaking widget
+        information to the web server. It is recommended to take a similar approach
+        with your own widgets.
+    -->
+
+    <!-- CSS is just for aesthetics and not important to the example -->
+    <link href="index.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- The widget will be loaded into this container -->
+    <div id="container">Loading...</div>
+
+    <!-- Include the widget library -->
+    <script src="api.js"></script>
+
+    <!-- Bring in some utilities that aren't critical to the example -->
+    <script src="utils.js"></script>
+
+    <!-- The actual widget functionality -->
+    <script type="text/javascript">
+    try {
+        const qs = parseFragment();
+        const widgetId = assertParam(qs, 'widgetId');
+        const userId = assertParam(qs, 'userId');
+        let isSticky = false;
+
+        // Set up the widget API as soon as possible to avoid problems with the client
+        const widgetApi = new mxwidgets.WidgetApi(widgetId);
+        widgetApi.requestCapability(mxwidgets.MatrixCapabilities.AlwaysOnScreen);
+
+        widgetApi.on("ready", function() {
+            // Fill in the basic widget details now that we're allowed to operate.
+            document.getElementById("container").innerHTML = "Hello <span id='userId'></span>!<br /><br />"
+                + "Currently stuck on screen: <span id='stickyState'></span><br /><br />"
+                + "<button onclick='toggleSticky()'>Toggle sticky state</button>";
+
+            // Fill in the user ID using innerText to avoid XSS
+            document.getElementById("userId").innerText = userId;
+
+            // Update the UI and ensure that we end up not sticky to start
+            sendStickyState();
+        });
+
+        // Start the widget as soon as possible too, otherwise the client might time us out.
+        widgetApi.start();
+
+        function toggleSticky() {
+            // called by the button when clicked - toggle the sticky state
+            isSticky = !isSticky;
+            sendStickyState();
+        }
+
+        function updateStickyState() {
+            document.getElementById("stickyState").innerText = isSticky.toString();
+        }
+
+        function sendStickyState() {
+            updateStickyState(); // update first to make the UI go faster than the request
+            widgetApi.setAlwaysOnScreen(isSticky).then(function(r) {
+                console.log("[Widget] Client responded with: ", r);
+            }).catch(function(e) {
+                handleError(e);
+            });
+        }
+    } catch (e) {
+        handleError(e);
+    }
+    </script>
+</body>
+</html>
