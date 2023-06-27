@@ -122,6 +122,13 @@ export abstract class WidgetDriver {
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<IRoomEvent[]>} Resolves to the room events, or an empty array.
      */
+    // TODO: fix Promise<any>
+    public readRoomAccountData(
+        eventType: string,
+        roomIds: string[] | null = null,
+    ): Promise<any> {
+        return Promise.resolve([]);
+    }
     public readRoomEvents(
         eventType: string,
         msgtype: string | undefined,
