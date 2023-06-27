@@ -81,6 +81,10 @@ import {
     IUserDirectorySearchFromWidgetActionRequest,
     IUserDirectorySearchFromWidgetResponseData,
 } from "./interfaces/UserDirectorySearchAction";
+import {
+    IReadRoomAccountDataFromWidgetActionRequest,
+    IReadRoomAccountDataFromWidgetResponseData
+} from "./interfaces/ReadRoomAccountDataAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -367,6 +371,15 @@ export class ClientWidgetApi extends EventEmitter {
         });
 
         this.driver.askOpenID(observer);
+    }
+    private handleReadRoomAccountData(request: IReadRoomAccountDataFromWidgetActionRequest) {
+        // TODO: fix the Promise<any>
+        let events: Promise<any> = Promise.resolve([]);
+        events = this.driver.readRoomAccountData(request.data.type);
+
+        return events.then((evs) => {
+            this.transport.reply<IReadRoomAccountDataFromWidgetResponseData>(request, {events: evs})
+        });
     }
 
     private handleReadEvents(request: IReadEventFromWidgetActionRequest) {
@@ -699,6 +712,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleReadRelations(<IReadRelationsFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC3973UserDirectorySearch:
                     return this.handleUserDirectorySearch(<IUserDirectorySearchFromWidgetActionRequest>ev.detail)
+                case WidgetApiFromWidgetAction.BeeperReadRoomAccountData:
+                    return this.handleReadRoomAccountData(<IReadRoomAccountDataFromWidgetActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
