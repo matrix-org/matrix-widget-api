@@ -116,6 +116,12 @@ export class WidgetEventCapability {
         return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
+    public static forRoomAccountData(direction: EventDirection, eventType: string): WidgetEventCapability {
+        const str = `com.beeper.capabilities.${direction}.room_account_data:${eventType}`;
+
+        return WidgetEventCapability.findEventCapabilities([str])[0];
+    }
+
     /**
      * Parses a capabilities request to find all the event capability requests.
      * @param {Iterable<Capability>} capabilities The capabilities requested/to parse.
@@ -156,6 +162,10 @@ export class WidgetEventCapability {
                 direction = EventDirection.Receive;
                 kind = EventKind.ToDevice;
                 eventSegment = cap.substring("org.matrix.msc3819.receive.to_device:".length);
+            } else if (cap.startsWith("com.beeper.capabilities.receive.room_account_data:")) {
+                direction = EventDirection.Receive;
+                kind = EventKind.State;
+                eventSegment = cap.substring("com.beeper.capabilities.receive.room_account_data:".length);
             }
 
             if (direction === null || kind === null || eventSegment === undefined) continue;
