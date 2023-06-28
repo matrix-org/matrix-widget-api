@@ -442,6 +442,7 @@ export class WidgetApi extends EventEmitter {
         limit?: number,
         msgtype?: string,
         roomIds?: (string | Symbols.AnyRoom)[],
+        since?: string | undefined,
     ): Promise<IRoomEvent[]> {
         const data: IReadEventFromWidgetRequestData = {type: eventType, msgtype: msgtype};
         if (limit !== undefined) {
@@ -453,6 +454,9 @@ export class WidgetApi extends EventEmitter {
             } else {
                 data.room_ids = roomIds;
             }
+        }
+        if (since) {
+            data.since = since;
         }
         return this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC2876ReadEvents,
