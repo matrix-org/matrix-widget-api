@@ -44,6 +44,7 @@ export enum WidgetApiFromWidgetAction {
     UnwatchTurnServers = "unwatch_turn_servers",
 
     BeeperReadRoomAccountData = "com.beeper.read_room_account_data",
+
     /**
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
      */

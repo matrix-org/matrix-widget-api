@@ -415,6 +415,28 @@ export class WidgetApi extends EventEmitter {
         );
     }
 
+    // TODO: fix the Promise<any>
+    public readRoomAccountData(
+        eventType: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<any> {
+
+        const data: IReadEventFromWidgetRequestData = {type: eventType};
+
+        if (roomIds) {
+            if (roomIds.includes(Symbols.AnyRoom)) {
+                data.room_ids = Symbols.AnyRoom;
+            } else {
+                data.room_ids = roomIds;
+            }
+        }
+        // return Promise.resolve([{hi: "hello"}, {hi: "hey"}]);
+        return this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.BeeperReadRoomAccountData,
+            data,
+        ).then(r => r.events);
+    }
+
     public readRoomEvents(
         eventType: string,
         limit?: number,
