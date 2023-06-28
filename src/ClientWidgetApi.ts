@@ -410,6 +410,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         const limit = request.data.limit || 0;
+        const since = request.data.since;
 
         let events: Promise<IRoomEvent[]> = Promise.resolve([]);
         if (request.data.state_key !== undefined) {
@@ -426,7 +427,7 @@ export class ClientWidgetApi extends EventEmitter {
                     error: {message: "Cannot read room events of this type"},
                 });
             }
-            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit, askRoomIds);
+            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit, askRoomIds, since);
         }
 
         return events.then(evs => this.transport.reply<IReadEventFromWidgetResponseData>(request, {events: evs}));

@@ -26,6 +26,7 @@ export interface IReadEventFromWidgetRequestData extends IWidgetApiRequestData {
     type: string;
     limit?: number;
     room_ids?: Symbols.AnyRoom | string[]; // eslint-disable-line camelcase
+    since?: string | undefined;
 }
 
 export interface IReadEventFromWidgetActionRequest extends IWidgetApiRequest {
