@@ -255,6 +255,15 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
+     * Requests the capability to receive a given item in room account data. It is not guaranteed to be
+     * allowed, but will be asked for if the negotiation has not already happened.
+     * @param {string} eventType The state event type to ask for.
+     */
+    public requestCapabilityToReceiveRoomAccountData(eventType: string) {
+        this.requestCapability(WidgetEventCapability.forRoomAccountData(EventDirection.Receive, eventType).raw);
+    }
+
+    /**
      * Requests an OpenID Connect token from the client for the currently logged in
      * user. This token can be validated server-side with the federation API. Note
      * that the widget is responsible for validating the token and caching any results

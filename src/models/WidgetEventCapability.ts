@@ -20,6 +20,7 @@ export enum EventKind {
     Event = "event",
     State = "state_event",
     ToDevice = "to_device",
+    RoomAccount = "room_account",
 }
 
 export enum EventDirection {
@@ -68,6 +69,15 @@ export class WidgetEventCapability {
         } else {
             return true; // already passed the check for if the event is allowed
         }
+
+        // Default not allowed
+        return false;
+    }
+
+    public matchesAsRoomAccountData(direction: EventDirection, eventType: string): boolean {
+        if (this.kind !== EventKind.RoomAccount) return false; // not a state event
+        if (this.direction !== direction) return false; // direction mismatch
+        if (this.eventType !== eventType) return false; // event type mismatch
 
         // Default not allowed
         return false;
@@ -164,7 +174,7 @@ export class WidgetEventCapability {
                 eventSegment = cap.substring("org.matrix.msc3819.receive.to_device:".length);
             } else if (cap.startsWith("com.beeper.capabilities.receive.room_account_data:")) {
                 direction = EventDirection.Receive;
-                kind = EventKind.State;
+                kind = EventKind.RoomAccount;
                 eventSegment = cap.substring("com.beeper.capabilities.receive.room_account_data:".length);
             }
 

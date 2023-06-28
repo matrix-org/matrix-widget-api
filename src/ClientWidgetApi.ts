@@ -190,6 +190,10 @@ export class ClientWidgetApi extends EventEmitter {
         return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Receive, eventType));
     }
 
+    public canReceiveRoomAccountData(eventType: string): boolean {
+        return this.allowedEvents.some(e => e.matchesAsRoomAccountData(EventDirection.Receive, eventType));
+    }
+
     public stop() {
         this.isStopped = true;
         this.transport.stop();
@@ -376,6 +380,12 @@ export class ClientWidgetApi extends EventEmitter {
         // TODO: fix the Promise<any>
         let events: Promise<any> = Promise.resolve([]);
         events = this.driver.readRoomAccountData(request.data.type);
+
+        if (!this.canReceiveRoomAccountData(request.data.type)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Cannot read room account data of this type"},
+            });
+        }
 
         return events.then((evs) => {
             this.transport.reply<IReadRoomAccountDataFromWidgetResponseData>(request, {events: evs})
