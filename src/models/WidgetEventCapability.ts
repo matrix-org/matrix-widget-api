@@ -75,12 +75,12 @@ export class WidgetEventCapability {
     }
 
     public matchesAsRoomAccountData(direction: EventDirection, eventType: string): boolean {
-        if (this.kind !== EventKind.RoomAccount) return false; // not a state event
+        if (this.kind !== EventKind.RoomAccount) return false; // not room account data
         if (this.direction !== direction) return false; // direction mismatch
         if (this.eventType !== eventType) return false; // event type mismatch
 
-        // Default not allowed
-        return false;
+        // Checks passed, the event is allowed
+        return true;
     }
 
     public static forStateEvent(
