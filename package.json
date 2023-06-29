@@ -1,11 +1,11 @@
 {
-  "name": "matrix-widget-api",
-  "version": "1.4.0",
+  "name": "@beeper/matrix-widget-api",
+  "version": "1.5.0",
   "description": "Matrix Widget API SDK",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "repository": "https://github.com/matrix-org/matrix-widget-api",
-  "author": "The Matrix.org Foundation C.I.C.",
+  "repository": "https://github.com/beeper/matrix-widget-api",
+  "author": "Beeper Inc.",
   "license": "Apache-2.0",
   "scripts": {
     "prepublishOnly": "yarn build",
@@ -61,5 +61,8 @@
     "outputDirectory": "coverage",
     "outputName": "jest-sonar-report.xml",
     "relativePaths": true
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
