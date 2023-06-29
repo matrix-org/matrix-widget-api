@@ -1,6 +1,7 @@
 import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
+import { IRoomAccountData } from "./IRoomAccountData";
 import { Symbols } from "../Symbols";
 
 export interface IReadRoomAccountDataFromWidgetRequestData extends IWidgetApiRequestData {
@@ -14,7 +15,7 @@ export interface IReadRoomAccountDataFromWidgetActionRequest extends IWidgetApiR
 }
 
 export interface IReadRoomAccountDataFromWidgetResponseData extends IWidgetApiResponseData {
-    events: [];
+    events: IRoomAccountData[];
 }
 
 export interface IReadRoomAccountDataFromWidgetActionResponse extends IReadRoomAccountDataFromWidgetActionRequest {

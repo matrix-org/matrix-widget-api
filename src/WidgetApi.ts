@@ -61,7 +61,9 @@ import {
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
+import { IReadRoomAccountDataFromWidgetRequestData, IReadRoomAccountDataFromWidgetResponseData } from "./interfaces/ReadRoomAccountDataAction";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
+import {IRoomAccountData} from "./interfaces/IRoomAccountData";
 import { ITurnServer, IUpdateTurnServersRequest } from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
 import {
@@ -424,12 +426,10 @@ export class WidgetApi extends EventEmitter {
         );
     }
 
-    // TODO: fix the Promise<any>
     public readRoomAccountData(
         eventType: string,
         roomIds?: (string | Symbols.AnyRoom)[],
-    ): Promise<any> {
-
+    ): Promise<IRoomAccountData[]> {
         const data: IReadEventFromWidgetRequestData = {type: eventType};
 
         if (roomIds) {
@@ -439,8 +439,10 @@ export class WidgetApi extends EventEmitter {
                 data.room_ids = roomIds;
             }
         }
-        // return Promise.resolve([{hi: "hello"}, {hi: "hey"}]);
-        return this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
+        return this.transport.send<
+            IReadRoomAccountDataFromWidgetRequestData,
+            IReadRoomAccountDataFromWidgetResponseData
+        >(
             WidgetApiFromWidgetAction.BeeperReadRoomAccountData,
             data,
         ).then(r => r.events);
