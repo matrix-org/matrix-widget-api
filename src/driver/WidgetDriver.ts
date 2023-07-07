@@ -156,7 +156,7 @@ export abstract class WidgetDriver {
         msgtype: string | undefined,
         limit: number,
         roomIds: string[] | null = null,
-        since: string | undefined,
+        since?: string,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
