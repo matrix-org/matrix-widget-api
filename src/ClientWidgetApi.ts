@@ -115,6 +115,7 @@ export class ClientWidgetApi extends EventEmitter {
     private allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
     private turnServers: AsyncGenerator<ITurnServer> | null = null;
+    private contentLoadedWaitTimer?: ReturnType<typeof setTimeout>;
 
     /**
      * Creates a new client widget API. This will instantiate the transport
@@ -229,20 +230,30 @@ export class ClientWidgetApi extends EventEmitter {
         } else {
             // Reaching this means, that the Iframe got reloaded/loaded and
             // the clientApi is awaiting the FIRST ContentLoaded action.
+            console.log("waitForIframeLoad is false: waiting for widget to send contentLoaded");
+            this.contentLoadedWaitTimer = setTimeout(() => {
+                console.error(
+                    "Widget specified waitForIframeLoad=false but timed out waiting for contentLoaded event!",
+                );
+            }, 10000);
             this.contentLoadedActionSent = false;
         }
     }
 
     private handleContentLoadedAction(action: IContentLoadedActionRequest) {
+        if (this.contentLoadedWaitTimer !== undefined) {
+            clearTimeout(this.contentLoadedWaitTimer);
+            this.contentLoadedWaitTimer = undefined;
+        }
         if (this.contentLoadedActionSent) {
-            throw new Error("Improper sequence: ContentLoaded Action can only be send once after the widget loaded "
+            throw new Error("Improper sequence: ContentLoaded Action can only be sent once after the widget loaded "
                             +"and should only be used if waitForIframeLoad is false (default=true)");
         }
         if (this.widget.waitForIframeLoad) {
             this.transport.reply(action, <IWidgetApiErrorResponseData>{
                 error: {
                     message: "Improper sequence: not expecting ContentLoaded event if "
-                    +"waitForIframLoad is true (default=true)",
+                    +"waitForIframeLoad is true (default=true)",
                 },
             });
         } else {
