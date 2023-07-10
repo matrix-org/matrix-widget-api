@@ -2,7 +2,7 @@
   "name": "matrix-widget-api",
   "version": "1.4.0",
   "description": "Matrix Widget API SDK",
-  "main": "./src/index.ts",
+  "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "repository": "https://github.com/matrix-org/matrix-widget-api",
   "author": "The Matrix.org Foundation C.I.C.",
