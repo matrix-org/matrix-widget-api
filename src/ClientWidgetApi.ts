@@ -84,7 +84,7 @@ import {
 } from "./interfaces/UserDirectorySearchAction";
 import {
     IReadRoomAccountDataFromWidgetActionRequest,
-    IReadRoomAccountDataFromWidgetResponseData
+    IReadRoomAccountDataFromWidgetResponseData,
 } from "./interfaces/ReadRoomAccountDataAction";
 
 /**

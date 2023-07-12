@@ -61,7 +61,10 @@ import {
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
-import { IReadRoomAccountDataFromWidgetRequestData, IReadRoomAccountDataFromWidgetResponseData } from "./interfaces/ReadRoomAccountDataAction";
+import {
+    IReadRoomAccountDataFromWidgetRequestData,
+    IReadRoomAccountDataFromWidgetResponseData,
+} from "./interfaces/ReadRoomAccountDataAction";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
 import {IRoomAccountData} from "./interfaces/IRoomAccountData";
 import { ITurnServer, IUpdateTurnServersRequest } from "./interfaces/TurnServerActions";
