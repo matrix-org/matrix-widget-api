@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-import { Capability, IOpenIDCredentials, OpenIDRequestState, SimpleObservable, IRoomEvent, ITurnServer } from "..";
+import {
+    Capability,
+    IOpenIDCredentials,
+    OpenIDRequestState,
+    SimpleObservable,
+    IRoomEvent,
+    IRoomAccountData,
+    ITurnServer,
+} from "..";
 
 export interface ISendEventDetails {
     roomId: string;
@@ -106,6 +114,22 @@ export abstract class WidgetDriver {
     ): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
     }
+    /**
+     * Reads an element of room account data. The widget API will have already verified that the widget is
+     * capable of receiving the `eventType` of the requested information. If `roomIds` is supplied, it may
+     * contain `Symbols.AnyRoom` to denote that the piece of room account data in each of the client's known
+     * rooms should be returned. When `null`, only the room the user is currently looking at should be considered.
+     * @param eventType The event type to be read.
+     * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
+     * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
+     * @returns {Promise<IRoomAccountData[]>} Resolves to the element of room account data, or an empty array.
+     */
+    public readRoomAccountData(
+        eventType: string,
+        roomIds: string[] | null = null,
+    ): Promise<IRoomAccountData[]> {
+        return Promise.resolve([]);
+    }
 
     /**
      * Reads all events of the given type, and optionally `msgtype` (if applicable/defined),
@@ -113,13 +137,18 @@ export abstract class WidgetDriver {
      * capable of receiving the events. Less events than the limit are allowed to be returned,
      * but not more. If `roomIds` is supplied, it may contain `Symbols.AnyRoom` to denote that
      * `limit` in each of the client's known rooms should be returned. When `null`, only the
-     * room the user is currently looking at should be considered.
+     * room the user is currently looking at should be considered. If `since` is specified but
+     * the event ID isn't present in the number of events fetched by the client due to `limit`,
+     * the client will return all the events.
      * @param eventType The event type to be read.
      * @param msgtype The msgtype of the events to be read, if applicable/defined.
      * @param limit The maximum number of events to retrieve per room. Will be zero to denote "as many
      * as possible".
      * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
+     * @param since When null, retrieves the number of events specified by the "limit" parameter.
+     * Otherwise, the event ID at which only subsequent events will be returned, as many as specified
+     * in "limit".
      * @returns {Promise<IRoomEvent[]>} Resolves to the room events, or an empty array.
      */
     public readRoomEvents(
@@ -127,6 +156,7 @@ export abstract class WidgetDriver {
         msgtype: string | undefined,
         limit: number,
         roomIds: string[] | null = null,
+        since?: string,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }

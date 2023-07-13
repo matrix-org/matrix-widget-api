@@ -54,6 +54,7 @@ export * from "./interfaces/SendEventAction";
 export * from "./interfaces/SendToDeviceAction";
 export * from "./interfaces/ReadEventAction";
 export * from "./interfaces/IRoomEvent";
+export * from "./interfaces/IRoomAccountData";
 export * from "./interfaces/NavigateAction";
 export * from "./interfaces/TurnServerActions";
 export * from "./interfaces/ReadRelationsAction";

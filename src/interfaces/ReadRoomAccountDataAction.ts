@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Matrix.org Foundation C.I.C.
+ * Copyright 2023 Beeper Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,23 @@
 import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
-import { IRoomEvent } from "./IRoomEvent";
+import { IRoomAccountData } from "./IRoomAccountData";
 import { Symbols } from "../Symbols";
 
-export interface IReadEventFromWidgetRequestData extends IWidgetApiRequestData {
-    state_key?: string | boolean; // eslint-disable-line camelcase
-    msgtype?: string;
+export interface IReadRoomAccountDataFromWidgetRequestData extends IWidgetApiRequestData {
     type: string;
-    limit?: number;
     room_ids?: Symbols.AnyRoom | string[]; // eslint-disable-line camelcase
-    since?: string;
 }
 
-export interface IReadEventFromWidgetActionRequest extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.MSC2876ReadEvents;
-    data: IReadEventFromWidgetRequestData;
+export interface IReadRoomAccountDataFromWidgetActionRequest extends IWidgetApiRequest {
+    action: WidgetApiFromWidgetAction.BeeperReadRoomAccountData;
+    data: IReadRoomAccountDataFromWidgetRequestData;
 }
 
-export interface IReadEventFromWidgetResponseData extends IWidgetApiResponseData {
-    events: IRoomEvent[];
+export interface IReadRoomAccountDataFromWidgetResponseData extends IWidgetApiResponseData {
+    events: IRoomAccountData[];
 }
 
-export interface IReadEventFromWidgetActionResponse extends IReadEventFromWidgetActionRequest {
-    response: IReadEventFromWidgetResponseData;
+export interface IReadRoomAccountDataFromWidgetActionResponse extends IReadRoomAccountDataFromWidgetActionRequest {
+    response: IReadRoomAccountDataFromWidgetResponseData;
 }

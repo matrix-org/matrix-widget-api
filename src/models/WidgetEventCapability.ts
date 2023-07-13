@@ -20,6 +20,7 @@ export enum EventKind {
     Event = "event",
     State = "state_event",
     ToDevice = "to_device",
+    RoomAccount = "room_account",
 }
 
 export enum EventDirection {
@@ -73,6 +74,15 @@ export class WidgetEventCapability {
         return false;
     }
 
+    public matchesAsRoomAccountData(direction: EventDirection, eventType: string): boolean {
+        if (this.kind !== EventKind.RoomAccount) return false; // not room account data
+        if (this.direction !== direction) return false; // direction mismatch
+        if (this.eventType !== eventType) return false; // event type mismatch
+
+        // Checks passed, the event is allowed
+        return true;
+    }
+
     public static forStateEvent(
         direction: EventDirection,
         eventType: string,
@@ -116,6 +126,12 @@ export class WidgetEventCapability {
         return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
+    public static forRoomAccountData(direction: EventDirection, eventType: string): WidgetEventCapability {
+        const str = `com.beeper.capabilities.${direction}.room_account_data:${eventType}`;
+
+        return WidgetEventCapability.findEventCapabilities([str])[0];
+    }
+
     /**
      * Parses a capabilities request to find all the event capability requests.
      * @param {Iterable<Capability>} capabilities The capabilities requested/to parse.
@@ -156,6 +172,10 @@ export class WidgetEventCapability {
                 direction = EventDirection.Receive;
                 kind = EventKind.ToDevice;
                 eventSegment = cap.substring("org.matrix.msc3819.receive.to_device:".length);
+            } else if (cap.startsWith("com.beeper.capabilities.receive.room_account_data:")) {
+                direction = EventDirection.Receive;
+                kind = EventKind.RoomAccount;
+                eventSegment = cap.substring("com.beeper.capabilities.receive.room_account_data:".length);
             }
 
             if (direction === null || kind === null || eventSegment === undefined) continue;
