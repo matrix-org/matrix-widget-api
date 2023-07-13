@@ -56,6 +56,7 @@ import {
 } from "./interfaces/SendToDeviceAction";
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
+import { IRoomAccountData } from "./interfaces/IRoomAccountData";
 import {
     IGetOpenIDActionRequest,
     IGetOpenIDActionResponseData,
@@ -81,6 +82,10 @@ import {
     IUserDirectorySearchFromWidgetActionRequest,
     IUserDirectorySearchFromWidgetResponseData,
 } from "./interfaces/UserDirectorySearchAction";
+import {
+    IReadRoomAccountDataFromWidgetActionRequest,
+    IReadRoomAccountDataFromWidgetResponseData,
+} from "./interfaces/ReadRoomAccountDataAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -184,6 +189,10 @@ export class ClientWidgetApi extends EventEmitter {
 
     public canReceiveToDeviceEvent(eventType: string): boolean {
         return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Receive, eventType));
+    }
+
+    public canReceiveRoomAccountData(eventType: string): boolean {
+        return this.allowedEvents.some(e => e.matchesAsRoomAccountData(EventDirection.Receive, eventType));
     }
 
     public stop() {
@@ -368,6 +377,20 @@ export class ClientWidgetApi extends EventEmitter {
 
         this.driver.askOpenID(observer);
     }
+    private handleReadRoomAccountData(request: IReadRoomAccountDataFromWidgetActionRequest) {
+        let events: Promise<IRoomAccountData[]> = Promise.resolve([]);
+        events = this.driver.readRoomAccountData(request.data.type);
+
+        if (!this.canReceiveRoomAccountData(request.data.type)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Cannot read room account data of this type"},
+            });
+        }
+
+        return events.then((evs) => {
+            this.transport.reply<IReadRoomAccountDataFromWidgetResponseData>(request, {events: evs})
+        });
+    }
 
     private handleReadEvents(request: IReadEventFromWidgetActionRequest) {
         if (!request.data.type) {
@@ -397,6 +420,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         const limit = request.data.limit || 0;
+        const since = request.data.since;
 
         let events: Promise<IRoomEvent[]> = Promise.resolve([]);
         if (request.data.state_key !== undefined) {
@@ -413,7 +437,7 @@ export class ClientWidgetApi extends EventEmitter {
                     error: {message: "Cannot read room events of this type"},
                 });
             }
-            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit, askRoomIds);
+            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit, askRoomIds, since);
         }
 
         return events.then(evs => this.transport.reply<IReadEventFromWidgetResponseData>(request, {events: evs}));
@@ -699,6 +723,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleReadRelations(<IReadRelationsFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC3973UserDirectorySearch:
                     return this.handleUserDirectorySearch(<IUserDirectorySearchFromWidgetActionRequest>ev.detail)
+                case WidgetApiFromWidgetAction.BeeperReadRoomAccountData:
+                    return this.handleReadRoomAccountData(<IReadRoomAccountDataFromWidgetActionRequest>ev.detail);
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {

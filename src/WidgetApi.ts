@@ -61,7 +61,12 @@ import {
 import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { INavigateActionRequestData } from "./interfaces/NavigateAction";
 import { IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData } from "./interfaces/ReadEventAction";
+import {
+    IReadRoomAccountDataFromWidgetRequestData,
+    IReadRoomAccountDataFromWidgetResponseData,
+} from "./interfaces/ReadRoomAccountDataAction";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
+import {IRoomAccountData} from "./interfaces/IRoomAccountData";
 import { ITurnServer, IUpdateTurnServersRequest } from "./interfaces/TurnServerActions";
 import { Symbols } from "./Symbols";
 import {
@@ -255,6 +260,15 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
+     * Requests the capability to receive a given item in room account data. It is not guaranteed to be
+     * allowed, but will be asked for if the negotiation has not already happened.
+     * @param {string} eventType The state event type to ask for.
+     */
+    public requestCapabilityToReceiveRoomAccountData(eventType: string) {
+        this.requestCapability(WidgetEventCapability.forRoomAccountData(EventDirection.Receive, eventType).raw);
+    }
+
+    /**
      * Requests an OpenID Connect token from the client for the currently logged in
      * user. This token can be validated server-side with the federation API. Note
      * that the widget is responsible for validating the token and caching any results
@@ -415,11 +429,34 @@ export class WidgetApi extends EventEmitter {
         );
     }
 
+    public readRoomAccountData(
+        eventType: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<IRoomAccountData[]> {
+        const data: IReadEventFromWidgetRequestData = {type: eventType};
+
+        if (roomIds) {
+            if (roomIds.includes(Symbols.AnyRoom)) {
+                data.room_ids = Symbols.AnyRoom;
+            } else {
+                data.room_ids = roomIds;
+            }
+        }
+        return this.transport.send<
+            IReadRoomAccountDataFromWidgetRequestData,
+            IReadRoomAccountDataFromWidgetResponseData
+        >(
+            WidgetApiFromWidgetAction.BeeperReadRoomAccountData,
+            data,
+        ).then(r => r.events);
+    }
+
     public readRoomEvents(
         eventType: string,
         limit?: number,
         msgtype?: string,
         roomIds?: (string | Symbols.AnyRoom)[],
+        since?: string | undefined,
     ): Promise<IRoomEvent[]> {
         const data: IReadEventFromWidgetRequestData = {type: eventType, msgtype: msgtype};
         if (limit !== undefined) {
@@ -431,6 +468,9 @@ export class WidgetApi extends EventEmitter {
             } else {
                 data.room_ids = roomIds;
             }
+        }
+        if (since) {
+            data.since = since;
         }
         return this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC2876ReadEvents,
