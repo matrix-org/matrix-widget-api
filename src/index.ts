@@ -58,6 +58,8 @@ export * from "./interfaces/IRoomAccountData";
 export * from "./interfaces/NavigateAction";
 export * from "./interfaces/TurnServerActions";
 export * from "./interfaces/ReadRelationsAction";
+export * from "./interfaces/GetMediaConfigAction";
+export * from "./interfaces/UploadFileAction";
 
 // Complex models
 export * from "./models/WidgetEventCapability";

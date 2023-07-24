@@ -77,6 +77,14 @@ import {
     IUserDirectorySearchFromWidgetRequestData,
     IUserDirectorySearchFromWidgetResponseData,
 } from "./interfaces/UserDirectorySearchAction";
+import {
+    IGetMediaConfigActionFromWidgetRequestData,
+    IGetMediaConfigActionFromWidgetResponseData,
+} from "./interfaces/GetMediaConfigAction";
+import {
+    IUploadFileActionFromWidgetRequestData,
+    IUploadFileActionFromWidgetResponseData,
+} from "./interfaces/UploadFileAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -660,6 +668,46 @@ export class WidgetApi extends EventEmitter {
             IUserDirectorySearchFromWidgetRequestData,
             IUserDirectorySearchFromWidgetResponseData
         >(WidgetApiFromWidgetAction.MSC3973UserDirectorySearch, data);
+    }
+
+    /**
+     * Get the config for the media repository.
+     * @returns Promise which resolves with an object containing the config.
+     */
+    public async getMediaConfig(): Promise<IGetMediaConfigActionFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4039)) {
+            throw new Error("The get_media_config action is not supported by the client.")
+        }
+
+        const data: IGetMediaConfigActionFromWidgetRequestData = {};
+
+        return this.transport.send<
+            IGetMediaConfigActionFromWidgetRequestData,
+            IGetMediaConfigActionFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction, data);
+    }
+
+    /**
+     * Upload a file to the media repository on the homeserver.
+     * @param file - The object to upload. Something that can be sent to
+     *               XMLHttpRequest.send (typically a File).
+     * @returns Resolves to the location of the uploaded file.
+     */
+    public async uploadFile(file: XMLHttpRequestBodyInit): Promise<IUploadFileActionFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4039)) {
+            throw new Error("The upload_file action is not supported by the client.")
+        }
+
+        const data: IUploadFileActionFromWidgetRequestData = {
+            file,
+        };
+
+        return this.transport.send<
+            IUploadFileActionFromWidgetRequestData,
+            IUploadFileActionFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4039UploadFileAction, data);
     }
 
     /**

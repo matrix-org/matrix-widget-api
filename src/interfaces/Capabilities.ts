@@ -34,6 +34,10 @@ export enum MatrixCapabilities {
     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
     */
     MSC3973UserDirectorySearch = "org.matrix.msc3973.user_directory_search",
+    /**
+    * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+    */
+    MSC4039UploadFile = "org.matrix.msc4039.upload_file",
 }
 
 export type Capability = MatrixCapabilities | string;

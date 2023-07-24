@@ -15,8 +15,10 @@
  */
 
 import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
+import { IGetMediaConfigActionFromWidgetResponseData } from '../src/interfaces/GetMediaConfigAction';
 import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
 import { ISupportedVersionsActionResponseData } from '../src/interfaces/SupportedVersionsAction';
+import { IUploadFileActionFromWidgetResponseData } from '../src/interfaces/UploadFileAction';
 import { IUserDirectorySearchFromWidgetResponseData } from '../src/interfaces/UserDirectorySearchAction';
 import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
@@ -176,6 +178,98 @@ describe('WidgetApi', () => {
             await expect(widgetApi.searchUserDirectory(
                 'foo', 10,
             )).rejects.toThrow('An error occurred');
+        });
+    });
+
+    describe('getMediaConfig', () => {
+        it('should forward the request to the ClientWidgetApi', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValue(
+                { 'm.upload.size': 1000 } as IGetMediaConfigActionFromWidgetResponseData,
+            );
+
+            await expect(widgetApi.getMediaConfig()).resolves.toEqual({
+                'm.upload.size': 1000,
+            });
+
+            expect(PostmessageTransport.prototype.send).toBeCalledWith(
+                WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
+                {},
+            );
+        });
+
+        it('should reject the request if the api is not supported', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [] } as ISupportedVersionsActionResponseData,
+            );
+
+            await expect(widgetApi.getMediaConfig()).rejects.toThrow(
+                "The get_media_config action is not supported by the client.",
+            );
+
+            expect(PostmessageTransport.prototype.send)
+                .not.toBeCalledWith(WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction, expect.anything());
+        });
+
+        it('should handle an error', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockRejectedValue(
+                new Error('An error occurred'),
+            );
+
+            await expect(widgetApi.getMediaConfig()).rejects.toThrow(
+                'An error occurred',
+            );
+        });
+    });
+
+    describe('uploadFile', () => {
+        it('should forward the request to the ClientWidgetApi', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValue(
+                { content_uri: 'mxc://...' } as IUploadFileActionFromWidgetResponseData,
+            );
+
+            await expect(widgetApi.uploadFile("data")).resolves.toEqual({
+                content_uri: 'mxc://...',
+            });
+
+            expect(PostmessageTransport.prototype.send).toBeCalledWith(
+                WidgetApiFromWidgetAction.MSC4039UploadFileAction,
+                { file: "data" },
+            );
+        });
+
+        it('should reject the request if the api is not supported', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [] } as ISupportedVersionsActionResponseData,
+            );
+
+            await expect(widgetApi.uploadFile("data")).rejects.toThrow(
+                "The upload_file action is not supported by the client.",
+            );
+
+            expect(PostmessageTransport.prototype.send)
+                .not.toBeCalledWith(WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction, expect.anything());
+        });
+
+        it('should handle an error', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockRejectedValue(
+                new Error('An error occurred'),
+            );
+
+            await expect(widgetApi.uploadFile("data")).rejects.toThrow(
+                'An error occurred',
+            );
         });
     });
 });

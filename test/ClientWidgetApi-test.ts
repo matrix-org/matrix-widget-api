@@ -29,6 +29,8 @@ import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import { IReadEventFromWidgetActionRequest } from '../src';
+import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
+import { IUploadFileActionFromWidgetActionRequest } from '../src/interfaces/UploadFileAction';
 
 jest.mock('../src/transport/PostmessageTransport')
 
@@ -79,6 +81,8 @@ describe('ClientWidgetApi', () => {
             readEventRelations: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
+            getMediaConfig: jest.fn(),
+            uploadFile: jest.fn(),
         } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
 
         clientWidgetApi = new ClientWidgetApi(
@@ -668,6 +672,196 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Unexpected error while searching in the user directory' },
+                });
+            });
+        });
+    });
+
+    describe('org.matrix.msc4039.get_media_config action', () => {
+        it('should present as supported api version', () => {
+            const event: ISupportedVersionsActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SupportedApiVersions,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                supported_versions: expect.arrayContaining([
+                    UnstableApiVersion.MSC4039,
+                ]),
+            });
+        });
+
+        it('should handle and process the request', async () => {
+            driver.getMediaConfig.mockResolvedValue({
+                'm.upload.size': 1000,
+            });
+
+            const event: IGetMediaConfigActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
+                data: {},
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    'm.upload.size': 1000,
+                });
+            });
+
+            expect(driver.getMediaConfig).toBeCalled();
+        });
+
+        it('should reject requests when the capability was not requested', async () => {
+            const event: IGetMediaConfigActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                error: { message: 'Missing capability' },
+            });
+
+            expect(driver.getMediaConfig).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.getMediaConfig.mockRejectedValue(
+                new Error("M_LIMIT_EXCEEDED: Too many requests"),
+            );
+
+            const event: IGetMediaConfigActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
+                data: {},
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Unexpected error while getting the media configuration' },
+                });
+            });
+        });
+    });
+
+    describe('org.matrix.msc4039.upload_file action', () => {
+        it('should present as supported api version', () => {
+            const event: ISupportedVersionsActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SupportedApiVersions,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                supported_versions: expect.arrayContaining([
+                    UnstableApiVersion.MSC4039,
+                ]),
+            });
+        });
+
+        it('should handle and process the request', async () => {
+            driver.uploadFile.mockResolvedValue({
+                contentUri: 'mxc://...',
+            });
+
+            const event: IUploadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
+                data: {
+                    file: 'data',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    content_uri: 'mxc://...',
+                });
+            });
+
+            expect(driver.uploadFile).toBeCalled();
+        });
+
+        it('should reject requests when the capability was not requested', async () => {
+            const event: IUploadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
+                data: {
+                    file: 'data',
+                },
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                error: { message: 'Missing capability' },
+            });
+
+            expect(driver.uploadFile).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.getMediaConfig.mockRejectedValue(
+                new Error("M_LIMIT_EXCEEDED: Too many requests"),
+            );
+
+            const event: IUploadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
+                data: {
+                    file: 'data',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Unexpected error while uploading a file' },
                 });
             });
         });

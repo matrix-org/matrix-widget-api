@@ -86,6 +86,14 @@ import {
     IReadRoomAccountDataFromWidgetActionRequest,
     IReadRoomAccountDataFromWidgetResponseData,
 } from "./interfaces/ReadRoomAccountDataAction";
+import {
+    IGetMediaConfigActionFromWidgetActionRequest,
+    IGetMediaConfigActionFromWidgetResponseData,
+} from "./interfaces/GetMediaConfigAction";
+import {
+    IUploadFileActionFromWidgetActionRequest,
+    IUploadFileActionFromWidgetResponseData,
+} from "./interfaces/UploadFileAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -701,6 +709,50 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async handleGetMediaConfig(request: IGetMediaConfigActionFromWidgetActionRequest) {
+        if (!this.hasCapability(MatrixCapabilities.MSC4039UploadFile)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const result = await this.driver.getMediaConfig()
+
+            return this.transport.reply<IGetMediaConfigActionFromWidgetResponseData>(
+                request,
+                result,
+            );
+        } catch (e) {
+            console.error("error while getting the media configuration", e);
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Unexpected error while getting the media configuration" },
+            });
+        }
+    }
+
+    private async handleUploadFile(request: IUploadFileActionFromWidgetActionRequest) {
+        if (!this.hasCapability(MatrixCapabilities.MSC4039UploadFile)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const result = await this.driver.uploadFile(request.data.file);
+
+            return this.transport.reply<IUploadFileActionFromWidgetResponseData>(
+                request,
+                { content_uri: result.contentUri },
+            );
+        } catch (e) {
+            console.error("error while uploading a file", e);
+            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Unexpected error while uploading a file" },
+            });
+        }
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -736,6 +788,11 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleUserDirectorySearch(<IUserDirectorySearchFromWidgetActionRequest>ev.detail)
                 case WidgetApiFromWidgetAction.BeeperReadRoomAccountData:
                     return this.handleReadRoomAccountData(<IReadRoomAccountDataFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction:
+                    return this.handleGetMediaConfig(<IGetMediaConfigActionFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4039UploadFileAction:
+                    return this.handleUploadFile(<IUploadFileActionFromWidgetActionRequest>ev.detail);
+
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {

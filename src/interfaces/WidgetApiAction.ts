@@ -69,6 +69,16 @@ export enum WidgetApiFromWidgetAction {
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC3973UserDirectorySearch = "org.matrix.msc3973.user_directory_search",
+
+    /**
+     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC4039GetMediaConfigAction = "org.matrix.msc4039.get_media_config",
+
+    /**
+     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC4039UploadFileAction = "org.matrix.msc4039.upload_file",
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;

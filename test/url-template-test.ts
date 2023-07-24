@@ -35,4 +35,23 @@ describe("runTemplate", () => {
 
         expect(replacedUrl).toBe("https://localhost/?my-query#device_id=my-device-id");
     });
+
+    it("should replace base url template in url", () => {
+        const url = "https://localhost/?my-query#base_url=$org.matrix.msc4039.matrix_base_url";
+        const replacedUrl = runTemplate(
+            url,
+            {
+                id: "widget-id",
+                creatorUserId: '@user-id',
+                type: 'type',
+                url,
+            },
+            {
+                currentUserId: '@user-id',
+                baseUrl: 'https://localhost/api',
+            },
+        );
+
+        expect(replacedUrl).toBe("https://localhost/?my-query#base_url=https%3A%2F%2Flocalhost%2Fapi");
+    });
 });

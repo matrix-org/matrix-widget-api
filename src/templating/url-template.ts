@@ -25,6 +25,7 @@ export interface ITemplateParams {
     clientTheme?: string;
     clientLanguage?: string;
     deviceId?: string;
+    baseUrl?: string;
 }
 
 export function runTemplate(url: string, widget: IWidget, params: ITemplateParams): string {
@@ -43,6 +44,9 @@ export function runTemplate(url: string, widget: IWidget, params: ITemplateParam
 
         // TODO: Convert to stable (https://github.com/matrix-org/matrix-spec-proposals/pull/3819)
         'org.matrix.msc3819.matrix_device_id': params.deviceId || "",
+
+        // TODO: Convert to stable (https://github.com/matrix-org/matrix-spec-proposals/pull/4039)
+        'org.matrix.msc4039.matrix_base_url': params.baseUrl || "",
     });
     let result = url;
     for (const key of Object.keys(variables)) {
