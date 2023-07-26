@@ -217,6 +217,8 @@ export class ClientWidgetApi extends EventEmitter {
             this.allowedEvents = WidgetEventCapability.findEventCapabilities(allowedCaps);
             this.notifyCapabilities(requestedCaps);
             this.emit("ready");
+        }).catch(e => {
+            this.emit("error:preparing", e);
         });
     }
 
