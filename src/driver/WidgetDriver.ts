@@ -49,6 +49,11 @@ export interface ISearchUserDirectoryResult {
     }>;
 }
 
+export interface IGetMediaConfigResult {
+    [key: string]: unknown;
+    "m.upload.size"?: number;
+}
+
 /**
  * Represents the functions and behaviour the widget-api is unable to
  * do, such as prompting the user for information or interacting with
@@ -279,10 +284,7 @@ export abstract class WidgetDriver {
      * Get the config for the media repository.
      * @returns Promise which resolves with an object containing the config.
      */
-    public getMediaConfig(): Promise<{
-        [key: string]: unknown;
-        "m.upload.size"?: number;
-    }> {
+    public getMediaConfig(): Promise<IGetMediaConfigResult> {
         throw new Error("Get media config is not implemented");
     }
 
