@@ -49,6 +49,11 @@ export interface ISearchUserDirectoryResult {
     }>;
 }
 
+export interface IGetMediaConfigResult {
+    [key: string]: unknown;
+    "m.upload.size"?: number;
+}
+
 /**
  * Represents the functions and behaviour the widget-api is unable to
  * do, such as prompting the user for information or interacting with
@@ -273,5 +278,25 @@ export abstract class WidgetDriver {
         limit?: number,
     ): Promise<ISearchUserDirectoryResult> {
         return Promise.resolve({ limited: false, results: [] });
+    }
+
+    /**
+     * Get the config for the media repository.
+     * @returns Promise which resolves with an object containing the config.
+     */
+    public getMediaConfig(): Promise<IGetMediaConfigResult> {
+        throw new Error("Get media config is not implemented");
+    }
+
+    /**
+     * Upload a file to the media repository on the homeserver.
+     * @param file - The object to upload. Something that can be sent to
+     *               XMLHttpRequest.send (typically a File).
+     * @returns Resolves to the location of the uploaded file.
+     */
+    public uploadFile(
+        file: XMLHttpRequestBodyInit,
+    ): Promise<{ contentUri: string }> {
+        throw new Error("Upload file is not implemented");
     }
 }
