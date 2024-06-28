@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,11 @@ import {
 } from "./interfaces/ModalWidgetActions";
 import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
 import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } from "./interfaces/SendEventAction";
+import {
+    ISendFutureFromWidgetRequestData,
+    ISendFutureFromWidgetResponseData,
+    ISendFutureOptions,
+} from "./interfaces/SendFutureAction";
 import {
     ISendToDeviceFromWidgetRequestData,
     ISendToDeviceFromWidgetResponseData,
@@ -416,6 +421,37 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
             {type: eventType, content, state_key: stateKey, room_id: roomId},
+        );
+    }
+
+    /**
+     * @experimental This currently relies on an unstable MSC (MSC4140).
+     */
+    public sendRoomFuture(
+        futureOpts: ISendFutureOptions,
+        eventType: string,
+        content: unknown,
+        roomId?: string,
+    ): Promise<ISendFutureFromWidgetResponseData> {
+        return this.transport.send<ISendFutureFromWidgetRequestData, ISendFutureFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.SendFuture,
+            {type: eventType, content, room_id: roomId, ...futureOpts},
+        );
+    }
+
+    /**
+     * @experimental This currently relies on an unstable MSC (MSC4140).
+     */
+    public sendStateFuture(
+        futureOpts: ISendFutureOptions,
+        eventType: string,
+        stateKey: string,
+        content: unknown,
+        roomId?: string,
+    ): Promise<ISendFutureFromWidgetResponseData> {
+        return this.transport.send<ISendFutureFromWidgetRequestData, ISendFutureFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.SendFuture,
+            {type: eventType, content, state_key: stateKey, room_id: roomId, ...futureOpts},
         );
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ export enum WidgetApiFromWidgetAction {
     OpenModalWidget = "open_modal",
     SetModalButtonEnabled = "set_button_enabled",
     SendEvent = "send_event",
+    SendFuture = "send_future",
     SendToDevice = "send_to_device",
     WatchTurnServers = "watch_turn_servers",
     UnwatchTurnServers = "unwatch_turn_servers",
