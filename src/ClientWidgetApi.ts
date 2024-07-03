@@ -94,10 +94,6 @@ import {
     IUploadFileActionFromWidgetActionRequest,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
-import {
-    ISendFutureFromWidgetActionRequest,
-    ISendFutureFromWidgetResponseData,
-} from "./interfaces/SendFutureAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -481,7 +477,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        let sendEventPromise: Promise<ISendEventDetails>;
+        let sendEventPromise: Promise<ISendEventDetails|ISendFutureDetails>;
         if (request.data.state_key != null) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -489,12 +485,23 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            sendEventPromise = this.driver.sendEvent(
-                request.data.type,
-                request.data.content || {},
-                request.data.state_key,
-                request.data.room_id,
-            );
+            if (request.data.group_id === undefined && request.data.timeout === undefined) {
+                sendEventPromise = this.driver.sendEvent(
+                    request.data.type,
+                    request.data.content || {},
+                    request.data.state_key,
+                    request.data.room_id,
+                );
+            } else {
+                sendEventPromise = this.driver.sendFuture(
+                    request.data.group_id ?? null,
+                    request.data.timeout ?? null,
+                    request.data.type,
+                    request.data.content || {},
+                    request.data.state_key,
+                    request.data.room_id,
+                );
+            }
         } else {
             const content = request.data.content as { msgtype?: string } || {};
             const msgtype = content['msgtype'];
@@ -504,80 +511,42 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            sendEventPromise = this.driver.sendEvent(
-                request.data.type,
-                content,
-                null, // not sending a state event
-                request.data.room_id,
-            );
+            if (request.data.group_id === undefined && request.data.timeout === undefined) {
+                sendEventPromise = this.driver.sendEvent(
+                    request.data.type,
+                    content,
+                    null, // not sending a state event
+                    request.data.room_id,
+                );
+            } else {
+                sendEventPromise = this.driver.sendFuture(
+                    request.data.group_id ?? null,
+                    request.data.timeout ?? null,
+                    request.data.type,
+                    content,
+                    null, // not sending a state event
+                    request.data.room_id,
+                );
+            }
         }
 
         sendEventPromise.then(sentEvent => {
             return this.transport.reply<ISendEventFromWidgetResponseData>(request, {
                 room_id: sentEvent.roomId,
-                event_id: sentEvent.eventId,
+                ...("eventId" in sentEvent ? {
+                    event_id: sentEvent.eventId,
+                } : {
+                    event_id: "",
+                    group_id: sentEvent.futureGroupId,
+                    send_token: sentEvent.sendToken,
+                    cancel_token: sentEvent.cancelToken,
+                    refresh_token: sentEvent.refreshToken,
+                }),
             });
         }).catch(e => {
             console.error("error sending event: ", e);
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Error sending event"},
-            });
-        });
-    }
-
-    private handleSendFuture(request: ISendFutureFromWidgetActionRequest) {
-        if (!request.data.type) {
-            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing event type"},
-            });
-        }
-
-        let sendFuturePromise: Promise<ISendFutureDetails>;
-        if (request.data.state_key != null) {
-            if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
-                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Cannot send state futures of this type"},
-                });
-            }
-
-            sendFuturePromise = this.driver.sendFuture(
-                request.data.future_group_id ?? null,
-                request.data.future_timeout ?? null,
-                request.data.type,
-                request.data.content || {},
-                request.data.state_key,
-                request.data.room_id,
-            );
-        } else {
-            const content = request.data.content as { msgtype?: string } || {};
-            const msgtype = content['msgtype'];
-            if (!this.canSendRoomEvent(request.data.type, msgtype)) {
-                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Cannot send room futures of this type"},
-                });
-            }
-
-            sendFuturePromise = this.driver.sendFuture(
-                request.data.future_group_id ?? null,
-                request.data.future_timeout ?? null,
-                request.data.type,
-                content,
-                null, // not sending a state event
-                request.data.room_id,
-            );
-        }
-
-        sendFuturePromise.then(sentFuture => {
-            return this.transport.reply<ISendFutureFromWidgetResponseData>(request, {
-                future_group_id: sentFuture.futureGroupId,
-                send_token: sentFuture.sendToken,
-                cancel_token: sentFuture.cancelToken,
-                refresh_token: sentFuture.refreshToken,
-            });
-        }).catch(e => {
-            console.error("error sending future: ", e);
-            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Error sending future"},
             });
         });
     }
@@ -830,8 +799,6 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.SendEvent:
                     return this.handleSendEvent(<ISendEventFromWidgetActionRequest>ev.detail);
-                case WidgetApiFromWidgetAction.SendFuture:
-                    return this.handleSendFuture(<ISendFutureFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.SendToDevice:
                     return this.handleSendToDevice(<ISendToDeviceFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.GetOpenIDCredentials:

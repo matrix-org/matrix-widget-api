@@ -39,7 +39,6 @@ export enum WidgetApiFromWidgetAction {
     OpenModalWidget = "open_modal",
     SetModalButtonEnabled = "set_button_enabled",
     SendEvent = "send_event",
-    SendFuture = "send_future",
     SendToDevice = "send_to_device",
     WatchTurnServers = "watch_turn_servers",
     UnwatchTurnServers = "unwatch_turn_servers",

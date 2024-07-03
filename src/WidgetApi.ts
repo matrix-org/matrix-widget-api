@@ -55,11 +55,6 @@ import {
 import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
 import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } from "./interfaces/SendEventAction";
 import {
-    ISendFutureFromWidgetRequestData,
-    ISendFutureFromWidgetResponseData,
-    ISendFutureOptions,
-} from "./interfaces/SendFutureAction";
-import {
     ISendToDeviceFromWidgetRequestData,
     ISendToDeviceFromWidgetResponseData,
 } from "./interfaces/SendToDeviceAction";
@@ -428,14 +423,15 @@ export class WidgetApi extends EventEmitter {
      * @experimental This currently relies on an unstable MSC (MSC4140).
      */
     public sendRoomFuture(
-        futureOpts: ISendFutureOptions,
+        timeout: number,
         eventType: string,
         content: unknown,
+        groupId?: string,
         roomId?: string,
-    ): Promise<ISendFutureFromWidgetResponseData> {
-        return this.transport.send<ISendFutureFromWidgetRequestData, ISendFutureFromWidgetResponseData>(
-            WidgetApiFromWidgetAction.SendFuture,
-            {type: eventType, content, room_id: roomId, ...futureOpts},
+    ): Promise<ISendEventFromWidgetResponseData> {
+        return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.SendEvent,
+            {type: eventType, content, room_id: roomId, timeout: timeout, group_id: groupId},
         );
     }
 
@@ -443,15 +439,16 @@ export class WidgetApi extends EventEmitter {
      * @experimental This currently relies on an unstable MSC (MSC4140).
      */
     public sendStateFuture(
-        futureOpts: ISendFutureOptions,
+        timeout: number,
         eventType: string,
         stateKey: string,
         content: unknown,
+        groupId?: string,
         roomId?: string,
-    ): Promise<ISendFutureFromWidgetResponseData> {
-        return this.transport.send<ISendFutureFromWidgetRequestData, ISendFutureFromWidgetResponseData>(
-            WidgetApiFromWidgetAction.SendFuture,
-            {type: eventType, content, state_key: stateKey, room_id: roomId, ...futureOpts},
+    ): Promise<ISendEventFromWidgetResponseData> {
+        return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.SendEvent,
+            {type: eventType, content, state_key: stateKey, room_id: roomId, timeout: timeout, group_id: groupId},
         );
     }
 
