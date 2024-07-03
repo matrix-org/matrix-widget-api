@@ -423,9 +423,9 @@ export class WidgetApi extends EventEmitter {
      * @experimental This currently relies on an unstable MSC (MSC4140).
      */
     public sendRoomFuture(
-        timeout: number,
         eventType: string,
         content: unknown,
+        timeout?: number,
         groupId?: string,
         roomId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
@@ -439,10 +439,10 @@ export class WidgetApi extends EventEmitter {
      * @experimental This currently relies on an unstable MSC (MSC4140).
      */
     public sendStateFuture(
-        timeout: number,
         eventType: string,
         stateKey: string,
         content: unknown,
+        timeout?: number,
         groupId?: string,
         roomId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
