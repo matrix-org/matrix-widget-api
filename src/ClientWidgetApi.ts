@@ -140,7 +140,7 @@ export class ClientWidgetApi extends EventEmitter {
      */
     public constructor(
         public readonly widget: Widget,
-        private iframe: HTMLIFrameElement,
+        iframe: HTMLIFrameElement,
         private driver: WidgetDriver,
     ) {
         super();
