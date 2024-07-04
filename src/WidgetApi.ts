@@ -431,7 +431,7 @@ export class WidgetApi extends EventEmitter {
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, room_id: roomId, timeout: timeout, group_id: groupId},
+            {type: eventType, content, room_id: roomId, future_timeout: timeout, future_group_id: groupId},
         );
     }
 
@@ -448,7 +448,7 @@ export class WidgetApi extends EventEmitter {
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, state_key: stateKey, room_id: roomId, timeout: timeout, group_id: groupId},
+            {type: eventType, content, state_key: stateKey, room_id: roomId, future_timeout: timeout, future_group_id: groupId},
         );
     }
 

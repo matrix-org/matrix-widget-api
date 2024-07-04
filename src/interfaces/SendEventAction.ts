@@ -25,9 +25,9 @@ export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
     content: unknown;
     room_id?: string; // eslint-disable-line camelcase
 
-    // MSC4140: Futures
-    timeout?: number;
-    group_id?: string; // eslint-disable-line camelcase
+    // MSC4157: Futures
+    future_timeout?: number;
+    future_group_id?: string; // eslint-disable-line camelcase
 }
 
 export interface ISendEventFromWidgetActionRequest extends IWidgetApiRequest {
@@ -39,8 +39,8 @@ export interface ISendEventFromWidgetResponseData extends IWidgetApiResponseData
     room_id: string; // eslint-disable-line camelcase
     event_id: string; // eslint-disable-line camelcase
 
-    // MSC4140: Futures
-    group_id?: string; // eslint-disable-line camelcase
+    // MSC4157: Futures
+    future_group_id?: string; // eslint-disable-line camelcase
     send_token?: string; // eslint-disable-line camelcase
     cancel_token?: string; // eslint-disable-line camelcase
     refresh_token?: string; // eslint-disable-line camelcase
