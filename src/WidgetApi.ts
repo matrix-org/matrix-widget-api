@@ -400,10 +400,18 @@ export class WidgetApi extends EventEmitter {
         eventType: string,
         content: unknown,
         roomId?: string,
+        futureTimeout?: number,
+        futureGroupId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, room_id: roomId},
+            {
+                type: eventType,
+                content,
+                ...(roomId !== undefined && { room_id: roomId }),
+                ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
+                ...(futureGroupId !== undefined && { future_group_id: futureGroupId })
+            },
         );
     }
 
@@ -412,43 +420,19 @@ export class WidgetApi extends EventEmitter {
         stateKey: string,
         content: unknown,
         roomId?: string,
+        futureTimeout?: number,
+        futureGroupId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, state_key: stateKey, room_id: roomId},
-        );
-    }
-
-    /**
-     * @experimental This currently relies on an unstable MSC (MSC4140).
-     */
-    public sendRoomFuture(
-        eventType: string,
-        content: unknown,
-        timeout?: number,
-        groupId?: string,
-        roomId?: string,
-    ): Promise<ISendEventFromWidgetResponseData> {
-        return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
-            WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, room_id: roomId, future_timeout: timeout, future_group_id: groupId},
-        );
-    }
-
-    /**
-     * @experimental This currently relies on an unstable MSC (MSC4140).
-     */
-    public sendStateFuture(
-        eventType: string,
-        stateKey: string,
-        content: unknown,
-        timeout?: number,
-        groupId?: string,
-        roomId?: string,
-    ): Promise<ISendEventFromWidgetResponseData> {
-        return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
-            WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, state_key: stateKey, room_id: roomId, future_timeout: timeout, future_group_id: groupId},
+            {
+                type: eventType,
+                content,
+                state_key: stateKey,
+                ...(roomId !== undefined && { room_id: roomId }),
+                ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
+                ...(futureGroupId !== undefined && { future_group_id: futureGroupId })
+            },
         );
     }
 
