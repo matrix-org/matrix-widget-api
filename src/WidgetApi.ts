@@ -410,7 +410,7 @@ export class WidgetApi extends EventEmitter {
                 content,
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
-                ...(futureGroupId !== undefined && { future_group_id: futureGroupId })
+                ...(futureGroupId !== undefined && { future_group_id: futureGroupId }),
             },
         );
     }
@@ -431,7 +431,7 @@ export class WidgetApi extends EventEmitter {
                 state_key: stateKey,
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
-                ...(futureGroupId !== undefined && { future_group_id: futureGroupId })
+                ...(futureGroupId !== undefined && { future_group_id: futureGroupId }),
             },
         );
     }

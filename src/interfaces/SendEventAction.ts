@@ -26,7 +26,7 @@ export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
     room_id?: string; // eslint-disable-line camelcase
 
     // MSC4157: Futures
-    future_timeout?: number;
+    future_timeout?: number; // eslint-disable-line camelcase
     future_group_id?: string; // eslint-disable-line camelcase
 }
 
