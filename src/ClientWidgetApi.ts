@@ -536,7 +536,6 @@ export class ClientWidgetApi extends EventEmitter {
                 ...("eventId" in sentEvent ? {
                     event_id: sentEvent.eventId,
                 } : {
-                    event_id: "",
                     future_group_id: sentEvent.futureGroupId,
                     send_token: sentEvent.sendToken,
                     cancel_token: sentEvent.cancelToken,

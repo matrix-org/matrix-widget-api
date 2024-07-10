@@ -37,7 +37,7 @@ export interface ISendEventFromWidgetActionRequest extends IWidgetApiRequest {
 
 export interface ISendEventFromWidgetResponseData extends IWidgetApiResponseData {
     room_id: string; // eslint-disable-line camelcase
-    event_id: string; // eslint-disable-line camelcase
+    event_id?: string; // eslint-disable-line camelcase
 
     // MSC4157: Futures
     future_group_id?: string; // eslint-disable-line camelcase
