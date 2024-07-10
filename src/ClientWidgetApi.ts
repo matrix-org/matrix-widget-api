@@ -485,7 +485,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.future_group_id === undefined && request.data.future_timeout === undefined) {
+            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     request.data.content || {},
@@ -494,8 +494,8 @@ export class ClientWidgetApi extends EventEmitter {
                 );
             } else {
                 sendEventPromise = this.driver.sendFuture(
-                    request.data.future_group_id ?? null,
                     request.data.future_timeout ?? null,
+                    request.data.future_group_id ?? null,
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
@@ -511,7 +511,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.future_group_id === undefined && request.data.future_timeout === undefined) {
+            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     content,
@@ -520,8 +520,8 @@ export class ClientWidgetApi extends EventEmitter {
                 );
             } else {
                 sendEventPromise = this.driver.sendFuture(
-                    request.data.future_group_id ?? null,
                     request.data.future_timeout ?? null,
+                    request.data.future_group_id ?? null,
                     request.data.type,
                     content,
                     null, // not sending a state event
