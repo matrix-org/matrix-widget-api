@@ -540,7 +540,7 @@ export class ClientWidgetApi extends EventEmitter {
                     future_group_id: sentEvent.futureGroupId,
                     send_token: sentEvent.sendToken,
                     cancel_token: sentEvent.cancelToken,
-                    refresh_token: sentEvent.refreshToken,
+                    ...("refreshToken" in sentEvent && { refresh_token: sentEvent.refreshToken }),
                 }),
             });
         }).catch(e => {
