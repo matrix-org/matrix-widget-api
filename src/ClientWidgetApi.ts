@@ -478,7 +478,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         let sendEventPromise: Promise<ISendEventDetails|ISendFutureDetails>;
-        if (request.data.state_key != null) {
+        if (request.data.state_key !== undefined) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot send state events of this type"},
