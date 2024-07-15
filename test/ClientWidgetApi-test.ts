@@ -262,7 +262,7 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('sends state future', async () => {
+        it('sends state futures', async () => {
             const roomId = '!room:example.org';
             const futureGroupId = 'fg';
 
