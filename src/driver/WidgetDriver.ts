@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,14 @@ import {
 export interface ISendEventDetails {
     roomId: string;
     eventId: string;
+}
+
+export interface ISendFutureDetails {
+    roomId: string;
+    futureGroupId: string;
+    sendToken: string;
+    cancelToken: string;
+    refreshToken?: string;
 }
 
 export interface IOpenIDUpdate {
@@ -100,6 +108,36 @@ export abstract class WidgetDriver {
         stateKey: string | null = null,
         roomId: string | null = null,
     ): Promise<ISendEventDetails> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
+     * @experimental Part of MSC4140 & MSC4157
+     * Sends a future into a room. If `roomId` is falsy, the client should send the future
+     * into the room the user is currently looking at. The widget API will have already
+     * verified that the widget is capable of sending the future's event to that room.
+     * @param {number|null} futureTimeout The future's timeout, or null for an action future.
+     * May not be null if {@link futureGroupId} is null.
+     * @param {string|null} futureGroupId The ID of the group the future belongs to,
+     * or null if it will be put in a new group. May not be null if {@link futureTimeout} is null.
+     * @param {string} eventType The event type of the event to be sent by the future.
+     * @param {*} content The content for the event to be sent by the future.
+     * @param {string|null} stateKey The state key if the event to be sent by the future is
+     * a state event, otherwise null. May be an empty string.
+     * @param {string|null} roomId The room ID to send the future to. If falsy, the room the
+     * user is currently looking at.
+     * @returns {Promise<ISendFutureDetails>} Resolves when the future has been sent with
+     * details of that future.
+     * @throws Rejected when the future could not be sent.
+     */
+    public sendFuture(
+        futureTimeout: number | null,
+        futureGroupId: string | null,
+        eventType: string,
+        content: unknown,
+        stateKey: string | null = null,
+        roomId: string | null = null,
+    ): Promise<ISendFutureDetails> {
         return Promise.reject(new Error("Failed to override function"));
     }
 

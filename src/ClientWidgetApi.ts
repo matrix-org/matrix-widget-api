@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { Capability, MatrixCapabilities } from "./interfaces/Capabilities";
-import { IOpenIDUpdate, ISendEventDetails, WidgetDriver } from "./driver/WidgetDriver";
+import { IOpenIDUpdate, ISendEventDetails, ISendFutureDetails, WidgetDriver } from "./driver/WidgetDriver";
 import {
     ICapabilitiesActionResponseData,
     INotifyCapabilitiesActionRequestData,
@@ -477,21 +477,31 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const isState = request.data.state_key !== null && request.data.state_key !== undefined;
-        let sendEventPromise: Promise<ISendEventDetails>;
-        if (isState) {
-            if (!this.canSendStateEvent(request.data.type, request.data.state_key!)) {
+        let sendEventPromise: Promise<ISendEventDetails|ISendFutureDetails>;
+        if (request.data.state_key !== undefined) {
+            if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot send state events of this type"},
                 });
             }
 
-            sendEventPromise = this.driver.sendEvent(
-                request.data.type,
-                request.data.content || {},
-                request.data.state_key,
-                request.data.room_id,
-            );
+            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
+                sendEventPromise = this.driver.sendEvent(
+                    request.data.type,
+                    request.data.content || {},
+                    request.data.state_key,
+                    request.data.room_id,
+                );
+            } else {
+                sendEventPromise = this.driver.sendFuture(
+                    request.data.future_timeout ?? null,
+                    request.data.future_group_id ?? null,
+                    request.data.type,
+                    request.data.content || {},
+                    request.data.state_key,
+                    request.data.room_id,
+                );
+            }
         } else {
             const content = request.data.content as { msgtype?: string } || {};
             const msgtype = content['msgtype'];
@@ -501,18 +511,36 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            sendEventPromise = this.driver.sendEvent(
-                request.data.type,
-                content,
-                null, // not sending a state event
-                request.data.room_id,
-            );
+            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
+                sendEventPromise = this.driver.sendEvent(
+                    request.data.type,
+                    content,
+                    null, // not sending a state event
+                    request.data.room_id,
+                );
+            } else {
+                sendEventPromise = this.driver.sendFuture(
+                    request.data.future_timeout ?? null,
+                    request.data.future_group_id ?? null,
+                    request.data.type,
+                    content,
+                    null, // not sending a state event
+                    request.data.room_id,
+                );
+            }
         }
 
         sendEventPromise.then(sentEvent => {
             return this.transport.reply<ISendEventFromWidgetResponseData>(request, {
                 room_id: sentEvent.roomId,
-                event_id: sentEvent.eventId,
+                ...("eventId" in sentEvent ? {
+                    event_id: sentEvent.eventId,
+                } : {
+                    future_group_id: sentEvent.futureGroupId,
+                    send_token: sentEvent.sendToken,
+                    cancel_token: sentEvent.cancelToken,
+                    ...("refreshToken" in sentEvent && { refresh_token: sentEvent.refreshToken }),
+                }),
             });
         }).catch(e => {
             console.error("error sending event: ", e);

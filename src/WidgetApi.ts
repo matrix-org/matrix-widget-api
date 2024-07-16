@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 - 2021 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -400,11 +400,10 @@ export class WidgetApi extends EventEmitter {
         eventType: string,
         content: unknown,
         roomId?: string,
+        futureTimeout?: number,
+        futureGroupId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
-            WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, room_id: roomId},
-        );
+        return this.sendEvent(eventType, undefined, content, roomId, futureTimeout, futureGroupId);
     }
 
     public sendStateEvent(
@@ -412,10 +411,30 @@ export class WidgetApi extends EventEmitter {
         stateKey: string,
         content: unknown,
         roomId?: string,
+        futureTimeout?: number,
+        futureGroupId?: string,
+    ): Promise<ISendEventFromWidgetResponseData> {
+        return this.sendEvent(eventType, stateKey, content, roomId, futureTimeout, futureGroupId);
+    }
+
+    private sendEvent(
+        eventType: string,
+        stateKey: string | undefined,
+        content: unknown,
+        roomId?: string,
+        futureTimeout?: number,
+        futureGroupId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
-            {type: eventType, content, state_key: stateKey, room_id: roomId},
+            {
+                type: eventType,
+                content,
+                ...(stateKey !== undefined && { state_key: stateKey }),
+                ...(roomId !== undefined && { room_id: roomId }),
+                ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
+                ...(futureGroupId !== undefined && { future_group_id: futureGroupId }),
+            },
         );
     }
 

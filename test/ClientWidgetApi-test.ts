@@ -28,7 +28,7 @@ import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
-import { IReadEventFromWidgetActionRequest } from '../src';
+import { IReadEventFromWidgetActionRequest, ISendEventFromWidgetActionRequest } from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
 import { IUploadFileActionFromWidgetActionRequest } from '../src/interfaces/UploadFileAction';
 
@@ -79,6 +79,8 @@ describe('ClientWidgetApi', () => {
         driver = {
             readStateEvents: jest.fn(),
             readEventRelations: jest.fn(),
+            sendEvent: jest.fn(),
+            sendFuture: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
@@ -115,6 +117,204 @@ describe('ClientWidgetApi', () => {
 
         expect(clientWidgetApi.hasCapability('m.always_on_screen')).toBe(true);
         expect(clientWidgetApi.hasCapability('m.sticker')).toBe(false);
+    });
+
+    describe('send_event action', () => {
+        it('sends message events', async () => {
+            const roomId = '!room:example.org';
+            const eventId = '$event:example.org';
+
+            driver.sendEvent.mockResolvedValue({
+                roomId,
+                eventId,
+            });
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: {},
+                    room_id: roomId,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    event_id: eventId,
+                });
+            });
+
+            expect(driver.sendEvent).toHaveBeenCalledWith(
+                event.data.type,
+                event.data.content,
+                null,
+                roomId,
+            );
+        });
+
+        it('sends state events', async () => {
+            const roomId = '!room:example.org';
+            const eventId = '$event:example.org';
+
+            driver.sendEvent.mockResolvedValue({
+                roomId,
+                eventId,
+            });
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.topic',
+                    content: {},
+                    state_key: '',
+                    room_id: roomId,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.state_event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    event_id: eventId,
+                });
+            });
+
+            expect(driver.sendEvent).toHaveBeenCalledWith(
+                event.data.type,
+                event.data.content,
+                '',
+                roomId,
+            );
+        });
+    });
+
+    describe('send_event action for futures', () => {
+        it('sends message futures', async () => {
+            const roomId = '!room:example.org';
+            const futureGroupId = 'fg';
+
+            driver.sendFuture.mockResolvedValue({
+                roomId,
+                futureGroupId,
+                sendToken: 'st',
+                cancelToken: 'ct',
+                refreshToken: 'rt',
+            });
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: {},
+                    room_id: roomId,
+                    future_timeout: 5000,
+                    future_group_id: futureGroupId,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    future_group_id: futureGroupId,
+                    send_token: 'st',
+                    cancel_token: 'ct',
+                    refresh_token: 'rt',
+                });
+            });
+
+            expect(driver.sendFuture).toHaveBeenCalledWith(
+                event.data.future_timeout,
+                event.data.future_group_id,
+                event.data.type,
+                event.data.content,
+                null,
+                roomId,
+            );
+        });
+
+        it('sends state futures', async () => {
+            const roomId = '!room:example.org';
+            const futureGroupId = 'fg';
+
+            driver.sendFuture.mockResolvedValue({
+                roomId,
+                futureGroupId,
+                sendToken: 'st',
+                cancelToken: 'ct',
+                refreshToken: 'rt',
+            });
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.topic',
+                    content: {},
+                    state_key: '',
+                    room_id: roomId,
+                    future_timeout: 5000,
+                    future_group_id: futureGroupId,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.state_event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    future_group_id: futureGroupId,
+                    send_token: 'st',
+                    cancel_token: 'ct',
+                    refresh_token: 'rt',
+                });
+            });
+
+            expect(driver.sendFuture).toHaveBeenCalledWith(
+                event.data.future_timeout,
+                event.data.future_group_id,
+                event.data.type,
+                event.data.content,
+                '',
+                roomId,
+            );
+        });
     });
 
     describe('org.matrix.msc2876.read_events action', () => {
