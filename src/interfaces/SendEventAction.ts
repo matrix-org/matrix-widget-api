@@ -27,7 +27,7 @@ export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
 
     // MSC4157: Futures
     future_timeout?: number; // eslint-disable-line camelcase
-    future_group_id?: string; // eslint-disable-line camelcase
+    parent_future_id?: string; // eslint-disable-line camelcase
 }
 
 export interface ISendEventFromWidgetActionRequest extends IWidgetApiRequest {
@@ -40,10 +40,7 @@ export interface ISendEventFromWidgetResponseData extends IWidgetApiResponseData
     event_id?: string; // eslint-disable-line camelcase
 
     // MSC4157: Futures
-    future_group_id?: string; // eslint-disable-line camelcase
-    send_token?: string; // eslint-disable-line camelcase
-    cancel_token?: string; // eslint-disable-line camelcase
-    refresh_token?: string; // eslint-disable-line camelcase
+    future_id?: string; // eslint-disable-line camelcase
 }
 
 export interface ISendEventFromWidgetActionResponse extends ISendEventFromWidgetActionRequest {

@@ -485,7 +485,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
+            if (request.data.future_timeout === undefined && request.data.parent_future_id === undefined) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     request.data.content || {},
@@ -495,7 +495,7 @@ export class ClientWidgetApi extends EventEmitter {
             } else {
                 sendEventPromise = this.driver.sendFuture(
                     request.data.future_timeout ?? null,
-                    request.data.future_group_id ?? null,
+                    request.data.parent_future_id ?? null,
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
@@ -511,7 +511,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
+            if (request.data.future_timeout === undefined && request.data.parent_future_id === undefined) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     content,
@@ -521,7 +521,7 @@ export class ClientWidgetApi extends EventEmitter {
             } else {
                 sendEventPromise = this.driver.sendFuture(
                     request.data.future_timeout ?? null,
-                    request.data.future_group_id ?? null,
+                    request.data.parent_future_id ?? null,
                     request.data.type,
                     content,
                     null, // not sending a state event
@@ -536,10 +536,7 @@ export class ClientWidgetApi extends EventEmitter {
                 ...("eventId" in sentEvent ? {
                     event_id: sentEvent.eventId,
                 } : {
-                    future_group_id: sentEvent.futureGroupId,
-                    send_token: sentEvent.sendToken,
-                    cancel_token: sentEvent.cancelToken,
-                    ...("refreshToken" in sentEvent && { refresh_token: sentEvent.refreshToken }),
+                    future_id: sentEvent.futureId,
                 }),
             });
         }).catch(e => {

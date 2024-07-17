@@ -401,9 +401,9 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         futureTimeout?: number,
-        futureGroupId?: string,
+        parentFutureId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, undefined, content, roomId, futureTimeout, futureGroupId);
+        return this.sendEvent(eventType, undefined, content, roomId, futureTimeout, parentFutureId);
     }
 
     public sendStateEvent(
@@ -412,9 +412,9 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         futureTimeout?: number,
-        futureGroupId?: string,
+        parentFutureId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, stateKey, content, roomId, futureTimeout, futureGroupId);
+        return this.sendEvent(eventType, stateKey, content, roomId, futureTimeout, parentFutureId);
     }
 
     private sendEvent(
@@ -423,7 +423,7 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         futureTimeout?: number,
-        futureGroupId?: string,
+        parentFutureId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
@@ -433,7 +433,7 @@ export class WidgetApi extends EventEmitter {
                 ...(stateKey !== undefined && { state_key: stateKey }),
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
-                ...(futureGroupId !== undefined && { future_group_id: futureGroupId }),
+                ...(parentFutureId !== undefined && { parent_future_id: parentFutureId }),
             },
         );
     }

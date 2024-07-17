@@ -211,14 +211,12 @@ describe('ClientWidgetApi', () => {
     describe('send_event action for futures', () => {
         it('sends message futures', async () => {
             const roomId = '!room:example.org';
-            const futureGroupId = 'fg';
+            const parentFutureId = 'fp';
+            const timeoutFutureId = 'ft';
 
             driver.sendFuture.mockResolvedValue({
                 roomId,
-                futureGroupId,
-                sendToken: 'st',
-                cancelToken: 'ct',
-                refreshToken: 'rt',
+                futureId: timeoutFutureId,
             });
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -231,7 +229,7 @@ describe('ClientWidgetApi', () => {
                     content: {},
                     room_id: roomId,
                     future_timeout: 5000,
-                    future_group_id: futureGroupId,
+                    parent_future_id: parentFutureId,
                 },
             };
 
@@ -245,16 +243,13 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     room_id: roomId,
-                    future_group_id: futureGroupId,
-                    send_token: 'st',
-                    cancel_token: 'ct',
-                    refresh_token: 'rt',
+                    future_id: timeoutFutureId,
                 });
             });
 
             expect(driver.sendFuture).toHaveBeenCalledWith(
                 event.data.future_timeout,
-                event.data.future_group_id,
+                event.data.parent_future_id,
                 event.data.type,
                 event.data.content,
                 null,
@@ -264,14 +259,12 @@ describe('ClientWidgetApi', () => {
 
         it('sends state futures', async () => {
             const roomId = '!room:example.org';
-            const futureGroupId = 'fg';
+            const parentFutureId = 'fp';
+            const timeoutFutureId = 'ft';
 
             driver.sendFuture.mockResolvedValue({
                 roomId,
-                futureGroupId,
-                sendToken: 'st',
-                cancelToken: 'ct',
-                refreshToken: 'rt',
+                futureId: timeoutFutureId,
             });
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -285,7 +278,7 @@ describe('ClientWidgetApi', () => {
                     state_key: '',
                     room_id: roomId,
                     future_timeout: 5000,
-                    future_group_id: futureGroupId,
+                    parent_future_id: parentFutureId,
                 },
             };
 
@@ -299,16 +292,13 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     room_id: roomId,
-                    future_group_id: futureGroupId,
-                    send_token: 'st',
-                    cancel_token: 'ct',
-                    refresh_token: 'rt',
+                    future_id: timeoutFutureId,
                 });
             });
 
             expect(driver.sendFuture).toHaveBeenCalledWith(
                 event.data.future_timeout,
-                event.data.future_group_id,
+                event.data.parent_future_id,
                 event.data.type,
                 event.data.content,
                 '',
