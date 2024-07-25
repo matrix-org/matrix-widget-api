@@ -80,7 +80,7 @@ describe('ClientWidgetApi', () => {
             readStateEvents: jest.fn(),
             readEventRelations: jest.fn(),
             sendEvent: jest.fn(),
-            sendFuture: jest.fn(),
+            sendDelayedEvent: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
@@ -208,13 +208,13 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('send_event action for futures', () => {
-        it('sends message futures', async () => {
+    describe('send_event action for delayed events', () => {
+        it('sends message events', async () => {
             const roomId = '!room:example.org';
             const parentDelayId = 'fp';
             const timeoutDelayId = 'ft';
 
-            driver.sendFuture.mockResolvedValue({
+            driver.sendDelayedEvent.mockResolvedValue({
                 roomId,
                 delayId: timeoutDelayId,
             });
@@ -247,7 +247,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.sendFuture).toHaveBeenCalledWith(
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
                 event.data.delay,
                 event.data.parent_delay_id,
                 event.data.type,
@@ -257,12 +257,12 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('sends state futures', async () => {
+        it('sends state events', async () => {
             const roomId = '!room:example.org';
             const parentDelayId = 'fp';
             const timeoutDelayId = 'ft';
 
-            driver.sendFuture.mockResolvedValue({
+            driver.sendDelayedEvent.mockResolvedValue({
                 roomId,
                 delayId: timeoutDelayId,
             });
@@ -296,7 +296,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.sendFuture).toHaveBeenCalledWith(
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
                 event.data.delay,
                 event.data.parent_delay_id,
                 event.data.type,

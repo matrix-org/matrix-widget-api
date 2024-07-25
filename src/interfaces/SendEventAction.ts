@@ -25,7 +25,7 @@ export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
     content: unknown;
     room_id?: string; // eslint-disable-line camelcase
 
-    // MSC4157: Futures
+    // MSC4157
     delay?: number; // eslint-disable-line camelcase
     parent_delay_id?: string; // eslint-disable-line camelcase
 }
@@ -39,7 +39,7 @@ export interface ISendEventFromWidgetResponseData extends IWidgetApiResponseData
     room_id: string; // eslint-disable-line camelcase
     event_id?: string; // eslint-disable-line camelcase
 
-    // MSC4157: Futures
+    // MSC4157
     delay_id?: string; // eslint-disable-line camelcase
 }
 

@@ -24,7 +24,7 @@ import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { Capability, MatrixCapabilities } from "./interfaces/Capabilities";
-import { IOpenIDUpdate, ISendEventDetails, ISendFutureDetails, WidgetDriver } from "./driver/WidgetDriver";
+import { IOpenIDUpdate, ISendEventDetails, ISendDelayedEventDetails, WidgetDriver } from "./driver/WidgetDriver";
 import {
     ICapabilitiesActionResponseData,
     INotifyCapabilitiesActionRequestData,
@@ -477,7 +477,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        let sendEventPromise: Promise<ISendEventDetails|ISendFutureDetails>;
+        let sendEventPromise: Promise<ISendEventDetails|ISendDelayedEventDetails>;
         if (request.data.state_key !== undefined) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -493,7 +493,7 @@ export class ClientWidgetApi extends EventEmitter {
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendFuture(
+                sendEventPromise = this.driver.sendDelayedEvent(
                     request.data.delay ?? null,
                     request.data.parent_delay_id ?? null,
                     request.data.type,
@@ -519,7 +519,7 @@ export class ClientWidgetApi extends EventEmitter {
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendFuture(
+                sendEventPromise = this.driver.sendDelayedEvent(
                     request.data.delay ?? null,
                     request.data.parent_delay_id ?? null,
                     request.data.type,

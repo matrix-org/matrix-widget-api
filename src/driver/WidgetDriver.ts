@@ -29,7 +29,7 @@ export interface ISendEventDetails {
     eventId: string;
 }
 
-export interface ISendFutureDetails {
+export interface ISendDelayedEventDetails {
     roomId: string;
     delayId: string;
 }
@@ -110,31 +110,31 @@ export abstract class WidgetDriver {
 
     /**
      * @experimental Part of MSC4140 & MSC4157
-     * Sends a future into a room. If `roomId` is falsy, the client should send the future
+     * Sends a delayed event into a room. If `roomId` is falsy, the client should send it
      * into the room the user is currently looking at. The widget API will have already
-     * verified that the widget is capable of sending the future's event to that room.
-     * @param {number|null} delay The future's timeout, or null for an action future.
-     * May not be null if {@link parentDelayId} is null.
-     * @param {string|null} parentDelayId The ID of the future this one is grouped with,
+     * verified that the widget is capable of sending the event to that room.
+     * @param {number|null} delay How much later to send the event, or null to not send the
+     * event automatically. May not be null if {@link parentDelayId} is null.
+     * @param {string|null} parentDelayId The ID of the delayed event this one is grouped with,
      * or null if it will be put in a new group. May not be null if {@link delay} is null.
-     * @param {string} eventType The event type of the event to be sent by the future.
-     * @param {*} content The content for the event to be sent by the future.
-     * @param {string|null} stateKey The state key if the event to be sent by the future is
-     * a state event, otherwise null. May be an empty string.
-     * @param {string|null} roomId The room ID to send the future to. If falsy, the room the
+     * @param {string} eventType The event type of the event to be sent.
+     * @param {*} content The content for the event to be sent.
+     * @param {string|null} stateKey The state key if the event to be sent a state event,
+     * otherwise null. May be an empty string.
+     * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
      * user is currently looking at.
-     * @returns {Promise<ISendFutureDetails>} Resolves when the future has been sent with
-     * details of that future.
-     * @throws Rejected when the future could not be sent.
+     * @returns {Promise<ISendDelayedEventDetails>} Resolves when the delayed event has been
+     * prepared with details of how to refer to it for updating/sending/canceling it later.
+     * @throws Rejected when the delayed event could not be sent.
      */
-    public sendFuture(
+    public sendDelayedEvent(
         delay: number | null,
         parentDelayId: string | null,
         eventType: string,
         content: unknown,
         stateKey: string | null = null,
         roomId: string | null = null,
-    ): Promise<ISendFutureDetails> {
+    ): Promise<ISendDelayedEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
     }
 
