@@ -567,8 +567,8 @@ export class ClientWidgetApi extends EventEmitter {
 
         switch (request.data.action) {
             case UpdateDelayedEventActionName.Cancel:
-            case UpdateDelayedEventActionName.Send:
             case UpdateDelayedEventActionName.Refresh:
+            case UpdateDelayedEventActionName.Send:
                 break
             default:
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {

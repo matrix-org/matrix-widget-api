@@ -20,8 +20,8 @@ import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 
 export enum UpdateDelayedEventActionName {
     Cancel = "cancel",
-    Send = "send",
     Refresh = "refresh",
+    Send = "send",
 }
 
 export interface IUpdateDelayedEventFromWidgetRequestData extends IWidgetApiRequestData {
