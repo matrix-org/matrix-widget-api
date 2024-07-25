@@ -22,6 +22,7 @@ import {
     IRoomEvent,
     IRoomAccountData,
     ITurnServer,
+    UpdateDelayedEventActionName,
 } from "..";
 
 export interface ISendEventDetails {
@@ -135,6 +136,18 @@ export abstract class WidgetDriver {
         stateKey: string | null = null,
         roomId: string | null = null,
     ): Promise<ISendDelayedEventDetails> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
+     * @experimental Part of MSC4140 & MSC4157
+     * Run the specified {@link action} for the delayed event matching the provided {@link delayId}.
+     * @throws Rejected when there is no matching delayed event, or when the action failed to run.
+     */
+    public updateDelayedEvent(
+        delayId: string,
+        action: UpdateDelayedEventActionName | string,
+    ): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
     }
 

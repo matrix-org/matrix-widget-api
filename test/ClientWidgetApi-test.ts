@@ -28,7 +28,11 @@ import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
-import { IReadEventFromWidgetActionRequest, ISendEventFromWidgetActionRequest } from '../src';
+import {
+    IReadEventFromWidgetActionRequest,
+    ISendEventFromWidgetActionRequest,
+    IUpdateDelayedEventFromWidgetActionRequest,
+} from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
 import { IUploadFileActionFromWidgetActionRequest } from '../src/interfaces/UploadFileAction';
 
@@ -81,6 +85,7 @@ describe('ClientWidgetApi', () => {
             readEventRelations: jest.fn(),
             sendEvent: jest.fn(),
             sendDelayedEvent: jest.fn(),
+            updateDelayedEvent: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
@@ -335,6 +340,86 @@ describe('ClientWidgetApi', () => {
                 event.data.content,
                 '',
                 roomId,
+            );
+        });
+    });
+
+    describe('update_delayed_event action', () => {
+        it('fails to update delayed events', async () => {
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: 'send',
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.updateDelayedEvent).not.toBeCalled()
+        });
+
+        it('fails to update delayed events with unsupported action', async () => {
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: 'unknown',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc4157.update.delayed_event']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.updateDelayedEvent).not.toBeCalled()
+        });
+
+        it('updates delayed events', async () => {
+            driver.updateDelayedEvent.mockResolvedValue(undefined);
+
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: 'send',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc4157.update.delayed_event']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.updateDelayedEvent).toHaveBeenCalledWith(
+                event.data.delay_id,
+                event.data.action,
             );
         });
     });

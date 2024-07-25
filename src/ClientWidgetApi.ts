@@ -91,6 +91,10 @@ import {
     IGetMediaConfigActionFromWidgetResponseData,
 } from "./interfaces/GetMediaConfigAction";
 import {
+    IUpdateDelayedEventFromWidgetActionRequest,
+    UpdateDelayedEventActionName,
+} from "./interfaces/UpdateDelayedEventAction";
+import {
     IUploadFileActionFromWidgetActionRequest,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
@@ -477,7 +481,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const isDelayedEvent = request.data.delay === undefined && request.data.parent_delay_id === undefined;
+        const isDelayedEvent = request.data.delay !== undefined || request.data.parent_delay_id !== undefined;
         if (isDelayedEvent && !this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Missing capability"},
@@ -550,6 +554,40 @@ export class ClientWidgetApi extends EventEmitter {
             console.error("error sending event: ", e);
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Error sending event"},
+            });
+        });
+    }
+
+    private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest) {
+        if (!request.data.delay_id) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - missing delay_id"},
+            });
+        }
+
+        switch (request.data.action) {
+            case UpdateDelayedEventActionName.Cancel:
+            case UpdateDelayedEventActionName.Send:
+            case UpdateDelayedEventActionName.Refresh:
+                break
+            default:
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Invalid request - unsupported action"},
+                });
+        }
+
+        if (!this.hasCapability(MatrixCapabilities.MSC4157UpdateDelayedEvent)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Missing capability"},
+            });
+        }
+
+        this.driver.updateDelayedEvent(request.data.delay_id, request.data.action).then(() => {
+            return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+        }).catch(e => {
+            console.error("error updating delayed event: ", e);
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Error updating delayed event"},
             });
         });
     }
@@ -826,6 +864,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleGetMediaConfig(<IGetMediaConfigActionFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4039UploadFileAction:
                     return this.handleUploadFile(<IUploadFileActionFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent:
+                    return this.handleUpdateDelayedEvent(<IUpdateDelayedEventFromWidgetActionRequest>ev.detail);
 
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
