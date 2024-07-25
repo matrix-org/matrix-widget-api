@@ -31,7 +31,7 @@ export interface ISendEventDetails {
 
 export interface ISendFutureDetails {
     roomId: string;
-    futureId: string;
+    delayId: string;
 }
 
 export interface IOpenIDUpdate {
@@ -113,10 +113,10 @@ export abstract class WidgetDriver {
      * Sends a future into a room. If `roomId` is falsy, the client should send the future
      * into the room the user is currently looking at. The widget API will have already
      * verified that the widget is capable of sending the future's event to that room.
-     * @param {number|null} futureTimeout The future's timeout, or null for an action future.
-     * May not be null if {@link parentFutureId} is null.
-     * @param {string|null} parentFutureId The ID of the future this one is grouped with,
-     * or null if it will be put in a new group. May not be null if {@link futureTimeout} is null.
+     * @param {number|null} delay The future's timeout, or null for an action future.
+     * May not be null if {@link parentDelayId} is null.
+     * @param {string|null} parentDelayId The ID of the future this one is grouped with,
+     * or null if it will be put in a new group. May not be null if {@link delay} is null.
      * @param {string} eventType The event type of the event to be sent by the future.
      * @param {*} content The content for the event to be sent by the future.
      * @param {string|null} stateKey The state key if the event to be sent by the future is
@@ -128,8 +128,8 @@ export abstract class WidgetDriver {
      * @throws Rejected when the future could not be sent.
      */
     public sendFuture(
-        futureTimeout: number | null,
-        parentFutureId: string | null,
+        delay: number | null,
+        parentDelayId: string | null,
         eventType: string,
         content: unknown,
         stateKey: string | null = null,

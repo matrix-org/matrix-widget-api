@@ -211,12 +211,12 @@ describe('ClientWidgetApi', () => {
     describe('send_event action for futures', () => {
         it('sends message futures', async () => {
             const roomId = '!room:example.org';
-            const parentFutureId = 'fp';
-            const timeoutFutureId = 'ft';
+            const parentDelayId = 'fp';
+            const timeoutDelayId = 'ft';
 
             driver.sendFuture.mockResolvedValue({
                 roomId,
-                futureId: timeoutFutureId,
+                delayId: timeoutDelayId,
             });
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -228,8 +228,8 @@ describe('ClientWidgetApi', () => {
                     type: 'm.room.message',
                     content: {},
                     room_id: roomId,
-                    future_timeout: 5000,
-                    parent_future_id: parentFutureId,
+                    delay: 5000,
+                    parent_delay_id: parentDelayId,
                 },
             };
 
@@ -243,13 +243,13 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     room_id: roomId,
-                    future_id: timeoutFutureId,
+                    delay_id: timeoutDelayId,
                 });
             });
 
             expect(driver.sendFuture).toHaveBeenCalledWith(
-                event.data.future_timeout,
-                event.data.parent_future_id,
+                event.data.delay,
+                event.data.parent_delay_id,
                 event.data.type,
                 event.data.content,
                 null,
@@ -259,12 +259,12 @@ describe('ClientWidgetApi', () => {
 
         it('sends state futures', async () => {
             const roomId = '!room:example.org';
-            const parentFutureId = 'fp';
-            const timeoutFutureId = 'ft';
+            const parentDelayId = 'fp';
+            const timeoutDelayId = 'ft';
 
             driver.sendFuture.mockResolvedValue({
                 roomId,
-                futureId: timeoutFutureId,
+                delayId: timeoutDelayId,
             });
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -277,8 +277,8 @@ describe('ClientWidgetApi', () => {
                     content: {},
                     state_key: '',
                     room_id: roomId,
-                    future_timeout: 5000,
-                    parent_future_id: parentFutureId,
+                    delay: 5000,
+                    parent_delay_id: parentDelayId,
                 },
             };
 
@@ -292,13 +292,13 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     room_id: roomId,
-                    future_id: timeoutFutureId,
+                    delay_id: timeoutDelayId,
                 });
             });
 
             expect(driver.sendFuture).toHaveBeenCalledWith(
-                event.data.future_timeout,
-                event.data.parent_future_id,
+                event.data.delay,
+                event.data.parent_delay_id,
                 event.data.type,
                 event.data.content,
                 '',

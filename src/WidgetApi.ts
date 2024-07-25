@@ -400,10 +400,10 @@ export class WidgetApi extends EventEmitter {
         eventType: string,
         content: unknown,
         roomId?: string,
-        futureTimeout?: number,
-        parentFutureId?: string,
+        delay?: number,
+        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, undefined, content, roomId, futureTimeout, parentFutureId);
+        return this.sendEvent(eventType, undefined, content, roomId, delay, parentDelayId);
     }
 
     public sendStateEvent(
@@ -411,10 +411,10 @@ export class WidgetApi extends EventEmitter {
         stateKey: string,
         content: unknown,
         roomId?: string,
-        futureTimeout?: number,
-        parentFutureId?: string,
+        delay?: number,
+        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, stateKey, content, roomId, futureTimeout, parentFutureId);
+        return this.sendEvent(eventType, stateKey, content, roomId, delay, parentDelayId);
     }
 
     private sendEvent(
@@ -422,8 +422,8 @@ export class WidgetApi extends EventEmitter {
         stateKey: string | undefined,
         content: unknown,
         roomId?: string,
-        futureTimeout?: number,
-        parentFutureId?: string,
+        delay?: number,
+        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
@@ -432,8 +432,8 @@ export class WidgetApi extends EventEmitter {
                 content,
                 ...(stateKey !== undefined && { state_key: stateKey }),
                 ...(roomId !== undefined && { room_id: roomId }),
-                ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
-                ...(parentFutureId !== undefined && { parent_future_id: parentFutureId }),
+                ...(delay !== undefined && { delay }),
+                ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
             },
         );
     }
