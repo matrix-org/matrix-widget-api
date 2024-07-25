@@ -209,7 +209,37 @@ describe('ClientWidgetApi', () => {
     });
 
     describe('send_event action for delayed events', () => {
-        it('sends message events', async () => {
+        it('fails to send delayed events', async () => {
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: {},
+                    delay: 5000,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                // Without the required capability
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.sendDelayedEvent).not.toBeCalled()
+        });
+
+        it('sends delayed message events', async () => {
             const roomId = '!room:example.org';
             const parentDelayId = 'fp';
             const timeoutDelayId = 'ft';
@@ -236,6 +266,7 @@ describe('ClientWidgetApi', () => {
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
             ]);
 
             emitEvent(new CustomEvent('', { detail: event }));
@@ -257,7 +288,7 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('sends state events', async () => {
+        it('sends delayed state events', async () => {
             const roomId = '!room:example.org';
             const parentDelayId = 'fp';
             const timeoutDelayId = 'ft';
@@ -285,6 +316,7 @@ describe('ClientWidgetApi', () => {
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.state_event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
             ]);
 
             emitEvent(new CustomEvent('', { detail: event }));

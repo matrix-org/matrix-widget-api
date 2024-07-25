@@ -477,6 +477,13 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
+        const isDelayedEvent = request.data.delay === undefined && request.data.parent_delay_id === undefined;
+        if (isDelayedEvent && !this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Missing capability"},
+            });
+        }
+
         let sendEventPromise: Promise<ISendEventDetails|ISendDelayedEventDetails>;
         if (request.data.state_key !== undefined) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
@@ -485,7 +492,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.delay === undefined && request.data.parent_delay_id === undefined) {
+            if (!isDelayedEvent) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     request.data.content || {},
@@ -511,7 +518,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.delay === undefined && request.data.parent_delay_id === undefined) {
+            if (!isDelayedEvent) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     content,
