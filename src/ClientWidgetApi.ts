@@ -567,7 +567,7 @@ export class ClientWidgetApi extends EventEmitter {
 
         switch (request.data.action) {
             case UpdateDelayedEventActionName.Cancel:
-            case UpdateDelayedEventActionName.Refresh:
+            case UpdateDelayedEventActionName.Restart:
             case UpdateDelayedEventActionName.Send:
                 break
             default:
