@@ -92,7 +92,7 @@ import {
 } from "./interfaces/GetMediaConfigAction";
 import {
     IUpdateDelayedEventFromWidgetActionRequest,
-    UpdateDelayedEventActionName,
+    UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
 import {
     IUploadFileActionFromWidgetActionRequest,
@@ -566,9 +566,9 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         switch (request.data.action) {
-            case UpdateDelayedEventActionName.Cancel:
-            case UpdateDelayedEventActionName.Restart:
-            case UpdateDelayedEventActionName.Send:
+            case UpdateDelayedEventAction.Cancel:
+            case UpdateDelayedEventAction.Restart:
+            case UpdateDelayedEventAction.Send:
                 break
             default:
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {

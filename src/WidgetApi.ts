@@ -88,6 +88,7 @@ import {
 import {
     IUpdateDelayedEventFromWidgetRequestData,
     IUpdateDelayedEventFromWidgetResponseData,
+    UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
 
 /**
@@ -447,7 +448,7 @@ export class WidgetApi extends EventEmitter {
      */
     public updateDelayedEvent(
         delayId: string,
-        action: string,
+        action: UpdateDelayedEventAction,
     ): Promise<IUpdateDelayedEventFromWidgetResponseData> {
         return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,

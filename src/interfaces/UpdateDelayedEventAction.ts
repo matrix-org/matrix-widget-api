@@ -18,7 +18,7 @@ import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 
-export enum UpdateDelayedEventActionName {
+export enum UpdateDelayedEventAction {
     Cancel = "cancel",
     Restart = "restart",
     Send = "send",
@@ -26,7 +26,7 @@ export enum UpdateDelayedEventActionName {
 
 export interface IUpdateDelayedEventFromWidgetRequestData extends IWidgetApiRequestData {
     delay_id: string; // eslint-disable-line camelcase
-    action: UpdateDelayedEventActionName | string;
+    action: UpdateDelayedEventAction;
 }
 
 export interface IUpdateDelayedEventFromWidgetActionRequest extends IWidgetApiRequest {

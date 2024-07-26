@@ -22,7 +22,7 @@ import {
     IRoomEvent,
     IRoomAccountData,
     ITurnServer,
-    UpdateDelayedEventActionName,
+    UpdateDelayedEventAction,
 } from "..";
 
 export interface ISendEventDetails {
@@ -146,7 +146,7 @@ export abstract class WidgetDriver {
      */
     public updateDelayedEvent(
         delayId: string,
-        action: UpdateDelayedEventActionName | string,
+        action: UpdateDelayedEventAction,
     ): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
     }

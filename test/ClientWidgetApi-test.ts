@@ -32,6 +32,7 @@ import {
     IReadEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
+    UpdateDelayedEventAction,
 } from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
 import { IUploadFileActionFromWidgetActionRequest } from '../src/interfaces/UploadFileAction';
@@ -353,7 +354,7 @@ describe('ClientWidgetApi', () => {
                 action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
                 data: {
                     delay_id: 'f',
-                    action: 'send',
+                    action: UpdateDelayedEventAction.Send,
                 },
             };
 
@@ -378,7 +379,7 @@ describe('ClientWidgetApi', () => {
                 action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
                 data: {
                     delay_id: 'f',
-                    action: 'unknown',
+                    action: 'unknown' as UpdateDelayedEventAction,
                 },
             };
 
@@ -398,29 +399,35 @@ describe('ClientWidgetApi', () => {
         it('updates delayed events', async () => {
             driver.updateDelayedEvent.mockResolvedValue(undefined);
 
-            const event: IUpdateDelayedEventFromWidgetActionRequest = {
-                api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
-                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
-                data: {
-                    delay_id: 'f',
-                    action: 'send',
-                },
-            };
+            for (const action of [
+                UpdateDelayedEventAction.Cancel,
+                UpdateDelayedEventAction.Restart,
+                UpdateDelayedEventAction.Send,
+            ]) {
+                const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                    api: WidgetApiDirection.FromWidget,
+                    widgetId: 'test',
+                    requestId: '0',
+                    action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                    data: {
+                        delay_id: 'f',
+                        action,
+                    },
+                };
 
-            await loadIframe(['org.matrix.msc4157.update.delayed_event']);
+                await loadIframe(['org.matrix.msc4157.update.delayed_event']);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+                emitEvent(new CustomEvent('', { detail: event }));
 
-            await waitFor(() => {
-                expect(transport.reply).toHaveBeenCalledWith(event, {});
-            });
+                await waitFor(() => {
+                    expect(transport.reply).toHaveBeenCalledWith(event, {});
+                });
 
-            expect(driver.updateDelayedEvent).toHaveBeenCalledWith(
-                event.data.delay_id,
-                event.data.action,
-            );
+                expect(driver.updateDelayedEvent).toHaveBeenCalledWith(
+                    event.data.delay_id,
+                    event.data.action,
+                );
+            }
         });
     });
 
