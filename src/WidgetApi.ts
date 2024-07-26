@@ -85,6 +85,10 @@ import {
     IUploadFileActionFromWidgetRequestData,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
+import {
+    IUpdateDelayedEventFromWidgetRequestData,
+    IUpdateDelayedEventFromWidgetResponseData,
+} from "./interfaces/UpdateDelayedEventAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -434,6 +438,22 @@ export class WidgetApi extends EventEmitter {
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(delay !== undefined && { delay }),
                 ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
+            },
+        );
+    }
+
+    /**
+     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     */
+    public updateDelayedEvent(
+        delayId: string,
+        action: string,
+    ): Promise<IUpdateDelayedEventFromWidgetResponseData> {
+        return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+            {
+                delay_id: delayId,
+                action,
             },
         );
     }
