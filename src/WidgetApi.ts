@@ -85,6 +85,11 @@ import {
     IUploadFileActionFromWidgetRequestData,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
+import {
+    IUpdateDelayedEventFromWidgetRequestData,
+    IUpdateDelayedEventFromWidgetResponseData,
+    UpdateDelayedEventAction,
+} from "./interfaces/UpdateDelayedEventAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -400,10 +405,10 @@ export class WidgetApi extends EventEmitter {
         eventType: string,
         content: unknown,
         roomId?: string,
-        futureTimeout?: number,
-        futureGroupId?: string,
+        delay?: number,
+        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, undefined, content, roomId, futureTimeout, futureGroupId);
+        return this.sendEvent(eventType, undefined, content, roomId, delay, parentDelayId);
     }
 
     public sendStateEvent(
@@ -411,10 +416,10 @@ export class WidgetApi extends EventEmitter {
         stateKey: string,
         content: unknown,
         roomId?: string,
-        futureTimeout?: number,
-        futureGroupId?: string,
+        delay?: number,
+        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, stateKey, content, roomId, futureTimeout, futureGroupId);
+        return this.sendEvent(eventType, stateKey, content, roomId, delay, parentDelayId);
     }
 
     private sendEvent(
@@ -422,8 +427,8 @@ export class WidgetApi extends EventEmitter {
         stateKey: string | undefined,
         content: unknown,
         roomId?: string,
-        futureTimeout?: number,
-        futureGroupId?: string,
+        delay?: number,
+        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
@@ -432,8 +437,24 @@ export class WidgetApi extends EventEmitter {
                 content,
                 ...(stateKey !== undefined && { state_key: stateKey }),
                 ...(roomId !== undefined && { room_id: roomId }),
-                ...(futureTimeout !== undefined && { future_timeout: futureTimeout }),
-                ...(futureGroupId !== undefined && { future_group_id: futureGroupId }),
+                ...(delay !== undefined && { delay }),
+                ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
+            },
+        );
+    }
+
+    /**
+     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     */
+    public updateDelayedEvent(
+        delayId: string,
+        action: UpdateDelayedEventAction,
+    ): Promise<IUpdateDelayedEventFromWidgetResponseData> {
+        return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+            {
+                delay_id: delayId,
+                action,
             },
         );
     }

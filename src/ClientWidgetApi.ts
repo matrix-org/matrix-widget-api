@@ -24,7 +24,7 @@ import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
 import { Capability, MatrixCapabilities } from "./interfaces/Capabilities";
-import { IOpenIDUpdate, ISendEventDetails, ISendFutureDetails, WidgetDriver } from "./driver/WidgetDriver";
+import { IOpenIDUpdate, ISendEventDetails, ISendDelayedEventDetails, WidgetDriver } from "./driver/WidgetDriver";
 import {
     ICapabilitiesActionResponseData,
     INotifyCapabilitiesActionRequestData,
@@ -90,6 +90,10 @@ import {
     IGetMediaConfigActionFromWidgetActionRequest,
     IGetMediaConfigActionFromWidgetResponseData,
 } from "./interfaces/GetMediaConfigAction";
+import {
+    IUpdateDelayedEventFromWidgetActionRequest,
+    UpdateDelayedEventAction,
+} from "./interfaces/UpdateDelayedEventAction";
 import {
     IUploadFileActionFromWidgetActionRequest,
     IUploadFileActionFromWidgetResponseData,
@@ -477,7 +481,14 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        let sendEventPromise: Promise<ISendEventDetails|ISendFutureDetails>;
+        const isDelayedEvent = request.data.delay !== undefined || request.data.parent_delay_id !== undefined;
+        if (isDelayedEvent && !this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Missing capability"},
+            });
+        }
+
+        let sendEventPromise: Promise<ISendEventDetails|ISendDelayedEventDetails>;
         if (request.data.state_key !== undefined) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -485,7 +496,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
+            if (!isDelayedEvent) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     request.data.content || {},
@@ -493,9 +504,9 @@ export class ClientWidgetApi extends EventEmitter {
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendFuture(
-                    request.data.future_timeout ?? null,
-                    request.data.future_group_id ?? null,
+                sendEventPromise = this.driver.sendDelayedEvent(
+                    request.data.delay ?? null,
+                    request.data.parent_delay_id ?? null,
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
@@ -511,7 +522,7 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (request.data.future_timeout === undefined && request.data.future_group_id === undefined) {
+            if (!isDelayedEvent) {
                 sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     content,
@@ -519,9 +530,9 @@ export class ClientWidgetApi extends EventEmitter {
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendFuture(
-                    request.data.future_timeout ?? null,
-                    request.data.future_group_id ?? null,
+                sendEventPromise = this.driver.sendDelayedEvent(
+                    request.data.delay ?? null,
+                    request.data.parent_delay_id ?? null,
                     request.data.type,
                     content,
                     null, // not sending a state event
@@ -536,10 +547,7 @@ export class ClientWidgetApi extends EventEmitter {
                 ...("eventId" in sentEvent ? {
                     event_id: sentEvent.eventId,
                 } : {
-                    future_group_id: sentEvent.futureGroupId,
-                    send_token: sentEvent.sendToken,
-                    cancel_token: sentEvent.cancelToken,
-                    ...("refreshToken" in sentEvent && { refresh_token: sentEvent.refreshToken }),
+                    delay_id: sentEvent.delayId,
                 }),
             });
         }).catch(e => {
@@ -548,6 +556,39 @@ export class ClientWidgetApi extends EventEmitter {
                 error: {message: "Error sending event"},
             });
         });
+    }
+
+    private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest) {
+        if (!request.data.delay_id) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - missing delay_id"},
+            });
+        }
+
+        if (!this.hasCapability(MatrixCapabilities.MSC4157UpdateDelayedEvent)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Missing capability"},
+            });
+        }
+
+        switch (request.data.action) {
+            case UpdateDelayedEventAction.Cancel:
+            case UpdateDelayedEventAction.Restart:
+            case UpdateDelayedEventAction.Send:
+                this.driver.updateDelayedEvent(request.data.delay_id, request.data.action).then(() => {
+                    return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+                }).catch(e => {
+                    console.error("error updating delayed event: ", e);
+                    return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                        error: {message: "Error updating delayed event"},
+                    });
+                });
+                break;
+            default:
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Invalid request - unsupported action"},
+                });
+        }
     }
 
     private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {
@@ -822,6 +863,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleGetMediaConfig(<IGetMediaConfigActionFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4039UploadFileAction:
                     return this.handleUploadFile(<IUploadFileActionFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent:
+                    return this.handleUpdateDelayedEvent(<IUpdateDelayedEventFromWidgetActionRequest>ev.detail);
 
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{

@@ -38,6 +38,14 @@ export enum MatrixCapabilities {
     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
     */
     MSC4039UploadFile = "org.matrix.msc4039.upload_file",
+    /**
+    * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+    */
+    MSC4157SendDelayedEvent = "org.matrix.msc4157.send.delayed_event",
+    /**
+    * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+    */
+    MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update.delayed_event",
 }
 
 export type Capability = MatrixCapabilities | string;

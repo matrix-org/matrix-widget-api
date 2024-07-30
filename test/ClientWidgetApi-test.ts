@@ -28,7 +28,12 @@ import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
-import { IReadEventFromWidgetActionRequest, ISendEventFromWidgetActionRequest } from '../src';
+import {
+    IReadEventFromWidgetActionRequest,
+    ISendEventFromWidgetActionRequest,
+    IUpdateDelayedEventFromWidgetActionRequest,
+    UpdateDelayedEventAction,
+} from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
 import { IUploadFileActionFromWidgetActionRequest } from '../src/interfaces/UploadFileAction';
 
@@ -80,7 +85,8 @@ describe('ClientWidgetApi', () => {
             readStateEvents: jest.fn(),
             readEventRelations: jest.fn(),
             sendEvent: jest.fn(),
-            sendFuture: jest.fn(),
+            sendDelayedEvent: jest.fn(),
+            updateDelayedEvent: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
@@ -208,17 +214,45 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('send_event action for futures', () => {
-        it('sends message futures', async () => {
-            const roomId = '!room:example.org';
-            const futureGroupId = 'fg';
+    describe('send_event action for delayed events', () => {
+        it('fails to send delayed events', async () => {
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: {},
+                    delay: 5000,
+                },
+            };
 
-            driver.sendFuture.mockResolvedValue({
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                // Without the required capability
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.sendDelayedEvent).not.toBeCalled()
+        });
+
+        it('sends delayed message events', async () => {
+            const roomId = '!room:example.org';
+            const parentDelayId = 'fp';
+            const timeoutDelayId = 'ft';
+
+            driver.sendDelayedEvent.mockResolvedValue({
                 roomId,
-                futureGroupId,
-                sendToken: 'st',
-                cancelToken: 'ct',
-                refreshToken: 'rt',
+                delayId: timeoutDelayId,
             });
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -230,14 +264,15 @@ describe('ClientWidgetApi', () => {
                     type: 'm.room.message',
                     content: {},
                     room_id: roomId,
-                    future_timeout: 5000,
-                    future_group_id: futureGroupId,
+                    delay: 5000,
+                    parent_delay_id: parentDelayId,
                 },
             };
 
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
             ]);
 
             emitEvent(new CustomEvent('', { detail: event }));
@@ -245,16 +280,13 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     room_id: roomId,
-                    future_group_id: futureGroupId,
-                    send_token: 'st',
-                    cancel_token: 'ct',
-                    refresh_token: 'rt',
+                    delay_id: timeoutDelayId,
                 });
             });
 
-            expect(driver.sendFuture).toHaveBeenCalledWith(
-                event.data.future_timeout,
-                event.data.future_group_id,
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
+                event.data.delay,
+                event.data.parent_delay_id,
                 event.data.type,
                 event.data.content,
                 null,
@@ -262,16 +294,14 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('sends state futures', async () => {
+        it('sends delayed state events', async () => {
             const roomId = '!room:example.org';
-            const futureGroupId = 'fg';
+            const parentDelayId = 'fp';
+            const timeoutDelayId = 'ft';
 
-            driver.sendFuture.mockResolvedValue({
+            driver.sendDelayedEvent.mockResolvedValue({
                 roomId,
-                futureGroupId,
-                sendToken: 'st',
-                cancelToken: 'ct',
-                refreshToken: 'rt',
+                delayId: timeoutDelayId,
             });
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -284,14 +314,15 @@ describe('ClientWidgetApi', () => {
                     content: {},
                     state_key: '',
                     room_id: roomId,
-                    future_timeout: 5000,
-                    future_group_id: futureGroupId,
+                    delay: 5000,
+                    parent_delay_id: parentDelayId,
                 },
             };
 
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.state_event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
             ]);
 
             emitEvent(new CustomEvent('', { detail: event }));
@@ -299,21 +330,104 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     room_id: roomId,
-                    future_group_id: futureGroupId,
-                    send_token: 'st',
-                    cancel_token: 'ct',
-                    refresh_token: 'rt',
+                    delay_id: timeoutDelayId,
                 });
             });
 
-            expect(driver.sendFuture).toHaveBeenCalledWith(
-                event.data.future_timeout,
-                event.data.future_group_id,
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
+                event.data.delay,
+                event.data.parent_delay_id,
                 event.data.type,
                 event.data.content,
                 '',
                 roomId,
             );
+        });
+    });
+
+    describe('update_delayed_event action', () => {
+        it('fails to update delayed events', async () => {
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: UpdateDelayedEventAction.Send,
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.updateDelayedEvent).not.toBeCalled()
+        });
+
+        it('fails to update delayed events with unsupported action', async () => {
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: 'unknown' as UpdateDelayedEventAction,
+                },
+            };
+
+            await loadIframe(['org.matrix.msc4157.update.delayed_event']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.updateDelayedEvent).not.toBeCalled()
+        });
+
+        it('updates delayed events', async () => {
+            driver.updateDelayedEvent.mockResolvedValue(undefined);
+
+            for (const action of [
+                UpdateDelayedEventAction.Cancel,
+                UpdateDelayedEventAction.Restart,
+                UpdateDelayedEventAction.Send,
+            ]) {
+                const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                    api: WidgetApiDirection.FromWidget,
+                    widgetId: 'test',
+                    requestId: '0',
+                    action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                    data: {
+                        delay_id: 'f',
+                        action,
+                    },
+                };
+
+                await loadIframe(['org.matrix.msc4157.update.delayed_event']);
+
+                emitEvent(new CustomEvent('', { detail: event }));
+
+                await waitFor(() => {
+                    expect(transport.reply).toHaveBeenCalledWith(event, {});
+                });
+
+                expect(driver.updateDelayedEvent).toHaveBeenCalledWith(
+                    event.data.delay_id,
+                    event.data.action,
+                );
+            }
         });
     });
 

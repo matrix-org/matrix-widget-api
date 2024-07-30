@@ -17,6 +17,7 @@
 import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
 import { IGetMediaConfigActionFromWidgetResponseData } from '../src/interfaces/GetMediaConfigAction';
 import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
+import { ISendEventFromWidgetResponseData } from '../src/interfaces/SendEventAction';
 import { ISupportedVersionsActionResponseData } from '../src/interfaces/SupportedVersionsAction';
 import { IUploadFileActionFromWidgetResponseData } from '../src/interfaces/UploadFileAction';
 import { IUserDirectorySearchFromWidgetResponseData } from '../src/interfaces/UserDirectorySearchAction';
@@ -93,6 +94,113 @@ describe('WidgetApi', () => {
                 '$event', '!room-id', 'm.reference', 'm.room.message', 25,
                 'from-token', 'to-token', 'f',
             )).rejects.toThrow('An error occurred');
+        });
+    });
+
+    describe('sendEvent', () => {
+        beforeEach(() => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                {
+                    room_id: '!room-id',
+                    event_id: '$event',
+                } as ISendEventFromWidgetResponseData,
+            );
+        });
+
+        it('sends message events', async () => {
+            await expect(widgetApi.sendRoomEvent(
+                'm.room.message',
+                {},
+                '!room-id',
+            )).resolves.toEqual({
+                room_id: '!room-id',
+                event_id: '$event',
+            });
+        });
+
+        it('sends state events', async () => {
+            await expect(widgetApi.sendStateEvent(
+                'm.room.topic',
+                "",
+                {},
+                '!room-id',
+            )).resolves.toEqual({
+                room_id: '!room-id',
+                event_id: '$event',
+            });
+        });
+    });
+
+    describe('delayed sendEvent', () => {
+        beforeEach(() => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                {
+                    room_id: '!room-id',
+                    delay_id: 'id',
+                } as ISendEventFromWidgetResponseData,
+            );
+        });
+
+        it('sends delayed message events', async () => {
+            await expect(widgetApi.sendRoomEvent(
+                'm.room.message',
+                {},
+                '!room-id',
+                2000,
+            )).resolves.toEqual({
+                room_id: '!room-id',
+                delay_id: 'id',
+            });
+        });
+
+        it('sends delayed state events', async () => {
+            await expect(widgetApi.sendStateEvent(
+                'm.room.topic',
+                "",
+                {},
+                '!room-id',
+                2000,
+            )).resolves.toEqual({
+                room_id: '!room-id',
+                delay_id: 'id',
+            });
+        });
+
+        it('sends delayed child action message events', async () => {
+            await expect(widgetApi.sendRoomEvent(
+                'm.room.message',
+                {},
+                '!room-id',
+                null,
+                'id-parent',
+            )).resolves.toEqual({
+                room_id: '!room-id',
+                delay_id: 'id',
+            });
+        });
+
+        it('sends delayed child action state events', async () => {
+            await expect(widgetApi.sendStateEvent(
+                'm.room.topic',
+                "",
+                {},
+                '!room-id',
+                null,
+                'id-parent',
+            )).resolves.toEqual({
+                room_id: '!room-id',
+                delay_id: 'id',
+            });
+        });
+    });
+
+    describe('updateDelayedEvent', () => {
+        beforeEach(() => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce({});
+        });
+
+        it('updates delayed events', async () => {
+            await expect(widgetApi.updateDelayedEvent('id', 'send')).resolves.toEqual({});
         });
     });
 
