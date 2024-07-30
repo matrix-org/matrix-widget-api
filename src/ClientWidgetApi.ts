@@ -558,39 +558,37 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest) {
-        if (!request.data.delay_id) {
-            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing delay_id"},
-            });
-        }
-
-        switch (request.data.action) {
-            case UpdateDelayedEventAction.Cancel:
-            case UpdateDelayedEventAction.Restart:
-            case UpdateDelayedEventAction.Send:
-                break
-            default:
-                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Invalid request - unsupported action"},
-                });
-        }
-
-        if (!this.hasCapability(MatrixCapabilities.MSC4157UpdateDelayedEvent)) {
-            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Missing capability"},
-            });
-        }
-
-        this.driver.updateDelayedEvent(request.data.delay_id, request.data.action).then(() => {
-            return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
-        }).catch(e => {
-            console.error("error updating delayed event: ", e);
-            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Error updating delayed event"},
-            });
+private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest) {
+    if (!request.data.delay_id) {
+        return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            error: {message: "Invalid request - missing delay_id"},
         });
     }
+
+    if (!this.hasCapability(MatrixCapabilities.MSC4157UpdateDelayedEvent)) {
+        return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            error: {message: "Missing capability"},
+        });
+    }
+
+    switch (request.data.action) {
+        case UpdateDelayedEventAction.Cancel:
+        case UpdateDelayedEventAction.Restart:
+        case UpdateDelayedEventAction.Send:
+            this.driver.updateDelayedEvent(request.data.delay_id, request.data.action).then(() => {
+                return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+            }).catch(e => {
+                console.error("error updating delayed event: ", e);
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: {message: "Error updating delayed event"},
+                });
+            });
+        default:
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {message: "Invalid request - unsupported action"},
+            });
+    }
+}
 
     private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {
         if (!request.data.type) {
