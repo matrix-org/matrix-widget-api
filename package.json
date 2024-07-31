@@ -8,7 +8,6 @@
   "author": "The Matrix.org Foundation C.I.C.",
   "license": "Apache-2.0",
   "scripts": {
-    "prepublishOnly": "yarn build",
     "start": "tsc -w",
     "clean": "rimraf lib dist",
     "build": "yarn clean && yarn build:compile && yarn build:types && yarn build:browser",
