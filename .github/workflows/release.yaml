@@ -40,6 +40,9 @@ jobs:
           git commit -am "${{ github.event.inputs.version-bump }} version bump"
           git push
 
+      - name: 📖 Build lib
+        run: yarn build
+
       - name: 🚀 Publish to npm
         id: npm-publish
         uses: JS-DevTools/npm-publish@v3
