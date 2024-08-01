@@ -83,7 +83,7 @@ export enum WidgetApiFromWidgetAction {
     /**
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
      */
-    MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update.delayed_event",
+    MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update_delayed_event",
 }
 
 export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;

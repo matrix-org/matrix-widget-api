@@ -383,7 +383,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe(['org.matrix.msc4157.update.delayed_event']);
+            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -415,7 +415,7 @@ describe('ClientWidgetApi', () => {
                     },
                 };
 
-                await loadIframe(['org.matrix.msc4157.update.delayed_event']);
+                await loadIframe(['org.matrix.msc4157.update_delayed_event']);
 
                 emitEvent(new CustomEvent('', { detail: event }));
 
