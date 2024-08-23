@@ -90,6 +90,10 @@ import {
     IUpdateDelayedEventFromWidgetResponseData,
     UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
+import {
+    IDownloadFileActionFromWidgetRequestData,
+    IDownloadFileActionFromWidgetResponseData,
+} from "./interfaces/DownloadFileAction";
 
 /**
  * API handler for widgets. This raises events for each action
@@ -748,6 +752,27 @@ export class WidgetApi extends EventEmitter {
             IUploadFileActionFromWidgetRequestData,
             IUploadFileActionFromWidgetResponseData
         >(WidgetApiFromWidgetAction.MSC4039UploadFileAction, data);
+    }
+
+    /**
+     * Download a file from the media repository on the homeserver.
+     * @param contentUri - MXC of the file to download.
+     * @returns Resolves to the contents of the file.
+     */
+    public async downloadFile(contentUri: string): Promise<IDownloadFileActionFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4039)) {
+            throw new Error("The download_file action is not supported by the client.")
+        }
+
+        const data: IDownloadFileActionFromWidgetRequestData = {
+            content_uri: contentUri,
+        };
+
+        return this.transport.send<
+            IDownloadFileActionFromWidgetRequestData,
+            IDownloadFileActionFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4039DownloadFileAction, data);
     }
 
     /**

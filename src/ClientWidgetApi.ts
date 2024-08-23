@@ -98,6 +98,10 @@ import {
     IUploadFileActionFromWidgetActionRequest,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
+import {
+    IDownloadFileActionFromWidgetActionRequest,
+    IDownloadFileActionFromWidgetResponseData,
+} from "./interfaces/DownloadFileAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -824,6 +828,28 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async handleDownloadFile(request: IDownloadFileActionFromWidgetActionRequest) {
+        if (!this.hasCapability(MatrixCapabilities.MSC4039DownloadFile)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const result = await this.driver.downloadFile(request.data.content_uri);
+
+            return this.transport.reply<IDownloadFileActionFromWidgetResponseData>(
+                request,
+                { file: result.file },
+            );
+        } catch (e) {
+            console.error("error while downloading a file", e);
+            this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Unexpected error while downloading a file" },
+            });
+        }
+    }
+
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
@@ -863,6 +889,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleGetMediaConfig(<IGetMediaConfigActionFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4039UploadFileAction:
                     return this.handleUploadFile(<IUploadFileActionFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4039DownloadFileAction:
+                    return this.handleDownloadFile(<IDownloadFileActionFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent:
                     return this.handleUpdateDelayedEvent(<IUpdateDelayedEventFromWidgetActionRequest>ev.detail);
 

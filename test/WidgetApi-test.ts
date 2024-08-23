@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { IDownloadFileActionFromWidgetResponseData } from '../src';
 import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
 import { IGetMediaConfigActionFromWidgetResponseData } from '../src/interfaces/GetMediaConfigAction';
 import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
@@ -376,6 +377,52 @@ describe('WidgetApi', () => {
             );
 
             await expect(widgetApi.uploadFile("data")).rejects.toThrow(
+                'An error occurred',
+            );
+        });
+    });
+
+    describe('downloadFile', () => {
+        it('should forward the request to the ClientWidgetApi', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValue(
+                { file: 'test contents' } as IDownloadFileActionFromWidgetResponseData,
+            );
+
+            await expect(widgetApi.downloadFile("mxc://example.com/test_file")).resolves.toEqual({
+                file: 'test contents',
+            });
+
+            expect(PostmessageTransport.prototype.send).toHaveBeenCalledWith(
+                WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
+                { content_uri: "mxc://example.com/test_file" },
+            );
+        });
+
+        it('should reject the request if the api is not supported', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [] } as ISupportedVersionsActionResponseData,
+            );
+
+            await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow(
+                "The download_file action is not supported by the client.",
+            );
+
+            expect(PostmessageTransport.prototype.send)
+                .not.toHaveBeenCalledWith(WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction, expect.anything());
+        });
+
+        it('should handle an error', async () => {
+            jest.mocked(PostmessageTransport.prototype.send).mockResolvedValueOnce(
+                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
+            );
+            jest.mocked(PostmessageTransport.prototype.send).mockRejectedValue(
+                new Error('An error occurred'),
+            );
+
+            await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow(
                 'An error occurred',
             );
         });

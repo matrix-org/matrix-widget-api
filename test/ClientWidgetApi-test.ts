@@ -29,6 +29,7 @@ import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import {
+    IDownloadFileActionFromWidgetActionRequest,
     IReadEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
@@ -91,6 +92,7 @@ describe('ClientWidgetApi', () => {
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
             uploadFile: jest.fn(),
+            downloadFile: jest.fn(),
         } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
 
         clientWidgetApi = new ClientWidgetApi(
@@ -1083,7 +1085,7 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('org.matrix.msc4039.upload_file action', () => {
+    describe('MSC4039', () => {
         it('should present as supported api version', () => {
             const event: ISupportedVersionsActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1101,7 +1103,9 @@ describe('ClientWidgetApi', () => {
                 ]),
             });
         });
+    });
 
+    describe('org.matrix.msc4039.upload_file action', () => {
         it('should handle and process the request', async () => {
             driver.uploadFile.mockResolvedValue({
                 contentUri: 'mxc://...',
@@ -1176,6 +1180,86 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Unexpected error while uploading a file' },
+                });
+            });
+        });
+    });
+
+    describe('org.matrix.msc4039.download_file action', () => {
+        it('should handle and process the request', async () => {
+            driver.downloadFile.mockResolvedValue({
+                file: 'test contents',
+            });
+
+            const event: IDownloadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
+                data: {
+                    content_uri: 'mxc://example.com/test_file',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.download_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    file: 'test contents',
+                });
+            });
+
+            expect(driver.downloadFile).toHaveBeenCalledWith( 'mxc://example.com/test_file');
+        });
+
+        it('should reject requests when the capability was not requested', async () => {
+            const event: IDownloadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
+                data: {
+                    content_uri: 'mxc://example.com/test_file',
+                },
+            };
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            expect(transport.reply).toBeCalledWith(event, {
+                error: { message: 'Missing capability' },
+            });
+
+            expect(driver.uploadFile).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.getMediaConfig.mockRejectedValue(
+                new Error("M_LIMIT_EXCEEDED: Too many requests"),
+            );
+
+            const event: IDownloadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
+                data: {
+                    content_uri: 'mxc://example.com/test_file',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.download_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Unexpected error while downloading a file' },
                 });
             });
         });

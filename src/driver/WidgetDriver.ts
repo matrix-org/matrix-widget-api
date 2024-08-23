@@ -347,4 +347,15 @@ export abstract class WidgetDriver {
     ): Promise<{ contentUri: string }> {
         throw new Error("Upload file is not implemented");
     }
+
+    /**
+     * Download a file from the media repository on the homeserver.
+     * @param contentUri - MXC of the file to download.
+     * @returns Resolves to the contents of the file.
+     */
+    public downloadFile(
+        contentUri: string,
+    ): Promise<{ file: XMLHttpRequestBodyInit }> {
+        throw new Error("Download file is not implemented");
+    }
 }
