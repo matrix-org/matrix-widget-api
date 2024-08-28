@@ -86,14 +86,14 @@ import {
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
 import {
+    IDownloadFileActionFromWidgetRequestData,
+    IDownloadFileActionFromWidgetResponseData,
+} from "./interfaces/DownloadFileAction";
+import {
     IUpdateDelayedEventFromWidgetRequestData,
     IUpdateDelayedEventFromWidgetResponseData,
     UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
-import {
-    IDownloadFileActionFromWidgetRequestData,
-    IDownloadFileActionFromWidgetResponseData,
-} from "./interfaces/DownloadFileAction";
 
 /**
  * API handler for widgets. This raises events for each action

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { IDownloadFileActionFromWidgetResponseData } from '../src';
 import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
 import { IGetMediaConfigActionFromWidgetResponseData } from '../src/interfaces/GetMediaConfigAction';
 import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
 import { ISendEventFromWidgetResponseData } from '../src/interfaces/SendEventAction';
 import { ISupportedVersionsActionResponseData } from '../src/interfaces/SupportedVersionsAction';
 import { IUploadFileActionFromWidgetResponseData } from '../src/interfaces/UploadFileAction';
+import { IDownloadFileActionFromWidgetResponseData } from '../src/interfaces/DownloadFileAction';
 import { IUserDirectorySearchFromWidgetResponseData } from '../src/interfaces/UserDirectorySearchAction';
 import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';

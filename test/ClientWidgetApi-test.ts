@@ -33,10 +33,10 @@ import {
     IReadEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
+    IUploadFileActionFromWidgetActionRequest,
     UpdateDelayedEventAction,
 } from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
-import { IUploadFileActionFromWidgetActionRequest } from '../src/interfaces/UploadFileAction';
 
 jest.mock('../src/transport/PostmessageTransport')
 
