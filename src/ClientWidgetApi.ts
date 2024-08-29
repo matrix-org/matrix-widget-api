@@ -828,7 +828,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private async handleDownloadFile(request: IDownloadFileActionFromWidgetActionRequest) {
+    private async handleDownloadFile(request: IDownloadFileActionFromWidgetActionRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC4039DownloadFile)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Missing capability" },

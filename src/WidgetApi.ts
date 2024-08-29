@@ -756,7 +756,7 @@ export class WidgetApi extends EventEmitter {
 
     /**
      * Download a file from the media repository on the homeserver.
-     * @param contentUri - MXC of the file to download.
+     * @param contentUri - MXC URI of the file to download.
      * @returns Resolves to the contents of the file.
      */
     public async downloadFile(contentUri: string): Promise<IDownloadFileActionFromWidgetResponseData> {
