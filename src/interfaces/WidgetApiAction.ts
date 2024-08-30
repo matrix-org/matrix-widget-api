@@ -83,6 +83,11 @@ export enum WidgetApiFromWidgetAction {
     /**
      * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
      */
+    MSC4039DownloadFileAction = "org.matrix.msc4039.download_file",
+
+    /**
+     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     */
     MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update_delayed_event",
 }
 

@@ -41,6 +41,10 @@ export enum MatrixCapabilities {
     /**
     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
     */
+    MSC4039DownloadFile = "org.matrix.msc4039.download_file",
+    /**
+    * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+    */
     MSC4157SendDelayedEvent = "org.matrix.msc4157.send.delayed_event",
     /**
     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
