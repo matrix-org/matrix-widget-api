@@ -35,6 +35,16 @@ interface IOutboundRequest {
     reject: (err: Error) => void;
 }
 
+class MatrixError extends Error {
+    public constructor(
+        msg: string,
+        public readonly httpStatus?: number,
+        public readonly errcode?: string,
+    ) {
+        super(msg);
+    }
+}
+
 /**
  * Transport for the Widget API over postMessage.
  */
@@ -195,7 +205,11 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
 
         if (isErrorResponse(response.response)) {
             const err = <IWidgetApiErrorResponseData>response.response;
-            req.reject(new Error(err.error.message));
+            req.reject(
+                err.error.httpStatus !== undefined || err.error.errcode !== undefined
+                    ? new MatrixError(err.error.message, err.error.httpStatus, err.error.errcode)
+                    : new Error(err.error.message),
+            );
         } else {
             req.resolve(response);
         }

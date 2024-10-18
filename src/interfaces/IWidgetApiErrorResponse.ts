@@ -16,10 +16,24 @@
 
 import { IWidgetApiResponse, IWidgetApiResponseData } from "./IWidgetApiResponse";
 
+interface IWidgetApiErrorData {
+    message: string;
+}
+
+interface IMatrixErrorData {
+    httpStatus?: number;
+    errcode?: string;
+}
+
 export interface IWidgetApiErrorResponseData extends IWidgetApiResponseData {
-    error: {
-        message: string;
-    };
+    error: IWidgetApiErrorData & IMatrixErrorData;
+}
+
+export function isMatrixError(err: unknown): err is IMatrixErrorData {
+    return typeof err === "object" && err !== null && (
+        "httpStatus" in err && typeof err.httpStatus === "number" ||
+        "errcode" in err && typeof err.errcode === "string"
+    );
 }
 
 export interface IWidgetApiErrorResponse extends IWidgetApiResponse {

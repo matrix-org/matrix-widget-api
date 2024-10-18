@@ -22,7 +22,7 @@ import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
 import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
-import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
+import { IWidgetApiErrorResponseData, isMatrixError } from "./interfaces/IWidgetApiErrorResponse";
 import { Capability, MatrixCapabilities } from "./interfaces/Capabilities";
 import { IOpenIDUpdate, ISendEventDetails, ISendDelayedEventDetails, WidgetDriver } from "./driver/WidgetDriver";
 import {
@@ -554,10 +554,13 @@ export class ClientWidgetApi extends EventEmitter {
                     delay_id: sentEvent.delayId,
                 }),
             });
-        }).catch(e => {
+        }).catch((e: unknown) => {
             console.error("error sending event: ", e);
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Error sending event"},
+                error: {
+                    message: "Error sending event",
+                    ...(isMatrixError(e) && e),
+                },
             });
         });
     }
@@ -581,10 +584,13 @@ export class ClientWidgetApi extends EventEmitter {
             case UpdateDelayedEventAction.Send:
                 this.driver.updateDelayedEvent(request.data.delay_id, request.data.action).then(() => {
                     return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
-                }).catch(e => {
+                }).catch((e: unknown) => {
                     console.error("error updating delayed event: ", e);
                     return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                        error: {message: "Error updating delayed event"},
+                        error: {
+                            message: "Error updating delayed event",
+                            ...(isMatrixError(e) && e),
+                        },
                     });
                 });
                 break;
@@ -736,7 +742,10 @@ export class ClientWidgetApi extends EventEmitter {
         } catch (e) {
             console.error("error getting the relations", e);
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while reading relations" },
+                error: {
+                    message: "Unexpected error while reading relations",
+                    ...(isMatrixError(e) && e),
+                },
             });
         }
     }
@@ -779,7 +788,10 @@ export class ClientWidgetApi extends EventEmitter {
         } catch (e) {
             console.error("error searching in the user directory", e);
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while searching in the user directory" },
+                error: {
+                    message: "Unexpected error while searching in the user directory",
+                    ...(isMatrixError(e) && e),
+                },
             });
         }
     }
@@ -801,7 +813,10 @@ export class ClientWidgetApi extends EventEmitter {
         } catch (e) {
             console.error("error while getting the media configuration", e);
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while getting the media configuration" },
+                error: {
+                    message: "Unexpected error while getting the media configuration",
+                    ...(isMatrixError(e) && e),
+                },
             });
         }
     }
@@ -823,7 +838,10 @@ export class ClientWidgetApi extends EventEmitter {
         } catch (e) {
             console.error("error while uploading a file", e);
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while uploading a file" },
+                error: {
+                    message: "Unexpected error while uploading a file",
+                    ...(isMatrixError(e) && e),
+                },
             });
         }
     }
