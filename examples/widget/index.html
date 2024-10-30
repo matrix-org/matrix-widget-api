@@ -59,10 +59,12 @@
         const qs = parseFragment();
         const widgetId = assertParam(qs, 'widgetId');
         const userId = assertParam(qs, 'userId');
+        // Allow all origins
+        const targetOrigin = '*';
         let isSticky = false;
 
         // Set up the widget API as soon as possible to avoid problems with the client
-        const widgetApi = new mxwidgets.WidgetApi(widgetId);
+        const widgetApi = new mxwidgets.WidgetApi(widgetId, targetOrigin);
         widgetApi.requestCapability(mxwidgets.MatrixCapabilities.AlwaysOnScreen);
 
         widgetApi.on("ready", function() {
