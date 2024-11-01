@@ -96,6 +96,10 @@ import {
 } from "./interfaces/UpdateDelayedEventAction";
 
 export class WidgetApiResponseError extends Error {
+    static {
+        this.prototype.name = this.name;
+    }
+
     public constructor(
         message: string,
         public readonly data: IWidgetApiErrorResponseDataDetails,
