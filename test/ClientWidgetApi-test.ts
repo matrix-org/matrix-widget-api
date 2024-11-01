@@ -1,5 +1,6 @@
 /*
  * Copyright 2022 Nordeck IT + Consulting GmbH.
+ * Copyright 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +31,7 @@ import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import {
     IDownloadFileActionFromWidgetActionRequest,
+    IMatrixApiError,
     IReadEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
@@ -55,6 +57,30 @@ function createRoomEvent(event: Partial<IRoomEvent> = {}): IRoomEvent {
         unsigned: {},
         ...event,
     };
+}
+
+class CustomMatrixError extends Error {
+    constructor(
+        message: string,
+        public readonly httpStatus: number,
+        public readonly name: string,
+        public readonly data: Record<string, unknown>,
+    ) {
+        super(message);
+    }
+}
+
+function processCustomMatrixError(e: unknown): IMatrixApiError | undefined {
+    return e instanceof CustomMatrixError ? {
+        http_status: e.httpStatus,
+        http_headers: {},
+        url: '',
+        response: {
+            errcode: e.name,
+            error: e.message,
+            ...e.data,
+        },
+    } : undefined;
 }
 
 describe('ClientWidgetApi', () => {
@@ -93,6 +119,7 @@ describe('ClientWidgetApi', () => {
             getMediaConfig: jest.fn(),
             uploadFile: jest.fn(),
             downloadFile: jest.fn(),
+            processError: jest.fn(),
         } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
 
         clientWidgetApi = new ClientWidgetApi(
@@ -213,6 +240,87 @@ describe('ClientWidgetApi', () => {
                 '',
                 roomId,
             );
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.sendEvent.mockRejectedValue(
+                new Error("M_BAD_JSON: Content must be a JSON object"),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error sending event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.sendEvent.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to send event',
+                    400,
+                    'M_NOT_JSON',
+                    {
+                        reason: 'Content must be a JSON object.',
+                    },
+                ),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error sending event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_NOT_JSON',
+                                error: 'failed to send event',
+                                reason: 'Content must be a JSON object.',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
         });
     });
 
@@ -761,6 +869,51 @@ describe('ClientWidgetApi', () => {
                 });
             });
         });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.readEventRelations.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to read relations',
+                    403,
+                    'M_FORBIDDEN',
+                    {
+                        reason: "You don't have permission to access that event",
+                    },
+                ),
+            );
+
+            const event: IReadRelationsFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
+                data: { event_id: '$event' },
+            };
+
+            await loadIframe();
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while reading relations',
+                        matrix_api_error: {
+                            http_status: 403,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_FORBIDDEN',
+                                error: 'failed to read relations',
+                                reason: "You don't have permission to access that event",
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('org.matrix.msc3973.user_directory_search action', () => {
@@ -991,6 +1144,55 @@ describe('ClientWidgetApi', () => {
                 });
             });
         });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.searchUserDirectory.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to search the user directory',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: { search_term: 'foo' },
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while searching in the user directory',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to search the user directory',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('org.matrix.msc4039.get_media_config action', () => {
@@ -1083,6 +1285,55 @@ describe('ClientWidgetApi', () => {
                 });
             });
         });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.getMediaConfig.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to get the media configuration',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IGetMediaConfigActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
+                data: {},
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while getting the media configuration',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to get the media configuration',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('MSC4039', () => {
@@ -1157,7 +1408,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.getMediaConfig.mockRejectedValue(
+            driver.uploadFile.mockRejectedValue(
                 new Error("M_LIMIT_EXCEEDED: Too many requests"),
             );
 
@@ -1180,6 +1431,57 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Unexpected error while uploading a file' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.uploadFile.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to upload a file',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IUploadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
+                data: {
+                    file: 'data',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while uploading a file',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to upload a file',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
                 });
             });
         });
@@ -1237,7 +1539,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.getMediaConfig.mockRejectedValue(
+            driver.downloadFile.mockRejectedValue(
                 new Error("M_LIMIT_EXCEEDED: Too many requests"),
             );
 
@@ -1260,6 +1562,57 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Unexpected error while downloading a file' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.downloadFile.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to download a file',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IDownloadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
+                data: {
+                    content_uri: 'mxc://example.com/test_file',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.download_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while downloading a file',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to download a file',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
                 });
             });
         });

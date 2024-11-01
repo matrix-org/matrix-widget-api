@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ import { ITransport } from "./ITransport";
 import {
     invertedDirection,
     isErrorResponse,
-    IWidgetApiErrorResponseData,
     IWidgetApiRequest,
     IWidgetApiRequestData,
     IWidgetApiResponse,
     IWidgetApiResponseData,
+    WidgetApiResponseError,
     WidgetApiAction,
     WidgetApiDirection,
     WidgetApiToWidgetAction,
@@ -33,16 +33,6 @@ interface IOutboundRequest {
     request: IWidgetApiRequest;
     resolve: (response: IWidgetApiResponse) => void;
     reject: (err: Error) => void;
-}
-
-class MatrixError extends Error {
-    public constructor(
-        msg: string,
-        public readonly httpStatus?: number,
-        public readonly errcode?: string,
-    ) {
-        super(msg);
-    }
 }
 
 /**
@@ -204,12 +194,8 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         if (!req) return; // response to an unknown request
 
         if (isErrorResponse(response.response)) {
-            const err = <IWidgetApiErrorResponseData>response.response;
-            req.reject(
-                err.error.httpStatus !== undefined || err.error.errcode !== undefined
-                    ? new MatrixError(err.error.message, err.error.httpStatus, err.error.errcode)
-                    : new Error(err.error.message),
-            );
+            const {message, ...data} = response.response.error;
+            req.reject(new WidgetApiResponseError(message, data));
         } else {
             req.resolve(response);
         }

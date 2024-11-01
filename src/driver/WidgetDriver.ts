@@ -19,6 +19,7 @@ import {
     IOpenIDCredentials,
     OpenIDRequestState,
     SimpleObservable,
+    IMatrixApiError,
     IRoomEvent,
     IRoomAccountData,
     ITurnServer,
@@ -357,5 +358,16 @@ export abstract class WidgetDriver {
         contentUri: string,
     ): Promise<{ file: XMLHttpRequestBodyInit }> {
         throw new Error("Download file is not implemented");
+    }
+
+    /**
+     * Expresses an error thrown by a Matrix API request made by this driver
+     * in a format compatible with the Widget API.
+     * @param error The error to handle.
+     * @returns The error expressed as a {@link IMatrixApiError},
+     * or undefined if it cannot be expressed as one.
+     */
+    public processError(error: unknown): IMatrixApiError | undefined {
+        return undefined;
     }
 }

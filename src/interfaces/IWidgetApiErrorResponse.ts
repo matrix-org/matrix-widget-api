@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,42 @@
 
 import { IWidgetApiResponse, IWidgetApiResponseData } from "./IWidgetApiResponse";
 
-interface IWidgetApiErrorData {
-    message: string;
+/**
+ * The format of errors returned by Matrix API requests
+ * made by a WidgetDriver.
+ */
+export interface IMatrixApiError {
+    /** The HTTP status code of the associated request. */
+    http_status: number;  // eslint-disable-line camelcase
+    /** Any HTTP response headers that are relevant to the error. */
+    http_headers: {[name: string]: string};  // eslint-disable-line camelcase
+    /** The URL of the failed request. */
+    url: string;
+    /** @see {@link https://spec.matrix.org/latest/client-server-api/#standard-error-response} */
+    response: {
+        errcode: string;
+        error: string;
+    } & IWidgetApiResponseData; // extensible
 }
 
-interface IMatrixErrorData {
-    httpStatus?: number;
-    errcode?: string;
+export interface IWidgetApiErrorResponseDataDetails extends IWidgetApiResponseData {
+    /** Set if the error came from a Matrix API request made by a widget driver */
+    matrix_api_error?: IMatrixApiError;  // eslint-disable-line camelcase
 }
 
 export interface IWidgetApiErrorResponseData extends IWidgetApiResponseData {
-    error: IWidgetApiErrorData & IMatrixErrorData;
-}
-
-export function isMatrixError(err: unknown): err is IMatrixErrorData {
-    return typeof err === "object" && err !== null && (
-        "httpStatus" in err && typeof err.httpStatus === "number" ||
-        "errcode" in err && typeof err.errcode === "string"
-    );
+    error: {
+        /** A user-friendly string describing the error */
+        message: string;
+    } & IWidgetApiErrorResponseDataDetails;
 }
 
 export interface IWidgetApiErrorResponse extends IWidgetApiResponse {
     response: IWidgetApiErrorResponseData;
 }
 
-export function isErrorResponse(responseData: IWidgetApiResponseData): boolean {
-    if ("error" in responseData) {
-        const err = <IWidgetApiErrorResponseData>responseData;
-        return !!err.error.message;
-    }
-    return false;
+export function isErrorResponse(responseData: IWidgetApiResponseData): responseData is IWidgetApiErrorResponseData {
+    const error = responseData.error;
+    return typeof error === "object" && error !== null &&
+        "message" in error && typeof error.message === "string";
 }

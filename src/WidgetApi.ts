@@ -33,7 +33,7 @@ import {
 import { ITransport } from "./transport/ITransport";
 import { PostmessageTransport } from "./transport/PostmessageTransport";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
-import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
+import { IWidgetApiErrorResponseData, IWidgetApiErrorResponseDataDetails } from "./interfaces/IWidgetApiErrorResponse";
 import { IStickerActionRequestData } from "./interfaces/StickerAction";
 import { IStickyActionRequestData, IStickyActionResponseData } from "./interfaces/StickyAction";
 import {
@@ -94,6 +94,15 @@ import {
     IUpdateDelayedEventFromWidgetResponseData,
     UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
+
+export class WidgetApiResponseError extends Error {
+    public constructor(
+        message: string,
+        public readonly data: IWidgetApiErrorResponseDataDetails,
+    ) {
+        super(message);
+    }
+}
 
 /**
  * API handler for widgets. This raises events for each action

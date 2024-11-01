@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 - 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,11 +71,12 @@ export interface ITransport extends EventEmitter {
 
     /**
      * Sends a request to the remote end.
-     * @param {WidgetApiAction} action The action to send.
-     * @param {IWidgetApiRequestData} data The request data.
-     * @returns {Promise<IWidgetApiResponseData>} A promise which resolves
-     * to the remote end's response, or throws with an Error if the request
-     * failed.
+     * @param action The action to send.
+     * @param data The request data.
+     * @returns A promise which resolves to the remote end's response.
+     * @throws {Error} if the request failed with a generic error.
+     * @throws {WidgetApiResponseError} if the request failed with error details
+     * that can be communicated to the Widget API.
      */
     send<T extends IWidgetApiRequestData, R extends IWidgetApiResponseData = IWidgetApiAcknowledgeResponseData>(
         action: WidgetApiAction,
@@ -88,9 +89,10 @@ export interface ITransport extends EventEmitter {
      * data.
      * @param {WidgetApiAction} action The action to send.
      * @param {IWidgetApiRequestData} data The request data.
-     * @returns {Promise<IWidgetApiResponseData>} A promise which resolves
-     * to the remote end's response, or throws with an Error if the request
-     * failed.
+     * @returns {Promise<IWidgetApiResponseData>} A promise which resolves to the remote end's response
+     * @throws {Error} if the request failed with a generic error.
+     * @throws {WidgetApiResponseError} if the request failed with error details
+     * that can be communicated to the Widget API.
      */
     sendComplete<T extends IWidgetApiRequestData, R extends IWidgetApiResponse>(action: WidgetApiAction, data: T)
         : Promise<R>;
