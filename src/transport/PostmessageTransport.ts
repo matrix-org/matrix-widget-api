@@ -58,7 +58,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
 
     public constructor(
         private sendDirection: WidgetApiDirection,
-        private initialWidgetId: string | null,
+        initialWidgetId: string | null,
         private transportWindow: Window,
         private inboundWindow: Window,
     ) {
