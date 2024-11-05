@@ -34,7 +34,7 @@ export interface IMatrixApiError {
     } & IWidgetApiResponseData; // extensible
 }
 
-export interface IWidgetApiErrorResponseDataDetails extends IWidgetApiResponseData {
+export interface IWidgetApiErrorResponseDataDetails {
     /** Set if the error came from a Matrix API request made by a widget driver */
     matrix_api_error?: IMatrixApiError;  // eslint-disable-line camelcase
 }
