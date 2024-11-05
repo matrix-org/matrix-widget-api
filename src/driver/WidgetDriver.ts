@@ -19,10 +19,10 @@ import {
     IOpenIDCredentials,
     OpenIDRequestState,
     SimpleObservable,
-    IMatrixApiError,
     IRoomEvent,
     IRoomAccountData,
     ITurnServer,
+    IWidgetApiErrorResponseDataDetails,
     UpdateDelayedEventAction,
 } from "..";
 
@@ -361,13 +361,12 @@ export abstract class WidgetDriver {
     }
 
     /**
-     * Expresses an error thrown by a Matrix API request made by this driver
-     * in a format compatible with the Widget API.
+     * Expresses an error thrown by this driver in a format compatible with the Widget API.
      * @param error The error to handle.
-     * @returns The error expressed as a {@link IMatrixApiError},
+     * @returns The error expressed as a {@link IWidgetApiErrorResponseDataDetails},
      * or undefined if it cannot be expressed as one.
      */
-    public processError(error: unknown): IMatrixApiError | undefined {
+    public processError(error: unknown): IWidgetApiErrorResponseDataDetails | undefined {
         return undefined;
     }
 }

@@ -36,6 +36,7 @@ import {
     ISendEventFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
     IUploadFileActionFromWidgetActionRequest,
+    IWidgetApiErrorResponseDataDetails,
     UpdateDelayedEventAction,
 } from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
@@ -70,15 +71,17 @@ class CustomMatrixError extends Error {
     }
 }
 
-function processCustomMatrixError(e: unknown): IMatrixApiError | undefined {
+function processCustomMatrixError(e: unknown): IWidgetApiErrorResponseDataDetails | undefined {
     return e instanceof CustomMatrixError ? {
-        http_status: e.httpStatus,
-        http_headers: {},
-        url: '',
-        response: {
-            errcode: e.name,
-            error: e.message,
-            ...e.data,
+        matrix_api_error: {
+            http_status: e.httpStatus,
+            http_headers: {},
+            url: '',
+            response: {
+                errcode: e.name,
+                error: e.message,
+                ...e.data,
+            },
         },
     } : undefined;
 }

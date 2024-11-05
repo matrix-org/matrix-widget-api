@@ -833,11 +833,11 @@ export class ClientWidgetApi extends EventEmitter {
     }
 
     private handleDriverError(e: unknown, request: IWidgetApiRequest, message: string) {
-        const matrixApiError = this.driver.processError(e);
+        const errorDetails = this.driver.processError(e);
         this.transport.reply<IWidgetApiErrorResponseData>(request, {
             error: {
                 message,
-                ...(matrixApiError && { matrix_api_error: { ...matrixApiError } }),
+                ...errorDetails,
             },
         });
     }
