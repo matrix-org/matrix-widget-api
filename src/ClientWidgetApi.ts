@@ -15,6 +15,7 @@
  */
 
 import { EventEmitter } from "events";
+
 import { ITransport } from "./transport/ITransport";
 import { Widget } from "./models/Widget";
 import { PostmessageTransport } from "./transport/PostmessageTransport";
@@ -245,7 +246,7 @@ export class ClientWidgetApi extends EventEmitter {
         }).catch(e => {
             console.warn("non-fatal error notifying widget of approved capabilities:", e);
         }).then(() => {
-            this.emit("capabilitiesNotified")
+            this.emit("capabilitiesNotified");
         });
     }
 
@@ -415,7 +416,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         return events.then((evs) => {
-            this.transport.reply<IReadRoomAccountDataFromWidgetResponseData>(request, {events: evs})
+            this.transport.reply<IReadRoomAccountDataFromWidgetResponseData>(request, {events: evs});
         });
     }
 
@@ -780,7 +781,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         try {
-            const result = await this.driver.getMediaConfig()
+            const result = await this.driver.getMediaConfig();
 
             return this.transport.reply<IGetMediaConfigActionFromWidgetResponseData>(
                 request,
@@ -874,7 +875,7 @@ export class ClientWidgetApi extends EventEmitter {
                 case WidgetApiFromWidgetAction.MSC3869ReadRelations:
                     return this.handleReadRelations(<IReadRelationsFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC3973UserDirectorySearch:
-                    return this.handleUserDirectorySearch(<IUserDirectorySearchFromWidgetActionRequest>ev.detail)
+                    return this.handleUserDirectorySearch(<IUserDirectorySearchFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.BeeperReadRoomAccountData:
                     return this.handleReadRoomAccountData(<IReadRoomAccountDataFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction:

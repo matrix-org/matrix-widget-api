@@ -15,6 +15,7 @@
  */
 
 import { EventEmitter } from "events";
+
 import { Capability } from "./interfaces/Capabilities";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
 import { IWidgetApiAcknowledgeResponseData } from "./interfaces/IWidgetApiResponse";
@@ -574,7 +575,7 @@ export class WidgetApi extends EventEmitter {
     ): Promise<IReadRelationsFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC3869)) {
-            throw new Error("The read_relations action is not supported by the client.")
+            throw new Error("The read_relations action is not supported by the client.");
         }
 
         const data: IReadRelationsFromWidgetRequestData = {
@@ -591,7 +592,7 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<IReadRelationsFromWidgetRequestData, IReadRelationsFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC3869ReadRelations,
             data,
-        )
+        );
     }
 
     public readStateEvents(
@@ -713,7 +714,7 @@ export class WidgetApi extends EventEmitter {
     ): Promise<IUserDirectorySearchFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC3973)) {
-            throw new Error("The user_directory_search action is not supported by the client.")
+            throw new Error("The user_directory_search action is not supported by the client.");
         }
 
         const data: IUserDirectorySearchFromWidgetRequestData = {
@@ -734,7 +735,7 @@ export class WidgetApi extends EventEmitter {
     public async getMediaConfig(): Promise<IGetMediaConfigActionFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC4039)) {
-            throw new Error("The get_media_config action is not supported by the client.")
+            throw new Error("The get_media_config action is not supported by the client.");
         }
 
         const data: IGetMediaConfigActionFromWidgetRequestData = {};
@@ -754,7 +755,7 @@ export class WidgetApi extends EventEmitter {
     public async uploadFile(file: XMLHttpRequestBodyInit): Promise<IUploadFileActionFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC4039)) {
-            throw new Error("The upload_file action is not supported by the client.")
+            throw new Error("The upload_file action is not supported by the client.");
         }
 
         const data: IUploadFileActionFromWidgetRequestData = {
@@ -775,7 +776,7 @@ export class WidgetApi extends EventEmitter {
     public async downloadFile(contentUri: string): Promise<IDownloadFileActionFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC4039)) {
-            throw new Error("The download_file action is not supported by the client.")
+            throw new Error("The download_file action is not supported by the client.");
         }
 
         const data: IDownloadFileActionFromWidgetRequestData = {

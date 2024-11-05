@@ -15,6 +15,7 @@
  */
 
 import { EventEmitter } from "events";
+
 import { ITransport } from "./ITransport";
 import {
     invertedDirection,

@@ -15,6 +15,7 @@
  */
 
 import { EventEmitter } from "events";
+
 import {
     IWidgetApiAcknowledgeResponseData,
     IWidgetApiRequest,
@@ -94,8 +95,7 @@ export interface ITransport extends EventEmitter {
      * @throws {WidgetApiResponseError} if the request failed with error details
      * that can be communicated to the Widget API.
      */
-    sendComplete<T extends IWidgetApiRequestData, R extends IWidgetApiResponse>(action: WidgetApiAction, data: T)
-        : Promise<R>;
+    sendComplete<T extends IWidgetApiRequestData, R extends IWidgetApiResponse>(action: WidgetApiAction, data: T): Promise<R>;
 
     /**
      * Replies to a request.
