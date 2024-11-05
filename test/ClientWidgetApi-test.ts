@@ -34,6 +34,7 @@ import {
     IMatrixApiError,
     IReadEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
+    ISendToDeviceFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
     IUploadFileActionFromWidgetActionRequest,
     IWidgetApiErrorResponseDataDetails,
@@ -117,6 +118,7 @@ describe('ClientWidgetApi', () => {
             sendEvent: jest.fn(),
             sendDelayedEvent: jest.fn(),
             updateDelayedEvent: jest.fn(),
+            sendToDevice: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
@@ -713,6 +715,250 @@ describe('ClientWidgetApi', () => {
                                 errcode: 'M_NOT_JSON',
                                 error: 'failed to update delayed event',
                                 reason: 'Content must be a JSON object.',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
+    });
+
+    describe('send_to_device action', () => {
+        it('sends unencrypted to-device events', async () => {
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.sendToDevice).toHaveBeenCalledWith(
+                event.data.type,
+                event.data.encrypted,
+                event.data.messages,
+            );
+        });
+
+        it('fails to send to-device events without event type', async () => {
+            const event: IWidgetApiRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid request - missing event type' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('fails to send to-device events without event contents', async () => {
+            const event: IWidgetApiRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid request - missing event contents' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('fails to send to-device events without encryption flag', async () => {
+            const event: IWidgetApiRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid request - missing encryption flag' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('fails to send to-device events with any event type', async () => {
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}_different`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Cannot send to-device events of this type' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.sendToDevice.mockRejectedValue(
+                new Error("M_FORBIDDEN: You don't have permission to send to-device events"),
+            );
+
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error sending event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.sendToDevice.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to send event',
+                    400,
+                    'M_FORBIDDEN',
+                    {
+                        reason: "You don't have permission to send to-device events",
+                    },
+                ),
+            );
+
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error sending event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_FORBIDDEN',
+                                error: 'failed to send event',
+                                reason: "You don't have permission to send to-device events",
                             },
                         } satisfies IMatrixApiError,
                     },
