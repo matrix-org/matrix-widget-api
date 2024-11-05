@@ -453,6 +453,93 @@ describe('ClientWidgetApi', () => {
                 roomId,
             );
         });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.sendDelayedEvent.mockRejectedValue(
+                new Error("M_BAD_JSON: Content must be a JSON object"),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                    delay: 5000,
+                    parent_delay_id: 'fp',
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error sending event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.sendDelayedEvent.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to send event',
+                    400,
+                    'M_NOT_JSON',
+                    {
+                        reason: 'Content must be a JSON object.',
+                    },
+                ),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                    delay: 5000,
+                    parent_delay_id: 'fp',
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error sending event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_NOT_JSON',
+                                error: 'failed to send event',
+                                reason: 'Content must be a JSON object.',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('update_delayed_event action', () => {
@@ -538,6 +625,81 @@ describe('ClientWidgetApi', () => {
                     event.data.action,
                 );
             }
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.updateDelayedEvent.mockRejectedValue(
+                new Error("M_BAD_JSON: Content must be a JSON object"),
+            );
+
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: UpdateDelayedEventAction.Send,
+                },
+            };
+
+            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error updating delayed event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.updateDelayedEvent.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to update delayed event',
+                    400,
+                    'M_NOT_JSON',
+                    {
+                        reason: 'Content must be a JSON object.',
+                    },
+                ),
+            );
+
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: UpdateDelayedEventAction.Send,
+                },
+            };
+
+            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error updating delayed event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_NOT_JSON',
+                                error: 'failed to update delayed event',
+                                reason: 'Content must be a JSON object.',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
         });
     });
 
