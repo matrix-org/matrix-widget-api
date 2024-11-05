@@ -246,6 +246,8 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
+            const roomId = '!room:example.org';
+
             driver.sendEvent.mockRejectedValue(
                 new Error("M_BAD_JSON: Content must be a JSON object"),
             );
@@ -258,6 +260,7 @@ describe('ClientWidgetApi', () => {
                 data: {
                     type: 'm.room.message',
                     content: 'hello',
+                    room_id: roomId,
                 },
             };
 
@@ -276,6 +279,8 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject with Matrix API error response thrown by driver', async () => {
+            const roomId = '!room:example.org';
+
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendEvent.mockRejectedValue(
@@ -297,6 +302,7 @@ describe('ClientWidgetApi', () => {
                 data: {
                     type: 'm.room.message',
                     content: 'hello',
+                    room_id: roomId,
                 },
             };
 
@@ -329,6 +335,8 @@ describe('ClientWidgetApi', () => {
 
     describe('send_event action for delayed events', () => {
         it('fails to send delayed events', async () => {
+            const roomId = '!room:example.org';
+
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
                 widgetId: 'test',
@@ -338,6 +346,7 @@ describe('ClientWidgetApi', () => {
                     type: 'm.room.message',
                     content: {},
                     delay: 5000,
+                    room_id: roomId,
                 },
             };
 
@@ -458,6 +467,8 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
+            const roomId = '!room:example.org';
+
             driver.sendDelayedEvent.mockRejectedValue(
                 new Error("M_BAD_JSON: Content must be a JSON object"),
             );
@@ -470,6 +481,7 @@ describe('ClientWidgetApi', () => {
                 data: {
                     type: 'm.room.message',
                     content: 'hello',
+                    room_id: roomId,
                     delay: 5000,
                     parent_delay_id: 'fp',
                 },
@@ -491,6 +503,8 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject with Matrix API error response thrown by driver', async () => {
+            const roomId = '!room:example.org';
+
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendDelayedEvent.mockRejectedValue(
@@ -512,6 +526,7 @@ describe('ClientWidgetApi', () => {
                 data: {
                     type: 'm.room.message',
                     content: 'hello',
+                    room_id: roomId,
                     delay: 5000,
                     parent_delay_id: 'fp',
                 },
