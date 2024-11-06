@@ -32,6 +32,7 @@ import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import {
     IDownloadFileActionFromWidgetActionRequest,
     IMatrixApiError,
+    INavigateActionRequest,
     IReadEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
     ISendToDeviceFromWidgetActionRequest,
@@ -113,6 +114,7 @@ describe('ClientWidgetApi', () => {
         document.body.appendChild(iframe);
 
         driver = {
+            navigate: jest.fn(),
             readStateEvents: jest.fn(),
             readEventRelations: jest.fn(),
             sendEvent: jest.fn(),
@@ -157,6 +159,155 @@ describe('ClientWidgetApi', () => {
 
         expect(clientWidgetApi.hasCapability('m.always_on_screen')).toBe(true);
         expect(clientWidgetApi.hasCapability('m.sticker')).toBe(false);
+    });
+
+    describe('navigate action', () => {
+        it('navigates', async () => {
+            driver.navigate.mockResolvedValue(Promise.resolve());
+
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.navigate).toHaveBeenCalledWith(
+                event.data.uri,
+            );
+        });
+
+        it('fails to navigate', async () => {
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Missing capability' },
+                });
+            });
+
+            expect(driver.navigate).not.toBeCalled();
+        });
+
+        it('fails to navigate to an unsupported URI', async () => {
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid matrix.to URI' },
+                });
+            });
+
+            expect(driver.navigate).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.navigate.mockRejectedValue(
+                new Error("M_UNKNOWN: Unknown error"),
+            );
+
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error handling navigation' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.navigate.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to navigate',
+                    400,
+                    'M_UNKNOWN',
+                    {
+                        reason: 'Unknown error',
+                    },
+                ),
+            );
+
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error handling navigation',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_UNKNOWN',
+                                error: 'failed to navigate',
+                                reason: 'Unknown error',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('send_event action', () => {
