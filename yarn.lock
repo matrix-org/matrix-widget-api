@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@action-validator/cli@^0.5.3":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@action-validator/cli/-/cli-0.5.3.tgz#2d4fe473058f6ef17530b9bb5929f0eade4e8672"
-  integrity sha512-u/kv77ZC55PfAc9RQeP76xV1GysTisEJjO+b5TgCrBBcaKtGLt5Y7ki2GSdc7CDzncNc1oeoGcwaLMW6JSdQAw==
+"@action-validator/cli@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@action-validator/cli/-/cli-0.6.0.tgz#02a29e322d3794903896183281eed2b55c685851"
+  integrity sha512-Z8TYOK4GqUIpI0UuspUJPB6dhr0niTumhwI5iiZVqFRXm4u05bZawnFKltpvoFUfJg9mHbbIBlleqsRJAgl53Q==
   dependencies:
     chalk "5.2.0"
 
