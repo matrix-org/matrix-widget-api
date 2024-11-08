@@ -330,15 +330,13 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const onErr = (e: any) => {
+        const onErr = (e: unknown) => {
             console.error("[ClientWidgetApi] Failed to handle navigation: ", e);
-            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Error handling navigation"},
-            });
+            this.handleDriverError(e, request, "Error handling navigation");
         };
 
         try {
-            this.driver.navigate(request.data.uri.toString()).catch(e => onErr(e)).then(() => {
+            this.driver.navigate(request.data.uri.toString()).catch((e: unknown) => onErr(e)).then(() => {
                 return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
             });
         } catch (e) {
@@ -554,11 +552,9 @@ export class ClientWidgetApi extends EventEmitter {
                     delay_id: sentEvent.delayId,
                 }),
             });
-        }).catch(e => {
+        }).catch((e: unknown) => {
             console.error("error sending event: ", e);
-            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Error sending event"},
-            });
+            this.handleDriverError(e, request, "Error sending event");
         });
     }
 
@@ -581,11 +577,9 @@ export class ClientWidgetApi extends EventEmitter {
             case UpdateDelayedEventAction.Send:
                 this.driver.updateDelayedEvent(request.data.delay_id, request.data.action).then(() => {
                     return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
-                }).catch(e => {
+                }).catch((e: unknown) => {
                     console.error("error updating delayed event: ", e);
-                    return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                        error: {message: "Error updating delayed event"},
-                    });
+                    this.handleDriverError(e, request, "Error updating delayed event");
                 });
                 break;
             default:
@@ -618,9 +612,7 @@ export class ClientWidgetApi extends EventEmitter {
                 await this.transport.reply<ISendToDeviceFromWidgetResponseData>(request, {});
             } catch (e) {
                 console.error("error sending to-device event", e);
-                await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Error sending event"},
-                });
+                this.handleDriverError(e, request, "Error sending event");
             }
         }
     }
@@ -735,9 +727,7 @@ export class ClientWidgetApi extends EventEmitter {
             );
         } catch (e) {
             console.error("error getting the relations", e);
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while reading relations" },
-            });
+            this.handleDriverError(e, request, "Unexpected error while reading relations");
         }
     }
 
@@ -778,9 +768,7 @@ export class ClientWidgetApi extends EventEmitter {
             );
         } catch (e) {
             console.error("error searching in the user directory", e);
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while searching in the user directory" },
-            });
+            this.handleDriverError(e, request, "Unexpected error while searching in the user directory");
         }
     }
 
@@ -800,9 +788,7 @@ export class ClientWidgetApi extends EventEmitter {
             );
         } catch (e) {
             console.error("error while getting the media configuration", e);
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while getting the media configuration" },
-            });
+            this.handleDriverError(e, request, "Unexpected error while getting the media configuration");
         }
     }
 
@@ -822,9 +808,7 @@ export class ClientWidgetApi extends EventEmitter {
             );
         } catch (e) {
             console.error("error while uploading a file", e);
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while uploading a file" },
-            });
+            this.handleDriverError(e, request, "Unexpected error while uploading a file");
         }
     }
 
@@ -844,10 +828,18 @@ export class ClientWidgetApi extends EventEmitter {
             );
         } catch (e) {
             console.error("error while downloading a file", e);
-            this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: "Unexpected error while downloading a file" },
-            });
+            this.handleDriverError(e, request, "Unexpected error while downloading a file");
         }
+    }
+
+    private handleDriverError(e: unknown, request: IWidgetApiRequest, message: string) {
+        const data = this.driver.processError(e);
+        this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            error: {
+                message,
+                ...data,
+            },
+        });
     }
 
     private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {

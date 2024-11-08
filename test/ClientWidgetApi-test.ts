@@ -1,5 +1,6 @@
 /*
  * Copyright 2022 Nordeck IT + Consulting GmbH.
+ * Copyright 2024 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +31,14 @@ import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import {
     IDownloadFileActionFromWidgetActionRequest,
+    IMatrixApiError,
+    INavigateActionRequest,
     IReadEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
+    ISendToDeviceFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
     IUploadFileActionFromWidgetActionRequest,
+    IWidgetApiErrorResponseDataDetails,
     UpdateDelayedEventAction,
 } from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
@@ -55,6 +60,32 @@ function createRoomEvent(event: Partial<IRoomEvent> = {}): IRoomEvent {
         unsigned: {},
         ...event,
     };
+}
+
+class CustomMatrixError extends Error {
+    constructor(
+        message: string,
+        public readonly httpStatus: number,
+        public readonly name: string,
+        public readonly data: Record<string, unknown>,
+    ) {
+        super(message);
+    }
+}
+
+function processCustomMatrixError(e: unknown): IWidgetApiErrorResponseDataDetails | undefined {
+    return e instanceof CustomMatrixError ? {
+        matrix_api_error: {
+            http_status: e.httpStatus,
+            http_headers: {},
+            url: '',
+            response: {
+                errcode: e.name,
+                error: e.message,
+                ...e.data,
+            },
+        },
+    } : undefined;
 }
 
 describe('ClientWidgetApi', () => {
@@ -83,16 +114,19 @@ describe('ClientWidgetApi', () => {
         document.body.appendChild(iframe);
 
         driver = {
+            navigate: jest.fn(),
             readStateEvents: jest.fn(),
             readEventRelations: jest.fn(),
             sendEvent: jest.fn(),
             sendDelayedEvent: jest.fn(),
             updateDelayedEvent: jest.fn(),
+            sendToDevice: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
             uploadFile: jest.fn(),
             downloadFile: jest.fn(),
+            processError: jest.fn(),
         } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
 
         clientWidgetApi = new ClientWidgetApi(
@@ -125,6 +159,155 @@ describe('ClientWidgetApi', () => {
 
         expect(clientWidgetApi.hasCapability('m.always_on_screen')).toBe(true);
         expect(clientWidgetApi.hasCapability('m.sticker')).toBe(false);
+    });
+
+    describe('navigate action', () => {
+        it('navigates', async () => {
+            driver.navigate.mockResolvedValue(Promise.resolve());
+
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.navigate).toHaveBeenCalledWith(
+                event.data.uri,
+            );
+        });
+
+        it('fails to navigate', async () => {
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Missing capability' },
+                });
+            });
+
+            expect(driver.navigate).not.toBeCalled();
+        });
+
+        it('fails to navigate to an unsupported URI', async () => {
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid matrix.to URI' },
+                });
+            });
+
+            expect(driver.navigate).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.navigate.mockRejectedValue(
+                new Error("M_UNKNOWN: Unknown error"),
+            );
+
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error handling navigation' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.navigate.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to navigate',
+                    400,
+                    'M_UNKNOWN',
+                    {
+                        reason: 'Unknown error',
+                    },
+                ),
+            );
+
+            const event: INavigateActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2931Navigate,
+                data: {
+                    uri: 'https://matrix.to/#/#room:example.net',
+                },
+            };
+
+            await loadIframe(['org.matrix.msc2931.navigate']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error handling navigation',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_UNKNOWN',
+                                error: 'failed to navigate',
+                                reason: 'Unknown error',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('send_event action', () => {
@@ -214,10 +397,99 @@ describe('ClientWidgetApi', () => {
                 roomId,
             );
         });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            const roomId = '!room:example.org';
+
+            driver.sendEvent.mockRejectedValue(
+                new Error("M_BAD_JSON: Content must be a JSON object"),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                    room_id: roomId,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error sending event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            const roomId = '!room:example.org';
+
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.sendEvent.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to send event',
+                    400,
+                    'M_NOT_JSON',
+                    {
+                        reason: 'Content must be a JSON object.',
+                    },
+                ),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                    room_id: roomId,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error sending event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_NOT_JSON',
+                                error: 'failed to send event',
+                                reason: 'Content must be a JSON object.',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('send_event action for delayed events', () => {
         it('fails to send delayed events', async () => {
+            const roomId = '!room:example.org';
+
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
                 widgetId: 'test',
@@ -227,6 +499,7 @@ describe('ClientWidgetApi', () => {
                     type: 'm.room.message',
                     content: {},
                     delay: 5000,
+                    room_id: roomId,
                 },
             };
 
@@ -345,6 +618,99 @@ describe('ClientWidgetApi', () => {
                 roomId,
             );
         });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            const roomId = '!room:example.org';
+
+            driver.sendDelayedEvent.mockRejectedValue(
+                new Error("M_BAD_JSON: Content must be a JSON object"),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                    room_id: roomId,
+                    delay: 5000,
+                    parent_delay_id: 'fp',
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error sending event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            const roomId = '!room:example.org';
+
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.sendDelayedEvent.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to send event',
+                    400,
+                    'M_NOT_JSON',
+                    {
+                        reason: 'Content must be a JSON object.',
+                    },
+                ),
+            );
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: 'm.room.message',
+                    content: 'hello',
+                    room_id: roomId,
+                    delay: 5000,
+                    parent_delay_id: 'fp',
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                'org.matrix.msc4157.send.delayed_event',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error sending event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_NOT_JSON',
+                                error: 'failed to send event',
+                                reason: 'Content must be a JSON object.',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('update_delayed_event action', () => {
@@ -430,6 +796,325 @@ describe('ClientWidgetApi', () => {
                     event.data.action,
                 );
             }
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.updateDelayedEvent.mockRejectedValue(
+                new Error("M_BAD_JSON: Content must be a JSON object"),
+            );
+
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: UpdateDelayedEventAction.Send,
+                },
+            };
+
+            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error updating delayed event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.updateDelayedEvent.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to update delayed event',
+                    400,
+                    'M_NOT_JSON',
+                    {
+                        reason: 'Content must be a JSON object.',
+                    },
+                ),
+            );
+
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: 'f',
+                    action: UpdateDelayedEventAction.Send,
+                },
+            };
+
+            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error updating delayed event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_NOT_JSON',
+                                error: 'failed to update delayed event',
+                                reason: 'Content must be a JSON object.',
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
+    });
+
+    describe('send_to_device action', () => {
+        it('sends unencrypted to-device events', async () => {
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.sendToDevice).toHaveBeenCalledWith(
+                event.data.type,
+                event.data.encrypted,
+                event.data.messages,
+            );
+        });
+
+        it('fails to send to-device events without event type', async () => {
+            const event: IWidgetApiRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid request - missing event type' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('fails to send to-device events without event contents', async () => {
+            const event: IWidgetApiRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid request - missing event contents' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('fails to send to-device events without encryption flag', async () => {
+            const event: IWidgetApiRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Invalid request - missing encryption flag' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('fails to send to-device events with any event type', async () => {
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}_different`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Cannot send to-device events of this type' },
+                });
+            });
+
+            expect(driver.sendToDevice).not.toBeCalled();
+        });
+
+        it('should reject requests when the driver throws an exception', async () => {
+            driver.sendToDevice.mockRejectedValue(
+                new Error("M_FORBIDDEN: You don't have permission to send to-device events"),
+            );
+
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: 'Error sending event' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.sendToDevice.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to send event',
+                    400,
+                    'M_FORBIDDEN',
+                    {
+                        reason: "You don't have permission to send to-device events",
+                    },
+                ),
+            );
+
+            const event: ISendToDeviceFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.SendToDevice,
+                data: {
+                    type: 'net.example.test',
+                    encrypted: false,
+                    messages: {
+                        '@foo:bar.com': {
+                            'DEVICEID': {
+                                'example_content_key': 'value',
+                            },
+                        },
+                    },
+                },
+            };
+
+            await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Error sending event',
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_FORBIDDEN',
+                                error: 'failed to send event',
+                                reason: "You don't have permission to send to-device events",
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
         });
     });
 
@@ -761,6 +1446,51 @@ describe('ClientWidgetApi', () => {
                 });
             });
         });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.readEventRelations.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to read relations',
+                    403,
+                    'M_FORBIDDEN',
+                    {
+                        reason: "You don't have permission to access that event",
+                    },
+                ),
+            );
+
+            const event: IReadRelationsFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
+                data: { event_id: '$event' },
+            };
+
+            await loadIframe();
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while reading relations',
+                        matrix_api_error: {
+                            http_status: 403,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_FORBIDDEN',
+                                error: 'failed to read relations',
+                                reason: "You don't have permission to access that event",
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('org.matrix.msc3973.user_directory_search action', () => {
@@ -991,6 +1721,55 @@ describe('ClientWidgetApi', () => {
                 });
             });
         });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.searchUserDirectory.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to search the user directory',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IUserDirectorySearchFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
+                data: { search_term: 'foo' },
+            };
+
+            await loadIframe([
+                'org.matrix.msc3973.user_directory_search',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while searching in the user directory',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to search the user directory',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('org.matrix.msc4039.get_media_config action', () => {
@@ -1083,6 +1862,55 @@ describe('ClientWidgetApi', () => {
                 });
             });
         });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.getMediaConfig.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to get the media configuration',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IGetMediaConfigActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
+                data: {},
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while getting the media configuration',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to get the media configuration',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
     });
 
     describe('MSC4039', () => {
@@ -1157,7 +1985,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.getMediaConfig.mockRejectedValue(
+            driver.uploadFile.mockRejectedValue(
                 new Error("M_LIMIT_EXCEEDED: Too many requests"),
             );
 
@@ -1180,6 +2008,57 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Unexpected error while uploading a file' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.uploadFile.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to upload a file',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IUploadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
+                data: {
+                    file: 'data',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.upload_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while uploading a file',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to upload a file',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
                 });
             });
         });
@@ -1237,7 +2116,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.getMediaConfig.mockRejectedValue(
+            driver.downloadFile.mockRejectedValue(
                 new Error("M_LIMIT_EXCEEDED: Too many requests"),
             );
 
@@ -1260,6 +2139,57 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: { message: 'Unexpected error while downloading a file' },
+                });
+            });
+        });
+
+        it('should reject with Matrix API error response thrown by driver', async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.downloadFile.mockRejectedValue(
+                new CustomMatrixError(
+                    'failed to download a file',
+                    429,
+                    'M_LIMIT_EXCEEDED',
+                    {
+                        reason: 'Too many requests',
+                        retry_after_ms: 2000,
+                    },
+                ),
+            );
+
+            const event: IDownloadFileActionFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
+                data: {
+                    content_uri: 'mxc://example.com/test_file',
+                },
+            };
+
+            await loadIframe([
+                'org.matrix.msc4039.download_file',
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: {
+                        message: 'Unexpected error while downloading a file',
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: '',
+                            response: {
+                                errcode: 'M_LIMIT_EXCEEDED',
+                                error: 'failed to download a file',
+                                reason: 'Too many requests',
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
                 });
             });
         });

@@ -31,6 +31,9 @@ module.exports = {
         "files": ["src/**/*.ts", "test/**/*.ts"],
         "extends": ["matrix-org/ts"],
         "rules": {
+            // TypeScript has its own version of this
+            "babel/no-invalid-this": "off",
+
             "quotes": "off",
         },
     }],

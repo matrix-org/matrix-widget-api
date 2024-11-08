@@ -22,6 +22,7 @@ import {
     IRoomEvent,
     IRoomAccountData,
     ITurnServer,
+    IWidgetApiErrorResponseDataDetails,
     UpdateDelayedEventAction,
 } from "..";
 
@@ -357,5 +358,15 @@ export abstract class WidgetDriver {
         contentUri: string,
     ): Promise<{ file: XMLHttpRequestBodyInit }> {
         throw new Error("Download file is not implemented");
+    }
+
+    /**
+     * Expresses an error thrown by this driver in a format compatible with the Widget API.
+     * @param error The error to handle.
+     * @returns The error expressed as a {@link IWidgetApiErrorResponseDataDetails},
+     * or undefined if it cannot be expressed as one.
+     */
+    public processError(error: unknown): IWidgetApiErrorResponseDataDetails | undefined {
+        return undefined;
     }
 }
