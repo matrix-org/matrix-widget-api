@@ -434,9 +434,10 @@ export class ClientWidgetApi extends EventEmitter {
 
         let askRoomIds: string[] | null = null; // null denotes current room only
         if (request.data.room_ids) {
-            askRoomIds = request.data.room_ids as string[];
-            if (!Array.isArray(askRoomIds)) {
-                askRoomIds = [askRoomIds as any as string];
+            if (Array.isArray(request.data.room_ids)) {
+                askRoomIds = request.data.room_ids;
+            } else {
+                askRoomIds = [request.data.room_ids];
             }
             for (const roomId of askRoomIds) {
                 if (!this.canUseRoomTimeline(roomId)) {
