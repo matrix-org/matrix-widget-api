@@ -32,6 +32,7 @@ import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
 import {
     IDownloadFileActionFromWidgetActionRequest,
+    IGetOpenIDActionRequest,
     IMatrixApiError,
     INavigateActionRequest,
     IReadEventFromWidgetActionRequest,
@@ -40,9 +41,13 @@ import {
     IUpdateDelayedEventFromWidgetActionRequest,
     IUploadFileActionFromWidgetActionRequest,
     IWidgetApiErrorResponseDataDetails,
+    OpenIDRequestState,
+    SimpleObservable,
+    Symbols,
     UpdateDelayedEventAction,
 } from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
+import { IReadRoomAccountDataFromWidgetActionRequest } from '../src/interfaces/ReadRoomAccountDataAction';
 
 jest.mock('../src/transport/PostmessageTransport');
 
@@ -122,6 +127,8 @@ describe('ClientWidgetApi', () => {
             sendDelayedEvent: jest.fn(),
             updateDelayedEvent: jest.fn(),
             sendToDevice: jest.fn(),
+            askOpenID: jest.fn(),
+            readRoomAccountData: jest.fn(),
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
@@ -1119,6 +1126,144 @@ describe('ClientWidgetApi', () => {
         });
     });
 
+    describe('get_openid action', () => {
+        it('gets info', async () => {
+            driver.askOpenID.mockImplementation((observable) => {
+                observable.update({
+                    state: OpenIDRequestState.Allowed,
+                    token: {
+                        access_token: "access_token",
+                    },
+                });
+            });
+
+            const event: IGetOpenIDActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.GetOpenIDCredentials,
+                data: {},
+            };
+
+            await loadIframe([]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    state: OpenIDRequestState.Allowed,
+                    access_token: "access_token",
+                });
+            });
+
+            expect(driver.askOpenID).toHaveBeenCalledWith(expect.any(SimpleObservable));
+        });
+
+        it('fails when client provided invalid token', async () => {
+            driver.askOpenID.mockImplementation((observable) => {
+                observable.update({
+                    state: OpenIDRequestState.Allowed,
+                });
+            });
+
+            const event: IGetOpenIDActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.GetOpenIDCredentials,
+                data: {},
+            };
+
+            await loadIframe([]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: 'client provided invalid OIDC token for an allowed request' },
+                });
+            });
+
+            expect(driver.askOpenID).toHaveBeenCalledWith(expect.any(SimpleObservable));
+        });
+    });
+
+    describe('com.beeper.read_room_account_data action', () => {
+        it('reads room account data', async () => {
+            const type = 'net.example.test';
+            const roomId = '!room:example.org';
+
+            driver.readRoomAccountData.mockResolvedValue([{
+                type,
+                room_id: roomId,
+                content: {},
+            }]);
+
+            const event: IReadRoomAccountDataFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.BeeperReadRoomAccountData,
+                data: {
+                    room_ids: [roomId],
+                    type,
+                },
+            };
+
+            await loadIframe([
+                `com.beeper.capabilities.receive.room_account_data:${type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    events: [{
+                        type,
+                        room_id: roomId,
+                        content: {},
+                    }],
+                });
+            });
+
+            expect(driver.readRoomAccountData).toHaveBeenCalledWith(event.data.type);
+        });
+
+        it('does not read room account data', async () => {
+            const type = 'net.example.test';
+            const roomId = '!room:example.org';
+
+            driver.readRoomAccountData.mockResolvedValue([{
+                type,
+                room_id: roomId,
+                content: {},
+            }]);
+
+            const event: IReadRoomAccountDataFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.BeeperReadRoomAccountData,
+                data: {
+                    room_ids: [roomId],
+                    type,
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: 'Cannot read room account data of this type' },
+                });
+            });
+
+            expect(driver.readRoomAccountData).toHaveBeenCalledWith(event.data.type);
+        });
+    });
+
     describe('org.matrix.msc2876.read_events action', () => {
         it('reads state events with any state key', async () => {
             driver.readStateEvents.mockResolvedValue([
@@ -1237,6 +1382,90 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readStateEvents).not.toBeCalled();
+        });
+
+        it('reads state events from specific rooms', async () => {
+            const type = 'net.example.test';
+            const roomId = '!room:example.org';
+
+            driver.readStateEvents.mockResolvedValue([
+                createRoomEvent({ type, state_key: 'A', room_id: roomId }),
+                createRoomEvent({ type, state_key: 'B', room_id: roomId }),
+            ]);
+
+            const event: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type,
+                    state_key: true,
+                    room_ids: [roomId],
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.receive.state_event:${type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    events: [
+                        createRoomEvent({ type, state_key: 'A', room_id: roomId }),
+                        createRoomEvent({ type, state_key: 'B', room_id: roomId }),
+                    ],
+                });
+            });
+
+            expect(driver.readStateEvents).toBeCalledWith(
+                type, undefined, 0, [roomId],
+            );
+        });
+
+        it('reads state events from any room', async () => {
+            const type = 'net.example.test';
+            const roomId = '!room:example.org';
+
+            driver.readStateEvents.mockResolvedValue([
+                createRoomEvent({ type, state_key: 'A', room_id: roomId }),
+                createRoomEvent({ type, state_key: 'B', room_id: roomId }),
+            ]);
+
+            const event: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type,
+                    state_key: true,
+                    room_ids: Symbols.AnyRoom,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${Symbols.AnyRoom}`,
+                `org.matrix.msc2762.receive.state_event:${type}`,
+            ]);
+
+            emitEvent(new CustomEvent('', { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    events: [
+                        createRoomEvent({ type, state_key: 'A', room_id: roomId }),
+                        createRoomEvent({ type, state_key: 'B', room_id: roomId }),
+                    ],
+                });
+            });
+
+            expect(driver.readStateEvents).toBeCalledWith(
+                type, undefined, 0, [Symbols.AnyRoom],
+            );
         });
     });
 
