@@ -6,7 +6,7 @@ module.exports = {
         "plugin:matrix-org/babel",
     ],
     parserOptions: {
-        project: ["./tsconfig.json"],
+        project: ["./tsconfig-dev.json"],
     },
     env: {
         browser: true,

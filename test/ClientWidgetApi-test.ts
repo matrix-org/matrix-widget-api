@@ -16,6 +16,7 @@
  */
 
 import { waitFor } from '@testing-library/dom';
+
 import { ClientWidgetApi } from "../src/ClientWidgetApi";
 import { WidgetDriver } from "../src/driver/WidgetDriver";
 import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
@@ -43,11 +44,11 @@ import {
 } from '../src';
 import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
 
-jest.mock('../src/transport/PostmessageTransport')
+jest.mock('../src/transport/PostmessageTransport');
 
 afterEach(() => {
     jest.resetAllMocks();
-})
+});
 
 function createRoomEvent(event: Partial<IRoomEvent> = {}): IRoomEvent {
     return {
@@ -63,7 +64,7 @@ function createRoomEvent(event: Partial<IRoomEvent> = {}): IRoomEvent {
 }
 
 class CustomMatrixError extends Error {
-    constructor(
+    public constructor(
         message: string,
         public readonly httpStatus: number,
         public readonly name: string,
@@ -96,7 +97,7 @@ describe('ClientWidgetApi', () => {
     let transport: PostmessageTransport;
     let emitEvent: Parameters<PostmessageTransport["on"]>["1"];
 
-    async function loadIframe(caps: Capability[] = []) {
+    async function loadIframe(caps: Capability[] = []): Promise<void> {
         capabilities = caps;
 
         const ready = new Promise<void>(resolve => {
@@ -517,7 +518,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.sendDelayedEvent).not.toBeCalled()
+            expect(driver.sendDelayedEvent).not.toBeCalled();
         });
 
         it('sends delayed message events', async () => {
@@ -736,7 +737,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.updateDelayedEvent).not.toBeCalled()
+            expect(driver.updateDelayedEvent).not.toBeCalled();
         });
 
         it('fails to update delayed events with unsupported action', async () => {
@@ -761,7 +762,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.updateDelayedEvent).not.toBeCalled()
+            expect(driver.updateDelayedEvent).not.toBeCalled();
         });
 
         it('updates delayed events', async () => {
@@ -1123,7 +1124,7 @@ describe('ClientWidgetApi', () => {
             driver.readStateEvents.mockResolvedValue([
                 createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
                 createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
-            ])
+            ]);
 
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1151,7 +1152,7 @@ describe('ClientWidgetApi', () => {
 
             expect(driver.readStateEvents).toBeCalledWith(
                 'net.example.test', undefined, 0, null,
-            )
+            );
         });
 
         it('fails to read state events with any state key', async () => {
@@ -1176,13 +1177,13 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.readStateEvents).not.toBeCalled()
+            expect(driver.readStateEvents).not.toBeCalled();
         });
 
         it('reads state events with a specific state key', async () => {
             driver.readStateEvents.mockResolvedValue([
                 createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
-            ])
+            ]);
 
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1209,7 +1210,7 @@ describe('ClientWidgetApi', () => {
 
             expect(driver.readStateEvents).toBeCalledWith(
                 'net.example.test', 'B', 0, null,
-            )
+            );
         });
 
         it('fails to read state events with a specific state key', async () => {
@@ -1235,9 +1236,9 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.readStateEvents).not.toBeCalled()
+            expect(driver.readStateEvents).not.toBeCalled();
         });
-    })
+    });
 
     describe('org.matrix.msc3869.read_relations action', () => {
         it('should present as supported api version', () => {
