@@ -41,5 +41,10 @@ module.exports = {
 
             "quotes": "off",
         },
+    }, {
+        "files": ["src/interfaces/**/*.ts"],
+        "rules": {
+            "@typescript-eslint/no-empty-object-type": "off",
+        },
     }],
 };
