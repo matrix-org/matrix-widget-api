@@ -66,5 +66,6 @@ export function toString(a: unknown): string {
     if (a === null || a === undefined) {
         return `${a}`;
     }
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return String(a);
 }
