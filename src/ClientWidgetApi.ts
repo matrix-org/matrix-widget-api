@@ -213,12 +213,12 @@ export class ClientWidgetApi extends EventEmitter {
         return this.allowedEvents.some(e => e.matchesAsRoomAccountData(EventDirection.Receive, eventType));
     }
 
-    public stop() {
+    public stop(): void {
         this.isStopped = true;
         this.transport.stop();
     }
 
-    private beginCapabilities() {
+    private beginCapabilities(): void {
         // widget has loaded - tell all the listeners that
         this.emit("preparing");
 
@@ -239,7 +239,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private notifyCapabilities(requested: Capability[]) {
+    private notifyCapabilities(requested: Capability[]): void {
         this.transport.send(WidgetApiToWidgetAction.NotifyCapabilities, <INotifyCapabilitiesActionRequestData>{
             requested: requested,
             approved: Array.from(this.allowedCapabilities),
@@ -250,7 +250,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private onIframeLoad(ev: Event) {
+    private onIframeLoad(ev: Event): void {
         if (this.widget.waitForIframeLoad) {
             // If the widget is set to waitForIframeLoad the capabilities immediatly get setup after load.
             // The client does not wait for the ContentLoaded action.
@@ -268,7 +268,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private handleContentLoadedAction(action: IContentLoadedActionRequest) {
+    private handleContentLoadedAction(action: IContentLoadedActionRequest): void {
         if (this.contentLoadedWaitTimer !== undefined) {
             clearTimeout(this.contentLoadedWaitTimer);
             this.contentLoadedWaitTimer = undefined;
@@ -291,13 +291,13 @@ export class ClientWidgetApi extends EventEmitter {
         this.contentLoadedActionSent = true;
     }
 
-    private replyVersions(request: ISupportedVersionsActionRequest) {
+    private replyVersions(request: ISupportedVersionsActionRequest): void {
         this.transport.reply<ISupportedVersionsActionResponseData>(request, {
             supported_versions: CurrentApiVersions,
         });
     }
 
-    private handleCapabilitiesRenegotiate(request: IRenegotiateCapabilitiesActionRequest) {
+    private handleCapabilitiesRenegotiate(request: IRenegotiateCapabilitiesActionRequest): void {
         // acknowledge first
         this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
 
@@ -318,7 +318,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private handleNavigate(request: INavigateActionRequest) {
+    private handleNavigate(request: INavigateActionRequest): void {
         if (!this.hasCapability(MatrixCapabilities.MSC2931Navigate)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Missing capability"},
@@ -331,7 +331,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const onErr = (e: unknown) => {
+        const onErr = (e: unknown): void => {
             console.error("[ClientWidgetApi] Failed to handle navigation: ", e);
             this.handleDriverError(e, request, "Error handling navigation");
         };
@@ -345,10 +345,10 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private handleOIDC(request: IGetOpenIDActionRequest) {
+    private handleOIDC(request: IGetOpenIDActionRequest): void {
         let phase = 1; // 1 = initial request, 2 = after user manual confirmation
 
-        const replyState = (state: OpenIDRequestState, credential?: IOpenIDCredentials) => {
+        const replyState = (state: OpenIDRequestState, credential?: IOpenIDCredentials): void | Promise<IWidgetApiAcknowledgeResponseData> => {
             credential = credential || {};
             if (phase > 1) {
                 return this.transport.send<IOpenIDCredentialsActionRequestData>(
@@ -367,7 +367,7 @@ export class ClientWidgetApi extends EventEmitter {
             }
         };
 
-        const replyError = (msg: string) => {
+        const replyError = (msg: string): void | Promise<IWidgetApiAcknowledgeResponseData> => {
             console.error("[ClientWidgetApi] Failed to handle OIDC: ", msg);
             if (phase > 1) {
                 // We don't have a way to indicate that a random error happened in this flow, so
@@ -405,7 +405,7 @@ export class ClientWidgetApi extends EventEmitter {
 
         this.driver.askOpenID(observer);
     }
-    private handleReadRoomAccountData(request: IReadRoomAccountDataFromWidgetActionRequest) {
+    private handleReadRoomAccountData(request: IReadRoomAccountDataFromWidgetActionRequest): void | Promise<void> {
         let events: Promise<IRoomAccountData[]> = Promise.resolve([]);
         events = this.driver.readRoomAccountData(request.data.type);
 
@@ -420,7 +420,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private handleReadEvents(request: IReadEventFromWidgetActionRequest) {
+    private handleReadEvents(request: IReadEventFromWidgetActionRequest): void | Promise<void> {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing event type"},
@@ -471,7 +471,7 @@ export class ClientWidgetApi extends EventEmitter {
         return events.then(evs => this.transport.reply<IReadEventFromWidgetResponseData>(request, {events: evs}));
     }
 
-    private handleSendEvent(request: ISendEventFromWidgetActionRequest) {
+    private handleSendEvent(request: ISendEventFromWidgetActionRequest): void {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing event type"},
@@ -559,7 +559,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest) {
+    private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest): void {
         if (!request.data.delay_id) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing delay_id"},
@@ -618,7 +618,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private async pollTurnServers(turnServers: AsyncGenerator<ITurnServer>, initialServer: ITurnServer) {
+    private async pollTurnServers(turnServers: AsyncGenerator<ITurnServer>, initialServer: ITurnServer): Promise<void> {
         try {
             await this.transport.send<IUpdateTurnServersRequestData>(
                 WidgetApiToWidgetAction.UpdateTurnServers,
@@ -683,7 +683,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private async handleReadRelations(request: IReadRelationsFromWidgetActionRequest) {
+    private async handleReadRelations(request: IReadRelationsFromWidgetActionRequest): Promise<void> {
         if (!request.data.event_id) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Invalid request - missing event ID" },
@@ -732,7 +732,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private async handleUserDirectorySearch(request: IUserDirectorySearchFromWidgetActionRequest) {
+    private async handleUserDirectorySearch(request: IUserDirectorySearchFromWidgetActionRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC3973UserDirectorySearch)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Missing capability" },
@@ -773,7 +773,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private async handleGetMediaConfig(request: IGetMediaConfigActionFromWidgetActionRequest) {
+    private async handleGetMediaConfig(request: IGetMediaConfigActionFromWidgetActionRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC4039UploadFile)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Missing capability" },
@@ -793,7 +793,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private async handleUploadFile(request: IUploadFileActionFromWidgetActionRequest) {
+    private async handleUploadFile(request: IUploadFileActionFromWidgetActionRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC4039UploadFile)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Missing capability" },
@@ -833,7 +833,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
-    private handleDriverError(e: unknown, request: IWidgetApiRequest, message: string) {
+    private handleDriverError(e: unknown, request: IWidgetApiRequest, message: string): void {
         const data = this.driver.processError(e);
         this.transport.reply<IWidgetApiErrorResponseData>(request, {
             error: {
@@ -843,7 +843,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
+    private handleMessage(ev: CustomEvent<IWidgetApiRequest>): void | Promise<void> {
         if (this.isStopped) return;
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
             detail: ev.detail,

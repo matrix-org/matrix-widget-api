@@ -81,12 +81,12 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         return id;
     }
 
-    private sendInternal(message: IWidgetApiRequest | IWidgetApiResponse) {
+    private sendInternal(message: IWidgetApiRequest | IWidgetApiResponse): void {
         console.log(`[PostmessageTransport] Sending object to ${this.targetOrigin}: `, message);
         this.transportWindow.postMessage(message, this.targetOrigin);
     }
 
-    public reply<T extends IWidgetApiResponseData>(request: IWidgetApiRequest, responseData: T) {
+    public reply<T extends IWidgetApiResponseData>(request: IWidgetApiRequest, responseData: T): void {
         return this.sendInternal(<IWidgetApiResponse>{
             ...request,
             response: responseData,
@@ -116,11 +116,11 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
             request['visible'] = data['visible'];
         }
         return new Promise<R>((prResolve, prReject) => {
-            const resolve = (response: IWidgetApiResponse) => {
+            const resolve = (response: IWidgetApiResponse): void => {
                 cleanUp();
                 prResolve(<R>response);
             };
-            const reject = (err: Error) => {
+            const reject = (err: Error): void => {
                 cleanUp();
                 prReject(err);
             };
@@ -130,10 +130,10 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
                 (this.timeoutSeconds || 1) * 1000,
             );
 
-            const onStop = () => reject(new Error("Transport stopped"));
+            const onStop = (): void => reject(new Error("Transport stopped"));
             this.stopController.signal.addEventListener("abort", onStop);
 
-            const cleanUp = () => {
+            const cleanUp = (): void => {
                 this.outboundRequests.delete(request.requestId);
                 clearTimeout(timerId);
                 this.stopController.signal.removeEventListener("abort", onStop);
@@ -144,19 +144,19 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         });
     }
 
-    public start() {
+    public start(): void {
         this.inboundWindow.addEventListener("message", (ev: MessageEvent) => {
             this.handleMessage(ev);
         });
         this._ready = true;
     }
 
-    public stop() {
+    public stop(): void {
         this._ready = false;
         this.stopController.abort();
     }
 
-    private handleMessage(ev: MessageEvent) {
+    private handleMessage(ev: MessageEvent): void {
         if (this.stopController.signal.aborted) return;
         if (!ev.data) return; // invalid event
 
@@ -178,7 +178,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         }
     }
 
-    private handleRequest(request: IWidgetApiRequest) {
+    private handleRequest(request: IWidgetApiRequest): void {
         if (this.widgetId) {
             if (this.widgetId !== request.widgetId) return; // wrong widget
         } else {
@@ -188,7 +188,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         this.emit("message", new CustomEvent("message", {detail: request}));
     }
 
-    private handleResponse(response: IWidgetApiResponse) {
+    private handleResponse(response: IWidgetApiResponse): void {
         if (response.widgetId !== this.widgetId) return; // wrong widget
 
         const req = this.outboundRequests.get(response.requestId);
