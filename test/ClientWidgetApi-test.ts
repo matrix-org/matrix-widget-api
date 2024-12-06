@@ -121,7 +121,8 @@ describe('ClientWidgetApi', () => {
 
         driver = {
             navigate: jest.fn(),
-            readStateEvents: jest.fn(),
+            readRoomTimeline: jest.fn(),
+            readRoomState: jest.fn(() => Promise.resolve([])),
             readEventRelations: jest.fn(),
             sendEvent: jest.fn(),
             sendDelayedEvent: jest.fn(),
@@ -134,6 +135,7 @@ describe('ClientWidgetApi', () => {
             getMediaConfig: jest.fn(),
             uploadFile: jest.fn(),
             downloadFile: jest.fn(),
+            getKnownRooms: jest.fn(() => []),
             processError: jest.fn(),
         } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
 
@@ -721,6 +723,187 @@ describe('ClientWidgetApi', () => {
         });
     });
 
+    describe('receiving events', () => {
+        const roomId = '!room:example.org';
+        const otherRoomId = '!other-room:example.org';
+        const event = createRoomEvent({ room_id: roomId, type: 'm.room.message', content: 'hello' });
+        const eventFromOtherRoom = createRoomEvent({
+            room_id: otherRoomId,
+            type: 'm.room.message',
+            content: 'test',
+        });
+
+        it('forwards events to the widget from one room only', async () => {
+            // Give the widget capabilities to receive from just one room
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                'org.matrix.msc2762.receive.event:m.room.message',
+            ]);
+
+            // Event from the matching room should be forwarded
+            clientWidgetApi.feedEvent(event);
+            expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, event);
+
+            // Event from the other room should not be forwarded
+            clientWidgetApi.feedEvent(eventFromOtherRoom);
+            expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, eventFromOtherRoom);
+        });
+
+        it('forwards events to the widget from the currently viewed room', async () => {
+            clientWidgetApi.setViewedRoomId(roomId);
+            // Give the widget capabilities to receive events without specifying
+            // any rooms that it can read
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                'org.matrix.msc2762.receive.event:m.room.message',
+            ]);
+
+            // Event from the viewed room should be forwarded
+            clientWidgetApi.feedEvent(event);
+            expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, event);
+
+            // Event from the other room should not be forwarded
+            clientWidgetApi.feedEvent(eventFromOtherRoom);
+            expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, eventFromOtherRoom);
+
+            // View the other room; now the event can be forwarded
+            clientWidgetApi.setViewedRoomId(otherRoomId);
+            clientWidgetApi.feedEvent(eventFromOtherRoom);
+            expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, eventFromOtherRoom);
+        });
+
+        it('forwards events to the widget from all rooms', async () => {
+            // Give the widget capabilities to receive from any known room
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${Symbols.AnyRoom}`,
+                'org.matrix.msc2762.receive.event:m.room.message',
+            ]);
+
+            // Events from both rooms should be forwarded
+            clientWidgetApi.feedEvent(event);
+            clientWidgetApi.feedEvent(eventFromOtherRoom);
+            expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, event);
+            expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, eventFromOtherRoom);
+        });
+    });
+
+    describe('receiving room state', () => {
+        it('syncs initial state and feeds updates', async () => {
+            const roomId = '!room:example.org';
+            const otherRoomId = '!other-room:example.org';
+            clientWidgetApi.setViewedRoomId(roomId);
+            const topicEvent = createRoomEvent({
+                room_id: roomId,
+                type: 'm.room.topic',
+                state_key: '',
+                content: { topic: 'Hello world!' },
+            });
+            const nameEvent = createRoomEvent({
+                room_id: roomId,
+                type: 'm.room.name',
+                state_key: '',
+                content: { name: 'Test room' },
+            });
+            const joinRulesEvent = createRoomEvent({
+                room_id: roomId,
+                type: 'm.room.join_rules',
+                state_key: '',
+                content: { join_rule: 'public' },
+            });
+            const otherRoomNameEvent = createRoomEvent({
+                room_id: otherRoomId,
+                type: 'm.room.name',
+                state_key: '',
+                content: { name: 'Other room' },
+            });
+
+            // Artificially delay the delivery of the join rules event
+            let resolveJoinRules: () => void;
+            const joinRules = new Promise<void>(resolve => resolveJoinRules = resolve);
+
+            driver.readRoomState.mockImplementation(async (rId, eventType, stateKey) => {
+                if (rId === roomId) {
+                    if (eventType === 'm.room.topic' && stateKey === '') return [topicEvent];
+                    if (eventType === 'm.room.name' && stateKey === '') return [nameEvent];
+                    if (eventType === 'm.room.join_rules' && stateKey === '') {
+                        await joinRules;
+                        return [joinRulesEvent];
+                    }
+                } else if (rId === otherRoomId) {
+                    if (eventType === 'm.room.name' && stateKey === '') return [otherRoomNameEvent];
+                }
+                return [];
+            });
+
+            await loadIframe([
+                'org.matrix.msc2762.receive.state_event:m.room.topic#',
+                'org.matrix.msc2762.receive.state_event:m.room.name#',
+                'org.matrix.msc2762.receive.state_event:m.room.join_rules#',
+            ]);
+
+            // Simulate a race between reading the original join rules event and
+            // the join rules being updated at the same time
+            const newJoinRulesEvent = createRoomEvent({
+                room_id: roomId,
+                type: 'm.room.join_rules',
+                state_key: '',
+                content: { join_rule: 'invite' },
+            });
+            clientWidgetApi.feedStateUpdate(newJoinRulesEvent);
+            // What happens if the original join rules are delivered after the
+            // updated ones?
+            resolveJoinRules!();
+
+            await waitFor(() => {
+                // The initial topic and name should have been pushed
+                expect(transport.send).toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.UpdateState,
+                    { state: [topicEvent, nameEvent, newJoinRulesEvent] },
+                );
+                // Only the updated join rules should have been delivered
+                expect(transport.send).not.toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.UpdateState,
+                    { state: expect.arrayContaining([joinRules]) },
+                );
+            });
+
+            // Check that further updates to room state are pushed to the widget
+            // as expected
+            const newTopicEvent = createRoomEvent({
+                room_id: roomId,
+                type: 'm.room.topic',
+                state_key: '',
+                content: { topic: 'Our new topic' },
+            });
+            clientWidgetApi.feedStateUpdate(newTopicEvent);
+
+            await waitFor(() => {
+                expect(transport.send).toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.UpdateState,
+                    { state: [newTopicEvent] },
+                );
+            });
+
+            // Up to this point we should not have received any state for the
+            // other (unviewed) room
+            expect(transport.send).not.toHaveBeenCalledWith(
+                WidgetApiToWidgetAction.UpdateState,
+                { state: expect.arrayContaining([otherRoomNameEvent]) },
+            );
+            // Now view the other room
+            clientWidgetApi.setViewedRoomId(otherRoomId);
+            (transport.send as unknown as jest.SpyInstance).mockClear();
+
+            await waitFor(() => {
+                // The state of the other room should now be pushed
+                expect(transport.send).toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.UpdateState,
+                    { state: expect.arrayContaining([otherRoomNameEvent]) },
+                );
+            });
+        });
+    });
+
     describe('update_delayed_event action', () => {
         it('fails to update delayed events', async () => {
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
@@ -1265,8 +1448,91 @@ describe('ClientWidgetApi', () => {
     });
 
     describe('org.matrix.msc2876.read_events action', () => {
+        it('reads events from a specific room', async () => {
+            const roomId = '!room:example.org';
+            const event = createRoomEvent({ room_id: roomId, type: 'net.example.test', content: 'test' });
+            driver.readRoomTimeline.mockImplementation(async (rId) => {
+                if (rId === roomId) return [event];
+                return [];
+            });
+
+            const request: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type: 'net.example.test',
+                    room_ids: [roomId],
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                'org.matrix.msc2762.receive.event:net.example.test',
+            ]);
+            clientWidgetApi.setViewedRoomId(roomId);
+
+            emitEvent(new CustomEvent('', { detail: request }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(request, {
+                    events: [event],
+                });
+            });
+
+            expect(driver.readRoomTimeline).toHaveBeenCalledWith(
+                roomId, 'net.example.test', undefined, undefined, 0, undefined,
+            );
+        });
+
+        it('reads events from all rooms', async () => {
+            const roomId = '!room:example.org';
+            const otherRoomId = '!other-room:example.org';
+            const event = createRoomEvent({ room_id: roomId, type: 'net.example.test', content: 'test' });
+            const otherRoomEvent = createRoomEvent({ room_id: otherRoomId, type: 'net.example.test', content: 'hi' });
+            driver.getKnownRooms.mockReturnValue([roomId, otherRoomId]);
+            driver.readRoomTimeline.mockImplementation(async (rId) => {
+                if (rId === roomId) return [event];
+                if (rId === otherRoomId) return [otherRoomEvent];
+                return [];
+            });
+
+            const request: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: 'test',
+                requestId: '0',
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type: 'net.example.test',
+                    room_ids: Symbols.AnyRoom,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${Symbols.AnyRoom}`,
+                'org.matrix.msc2762.receive.event:net.example.test',
+            ]);
+            clientWidgetApi.setViewedRoomId(roomId);
+
+            emitEvent(new CustomEvent('', { detail: request }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(request, {
+                    events: [event, otherRoomEvent],
+                });
+            });
+
+            expect(driver.readRoomTimeline).toHaveBeenCalledWith(
+                roomId, 'net.example.test', undefined, undefined, 0, undefined,
+            );
+            expect(driver.readRoomTimeline).toHaveBeenCalledWith(
+                otherRoomId, 'net.example.test', undefined, undefined, 0, undefined,
+            );
+        });
+
         it('reads state events with any state key', async () => {
-            driver.readStateEvents.mockResolvedValue([
+            driver.readRoomTimeline.mockResolvedValue([
                 createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
                 createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
             ]);
@@ -1283,6 +1549,7 @@ describe('ClientWidgetApi', () => {
             };
 
             await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test']);
+            clientWidgetApi.setViewedRoomId('!room-id');
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -1295,8 +1562,8 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.readStateEvents).toBeCalledWith(
-                'net.example.test', undefined, 0, null,
+            expect(driver.readRoomTimeline).toBeCalledWith(
+                '!room-id', 'net.example.test', undefined, undefined, 0, undefined,
             );
         });
 
@@ -1322,11 +1589,11 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.readStateEvents).not.toBeCalled();
+            expect(driver.readRoomTimeline).not.toBeCalled();
         });
 
         it('reads state events with a specific state key', async () => {
-            driver.readStateEvents.mockResolvedValue([
+            driver.readRoomTimeline.mockResolvedValue([
                 createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
             ]);
 
@@ -1342,6 +1609,7 @@ describe('ClientWidgetApi', () => {
             };
 
             await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test#B']);
+            clientWidgetApi.setViewedRoomId('!room-id');
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -1353,8 +1621,8 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.readStateEvents).toBeCalledWith(
-                'net.example.test', 'B', 0, null,
+            expect(driver.readRoomTimeline).toBeCalledWith(
+                '!room-id', 'net.example.test', undefined, 'B', 0, undefined,
             );
         });
 
@@ -1381,91 +1649,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.readStateEvents).not.toBeCalled();
-        });
-
-        it('reads state events from specific rooms', async () => {
-            const type = 'net.example.test';
-            const roomId = '!room:example.org';
-
-            driver.readStateEvents.mockResolvedValue([
-                createRoomEvent({ type, state_key: 'A', room_id: roomId }),
-                createRoomEvent({ type, state_key: 'B', room_id: roomId }),
-            ]);
-
-            const event: IReadEventFromWidgetActionRequest = {
-                api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
-                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
-                data: {
-                    type,
-                    state_key: true,
-                    room_ids: [roomId],
-                },
-            };
-
-            await loadIframe([
-                `org.matrix.msc2762.timeline:${roomId}`,
-                `org.matrix.msc2762.receive.state_event:${type}`,
-            ]);
-
-            emitEvent(new CustomEvent('', { detail: event }));
-
-            await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
-                    events: [
-                        createRoomEvent({ type, state_key: 'A', room_id: roomId }),
-                        createRoomEvent({ type, state_key: 'B', room_id: roomId }),
-                    ],
-                });
-            });
-
-            expect(driver.readStateEvents).toBeCalledWith(
-                type, undefined, 0, [roomId],
-            );
-        });
-
-        it('reads state events from any room', async () => {
-            const type = 'net.example.test';
-            const roomId = '!room:example.org';
-
-            driver.readStateEvents.mockResolvedValue([
-                createRoomEvent({ type, state_key: 'A', room_id: roomId }),
-                createRoomEvent({ type, state_key: 'B', room_id: roomId }),
-            ]);
-
-            const event: IReadEventFromWidgetActionRequest = {
-                api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
-                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
-                data: {
-                    type,
-                    state_key: true,
-                    room_ids: Symbols.AnyRoom,
-                },
-            };
-
-            await loadIframe([
-                `org.matrix.msc2762.timeline:${Symbols.AnyRoom}`,
-                `org.matrix.msc2762.receive.state_event:${type}`,
-            ]);
-
-            emitEvent(new CustomEvent('', { detail: event }));
-
-            await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
-                    events: [
-                        createRoomEvent({ type, state_key: 'A', room_id: roomId }),
-                        createRoomEvent({ type, state_key: 'B', room_id: roomId }),
-                    ],
-                });
-            });
-
-            expect(driver.readStateEvents).toBeCalledWith(
-                type, undefined, 0, [Symbols.AnyRoom],
-            );
+            expect(driver.readRoomTimeline).not.toBeCalled();
         });
     });
 

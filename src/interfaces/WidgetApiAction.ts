@@ -28,6 +28,7 @@ export enum WidgetApiToWidgetAction {
     ButtonClicked = "button_clicked",
     SendEvent = "send_event",
     SendToDevice = "send_to_device",
+    UpdateState = "update_state",
     UpdateTurnServers = "update_turn_servers",
 }
 

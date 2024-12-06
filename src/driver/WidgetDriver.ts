@@ -196,6 +196,7 @@ export abstract class WidgetDriver {
      * the client will return all the events.
      * @param eventType The event type to be read.
      * @param msgtype The msgtype of the events to be read, if applicable/defined.
+     * @param stateKey The state key of the events to be read, if applicable/defined.
      * @param limit The maximum number of events to retrieve per room. Will be zero to denote "as many
      * as possible".
      * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
@@ -204,6 +205,7 @@ export abstract class WidgetDriver {
      * Otherwise, the event ID at which only subsequent events will be returned, as many as specified
      * in "limit".
      * @returns {Promise<IRoomEvent[]>} Resolves to the room events, or an empty array.
+     * @deprecated Clients are advised to implement {@link WidgetDriver.readRoomTimeline} instead.
      */
     public readRoomEvents(
         eventType: string,
@@ -229,12 +231,60 @@ export abstract class WidgetDriver {
      * @param roomIds When null, the user's currently viewed room. Otherwise, the list of room IDs
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<IRoomEvent[]>} Resolves to the state events, or an empty array.
+     * @deprecated Clients are advised to implement {@link WidgetDriver.readRoomTimeline} instead.
      */
     public readStateEvents(
         eventType: string,
         stateKey: string | undefined,
         limit: number,
         roomIds: string[] | null = null,
+    ): Promise<IRoomEvent[]> {
+        return Promise.resolve([]);
+    }
+
+    /**
+     * Reads all events of the given type, and optionally `msgtype` (if applicable/defined),
+     * the user has access to. The widget API will have already verified that the widget is
+     * capable of receiving the events. Less events than the limit are allowed to be returned,
+     * but not more.
+     * @param roomId The ID of the room to look within.
+     * @param eventType The event type to be read.
+     * @param msgtype The msgtype of the events to be read, if applicable/defined.
+     * @param stateKey The state key of the events to be read, if applicable/defined.
+     * @param limit The maximum number of events to retrieve. Will be zero to denote "as many as
+     * possible".
+     * @param since When null, retrieves the number of events specified by the "limit" parameter.
+     * Otherwise, the event ID at which only subsequent events will be returned, as many as specified
+     * in "limit".
+     * @returns {Promise<IRoomEvent[]>} Resolves to the room events, or an empty array.
+     */
+    public readRoomTimeline(
+        roomId: string,
+        eventType: string,
+        msgtype: string | undefined,
+        stateKey: string | undefined,
+        limit: number,
+        since: string | undefined,
+    ): Promise<IRoomEvent[]> {
+        // For backward compatibility we try the deprecated methods, in case
+        // they're implemented
+        if (stateKey === undefined) return this.readRoomEvents(eventType, msgtype, limit, [roomId], since);
+        else return this.readStateEvents(eventType, stateKey, limit, [roomId]);
+    }
+
+    /**
+     * Reads the current values of all matching room state entries.
+     * @param roomId The ID of the room.
+     * @param eventType The event type of the entries to be read.
+     * @param stateKey The state key of the entry to be read. If undefined,
+     * all room state entries with a matching event type should be returned.
+     * @returns {Promise<IRoomEvent[]>} Resolves to the events representing the
+     * current values of the room state entries.
+     */
+    public readRoomState(
+        roomId: string,
+        eventType: string,
+        stateKey: string | undefined,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
@@ -358,6 +408,15 @@ export abstract class WidgetDriver {
         contentUri: string,
     ): Promise<{ file: XMLHttpRequestBodyInit }> {
         throw new Error("Download file is not implemented");
+    }
+
+    /**
+     * Gets the IDs of all joined or invited rooms currently known to the
+     * client.
+     * @returns The room IDs.
+     */
+    public getKnownRooms(): string[] {
+        throw new Error("Querying known rooms is not implemented");
     }
 
     /**

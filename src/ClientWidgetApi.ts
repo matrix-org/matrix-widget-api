@@ -24,7 +24,12 @@ import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWid
 import { IContentLoadedActionRequest } from "./interfaces/ContentLoadedAction";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./interfaces/WidgetApiAction";
 import { IWidgetApiErrorResponseData } from "./interfaces/IWidgetApiErrorResponse";
-import { Capability, MatrixCapabilities } from "./interfaces/Capabilities";
+import {
+    Capability,
+    MatrixCapabilities,
+    getTimelineRoomIDFromCapability,
+    isTimelineCapability,
+} from "./interfaces/Capabilities";
 import { IOpenIDUpdate, ISendEventDetails, ISendDelayedEventDetails, WidgetDriver } from "./driver/WidgetDriver";
 import {
     ICapabilitiesActionResponseData,
@@ -55,7 +60,7 @@ import {
     ISendToDeviceFromWidgetResponseData,
     ISendToDeviceToWidgetRequestData,
 } from "./interfaces/SendToDeviceAction";
-import { EventDirection, WidgetEventCapability } from "./models/WidgetEventCapability";
+import { EventDirection, EventKind, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
 import { IRoomAccountData } from "./interfaces/IRoomAccountData";
 import {
@@ -104,6 +109,7 @@ import {
     IDownloadFileActionFromWidgetResponseData,
 } from "./interfaces/DownloadFileAction";
 import { IThemeChangeActionRequestData } from "./interfaces/ThemeChangeAction";
+import { IUpdateStateToWidgetRequestData } from "./interfaces/UpdateStateAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -139,6 +145,11 @@ export class ClientWidgetApi extends EventEmitter {
     private isStopped = false;
     private turnServers: AsyncGenerator<ITurnServer> | null = null;
     private contentLoadedWaitTimer?: ReturnType<typeof setTimeout>;
+    // Stores pending requests to push a room's state to the widget
+    private pushRoomStateTasks = new Set<Promise<void>>();
+    // Room ID → event type → state key → events to be pushed
+    private pushRoomStateResult = new Map<string, Map<string, Map<string, IRoomEvent>>>();
+    private flushRoomStateTask: Promise<void> | null = null;
 
     /**
      * Creates a new client widget API. This will instantiate the transport
@@ -230,25 +241,46 @@ export class ClientWidgetApi extends EventEmitter {
             requestedCaps = caps.capabilities;
             return this.driver.validateCapabilities(new Set(caps.capabilities));
         }).then(allowedCaps => {
-            console.log(`Widget ${this.widget.id} is allowed capabilities:`, Array.from(allowedCaps));
-            this.allowedCapabilities = allowedCaps;
-            this.allowedEvents = WidgetEventCapability.findEventCapabilities(allowedCaps);
-            this.notifyCapabilities(requestedCaps);
+            this.allowCapabilities([...allowedCaps], requestedCaps);
             this.emit("ready");
         }).catch(e => {
             this.emit("error:preparing", e);
         });
     }
 
-    private notifyCapabilities(requested: Capability[]): void {
+    private allowCapabilities(allowed: string[], requested: string[]): void {
+        console.log(`Widget ${this.widget.id} is allowed capabilities:`, allowed);
+
+        for (const c of allowed) this.allowedCapabilities.add(c);
+        const allowedEvents = WidgetEventCapability.findEventCapabilities(allowed);
+        this.allowedEvents.push(...allowedEvents);
+
         this.transport.send(WidgetApiToWidgetAction.NotifyCapabilities, <INotifyCapabilitiesActionRequestData>{
-            requested: requested,
+            requested,
             approved: Array.from(this.allowedCapabilities),
         }).catch(e => {
             console.warn("non-fatal error notifying widget of approved capabilities:", e);
         }).then(() => {
             this.emit("capabilitiesNotified");
         });
+
+        // Push the initial room state for all rooms with a timeline capability
+        for (const c of allowed) {
+            if (isTimelineCapability(c)) {
+                const roomId = getTimelineRoomIDFromCapability(c);
+                if (roomId === Symbols.AnyRoom) {
+                    for (const roomId of this.driver.getKnownRooms()) this.pushRoomState(roomId);
+                } else {
+                    this.pushRoomState(roomId);
+                }
+            }
+        }
+        // If new events are allowed and the currently viewed room isn't covered
+        // by a timeline capability, then this is the widget's opportunity to
+        // learn the state of the viewed room
+        if (allowedEvents.length > 0 && this.viewedRoomId !== null && !this.canUseRoomTimeline(this.viewedRoomId)) {
+            this.pushRoomState(this.viewedRoomId);
+        }
     }
 
     private onIframeLoad(ev: Event): void {
@@ -305,18 +337,12 @@ export class ClientWidgetApi extends EventEmitter {
         const requested = request.data?.capabilities || [];
         const newlyRequested = new Set(requested.filter(r => !this.hasCapability(r)));
         if (newlyRequested.size === 0) {
-            // Nothing to do - notify capabilities
-            return this.notifyCapabilities([]);
+            // Nothing to do - skip validation
+            this.allowCapabilities([], []);
         }
 
-        this.driver.validateCapabilities(newlyRequested).then(allowed => {
-            allowed.forEach(c => this.allowedCapabilities.add(c));
-
-            const allowedEvents = WidgetEventCapability.findEventCapabilities(allowed);
-            allowedEvents.forEach(c => this.allowedEvents.push(c));
-
-            return this.notifyCapabilities(Array.from(newlyRequested));
-        });
+        this.driver.validateCapabilities(newlyRequested)
+            .then(allowed => this.allowCapabilities([...allowed], [...newlyRequested]));
     }
 
     private handleNavigate(request: INavigateActionRequest): void {
@@ -421,7 +447,7 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    private handleReadEvents(request: IReadEventFromWidgetActionRequest): void | Promise<void> {
+    private async handleReadEvents(request: IReadEventFromWidgetActionRequest): Promise<void> {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {message: "Invalid request - missing event type"},
@@ -433,13 +459,13 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        let askRoomIds: string[] | null = null; // null denotes current room only
-        if (request.data.room_ids) {
-            if (Array.isArray(request.data.room_ids)) {
-                askRoomIds = request.data.room_ids;
-            } else {
-                askRoomIds = [request.data.room_ids];
-            }
+        let askRoomIds: string[];
+        if (request.data.room_ids === undefined) {
+            askRoomIds = this.viewedRoomId === null ? [] : [this.viewedRoomId];
+        } else if (request.data.room_ids === Symbols.AnyRoom) {
+            askRoomIds = this.driver.getKnownRooms().filter(roomId => this.canUseRoomTimeline(roomId));
+        } else {
+            askRoomIds = request.data.room_ids;
             for (const roomId of askRoomIds) {
                 if (!this.canUseRoomTimeline(roomId)) {
                     return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -452,25 +478,39 @@ export class ClientWidgetApi extends EventEmitter {
         const limit = request.data.limit || 0;
         const since = request.data.since;
 
-        let events: Promise<IRoomEvent[]> = Promise.resolve([]);
+        let stateKey: string | undefined = undefined;
+        let msgtype: string | undefined = undefined;
         if (request.data.state_key !== undefined) {
-            const stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
+            stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
             if (!this.canReceiveStateEvent(request.data.type, stateKey ?? null)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot read state events of this type"},
                 });
             }
-            events = this.driver.readStateEvents(request.data.type, stateKey, limit, askRoomIds);
         } else {
-            if (!this.canReceiveRoomEvent(request.data.type, request.data.msgtype)) {
+            msgtype = request.data.msgtype;
+            if (!this.canReceiveRoomEvent(request.data.type, msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: {message: "Cannot read room events of this type"},
                 });
             }
-            events = this.driver.readRoomEvents(request.data.type, request.data.msgtype, limit, askRoomIds, since);
         }
 
-        return events.then(evs => this.transport.reply<IReadEventFromWidgetResponseData>(request, {events: evs}));
+        // For backwards compatibility we still call the deprecated
+        // readRoomEvents and readStateEvents methods in case the client isn't
+        // letting us know the currently viewed room via setViewedRoomId
+        const events = request.data.room_ids === undefined && askRoomIds.length === 0
+            ? await (
+                request.data.state_key === undefined
+                    ? this.driver.readRoomEvents(request.data.type, msgtype, limit, null, since)
+                    : this.driver.readStateEvents(request.data.type, stateKey, limit, null)
+            )
+            : (
+                await Promise.all(askRoomIds.map(roomId =>
+                    this.driver.readRoomTimeline(roomId, request.data.type, msgtype, stateKey, limit, since),
+                ))
+            ).flat(1);
+        this.transport.reply<IReadEventFromWidgetResponseData>(request, { events });
     }
 
     private handleSendEvent(request: ISendEventFromWidgetActionRequest): void {
@@ -952,16 +992,31 @@ export class ClientWidgetApi extends EventEmitter {
     }
 
     /**
-     * Feeds an event to the widget. If the widget is not able to accept the event due to
-     * permissions, this will no-op and return calmly. If the widget failed to handle the
-     * event, this will raise an error.
+     * Feeds an event to the widget. As a client you are expected to call this
+     * for every new event in every room to which you are joined or invited.
      * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
-     * @param {string} currentViewedRoomId The room ID the user is currently interacting with.
-     * Not the room ID of the event.
-     * @returns {Promise<void>} Resolves when complete, rejects if there was an error sending.
+     * @param {string} currentViewedRoomId The room ID the user is currently
+     *   interacting with. Not the room ID of the event.
+     * @returns {Promise<void>} Resolves when delivered or if the widget is not
+     *   able to read the event due to permissions, rejects if the widget failed
+     *   to handle the event.
+     * @deprecated It is recommended to communicate the viewed room ID by calling
+     *   {@link ClientWidgetApi.setViewedRoomId} rather than passing it to this
+     *   method.
      */
-    public async feedEvent(rawEvent: IRoomEvent, currentViewedRoomId: string): Promise<void> {
-        if (rawEvent.room_id !== currentViewedRoomId && !this.canUseRoomTimeline(rawEvent.room_id)) {
+    public async feedEvent(rawEvent: IRoomEvent, currentViewedRoomId: string): Promise<void>;
+    /**
+     * Feeds an event to the widget. As a client you are expected to call this
+     * for every new event in every room to which you are joined or invited.
+     * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
+     * @returns {Promise<void>} Resolves when delivered or if the widget is not
+     *   able to read the event due to permissions, rejects if the widget failed
+     *   to handle the event.
+     */
+    public async feedEvent(rawEvent: IRoomEvent): Promise<void>;
+    public async feedEvent(rawEvent: IRoomEvent, currentViewedRoomId?: string): Promise<void> {
+        if (currentViewedRoomId !== undefined) this.setViewedRoomId(currentViewedRoomId);
+        if (rawEvent.room_id !== this.viewedRoomId && !this.canUseRoomTimeline(rawEvent.room_id)) {
             return; // no-op
         }
 
@@ -980,17 +1035,19 @@ export class ClientWidgetApi extends EventEmitter {
         // Feed the event into the widget
         await this.transport.send<ISendEventToWidgetRequestData>(
             WidgetApiToWidgetAction.SendEvent,
-            rawEvent as ISendEventToWidgetRequestData, // it's compatible, but missing the index signature
+            // it's compatible, but missing the index signature
+            rawEvent as ISendEventToWidgetRequestData,
         );
     }
 
     /**
-     * Feeds a to-device event to the widget. If the widget is not able to accept the
-     * event due to permissions, this will no-op and return calmly. If the widget failed
-     * to handle the event, this will raise an error.
+     * Feeds a to-device event to the widget. As a client you are expected to
+     * call this for every to-device event you receive.
      * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
      * @param {boolean} encrypted Whether the event contents were encrypted.
-     * @returns {Promise<void>} Resolves when complete, rejects if there was an error sending.
+     * @returns {Promise<void>} Resolves when delivered or if the widget is not
+     *   able to receive the event due to permissions, rejects if the widget
+     *   failed to handle the event.
      */
     public async feedToDevice(rawEvent: IRoomEvent, encrypted: boolean): Promise<void> {
         if (this.canReceiveToDeviceEvent(rawEvent.type)) {
@@ -999,6 +1056,134 @@ export class ClientWidgetApi extends EventEmitter {
                 // it's compatible, but missing the index signature
                 { ...rawEvent, encrypted } as ISendToDeviceToWidgetRequestData,
             );
+        }
+    }
+
+    private viewedRoomId: string | null = null;
+
+    /**
+     * Indicate that a room is being viewed (making it possible for the widget
+     * to interact with it).
+     */
+    public setViewedRoomId(roomId: string | null): void {
+        this.viewedRoomId = roomId;
+        // If the widget doesn't have timeline permissions for the room then
+        // this is its opportunity to learn the room state. We push the entire
+        // room state, which could be redundant if this room had been viewed
+        // once before, but it's easier than selectively pushing just the bits
+        // of state that changed while the room was in the background.
+        if (roomId !== null && !this.canUseRoomTimeline(roomId)) this.pushRoomState(roomId);
+    }
+
+    private async flushRoomState(): Promise<void> {
+        try {
+            // Only send a single action once all concurrent tasks have completed
+            do await Promise.all([...this.pushRoomStateTasks]);
+            while (this.pushRoomStateTasks.size > 0);
+
+            const events: IRoomEvent[] = [];
+            for (const eventTypeMap of this.pushRoomStateResult.values()) {
+                for (const stateKeyMap of eventTypeMap.values()) {
+                    events.push(...stateKeyMap.values());
+                }
+            }
+            await this.transport.send<IUpdateStateToWidgetRequestData>(
+                WidgetApiToWidgetAction.UpdateState,
+                { state: events },
+            );
+        } finally {
+            this.flushRoomStateTask = null;
+        }
+    }
+
+    /**
+     * Read the room's state and push all entries that the widget is allowed to
+     * read through to the widget.
+     */
+    private pushRoomState(roomId: string): void {
+        for (const cap of this.allowedEvents) {
+            if (cap.kind === EventKind.State && cap.direction === EventDirection.Receive) {
+                // Initiate the task
+                const events = this.driver.readRoomState(roomId, cap.eventType, cap.keyStr ?? undefined);
+                const task = events.then(
+                    events => {
+                        // When complete, queue the resulting events to be
+                        // pushed to the widget
+                        for (const event of events) {
+                            let eventTypeMap = this.pushRoomStateResult.get(roomId);
+                            if (eventTypeMap === undefined) {
+                                eventTypeMap = new Map();
+                                this.pushRoomStateResult.set(roomId, eventTypeMap);
+                            }
+                            let stateKeyMap = eventTypeMap.get(cap.eventType);
+                            if (stateKeyMap === undefined) {
+                                stateKeyMap = new Map();
+                                eventTypeMap.set(cap.eventType, stateKeyMap);
+                            }
+                            if (!stateKeyMap.has(event.state_key!)) stateKeyMap.set(event.state_key!, event);
+                        }
+                    },
+                    e => console.error(`Failed to read room state for ${roomId} (${
+                        cap.eventType
+                    }, ${cap.keyStr})`, e),
+                ).then(() => {
+                    // Mark request as no longer pending
+                    this.pushRoomStateTasks.delete(task);
+                });
+
+                // Mark task as pending
+                this.pushRoomStateTasks.add(task);
+                // Assuming no other tasks are already happening concurrently,
+                // schedule the widget action that actually pushes the events
+                this.flushRoomStateTask ??= this.flushRoomState();
+                this.flushRoomStateTask.catch(e => console.error('Failed to push room state', e));
+            }
+        }
+    }
+
+    /**
+     * Feeds a room state update to the widget. As a client you are expected to
+     * call this for every state update in every room to which you are joined or
+     * invited.
+     * @param {IRoomEvent} rawEvent The state event corresponding to the updated
+     *   room state entry.
+     * @returns {Promise<void>} Resolves when delivered or if the widget is not
+     *   able to receive the room state due to permissions, rejects if the
+         widget failed to handle the update.
+     */
+    public async feedStateUpdate(rawEvent: IRoomEvent): Promise<void> {
+        if (rawEvent.state_key === undefined) throw new Error('Not a state event');
+        if (
+            (rawEvent.room_id === this.viewedRoomId || this.canUseRoomTimeline(rawEvent.room_id))
+            && this.canReceiveStateEvent(rawEvent.type, rawEvent.state_key)
+        ) {
+            // Updates could race with the initial push of the room's state
+            if (this.pushRoomStateTasks.size === 0) {
+                // No initial push tasks are pending; safe to send immediately
+                await this.transport.send<IUpdateStateToWidgetRequestData>(
+                    WidgetApiToWidgetAction.UpdateState,
+                    { state: [rawEvent] },
+                );
+            } else {
+                // Lump the update in with whatever data will be sent in the
+                // initial push later. Even if we set it to an "outdated" entry
+                // here, we can count on any newer entries being passed to this
+                // same method eventually; this won't cause stuck state.
+                let eventTypeMap = this.pushRoomStateResult.get(rawEvent.room_id);
+                if (eventTypeMap === undefined) {
+                    eventTypeMap = new Map();
+                    this.pushRoomStateResult.set(rawEvent.room_id, eventTypeMap);
+                }
+                let stateKeyMap = eventTypeMap.get(rawEvent.type);
+                if (stateKeyMap === undefined) {
+                    stateKeyMap = new Map();
+                    eventTypeMap.set(rawEvent.type, stateKeyMap);
+                }
+                if (!stateKeyMap.has(rawEvent.type)) stateKeyMap.set(rawEvent.state_key, rawEvent);
+                do await Promise.all([...this.pushRoomStateTasks]);
+                while (this.pushRoomStateTasks.size > 0);
+                await this.flushRoomStateTask;
+            }
         }
     }
 }
