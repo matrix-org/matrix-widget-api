@@ -18,6 +18,8 @@ export enum WidgetApiToWidgetAction {
     SupportedApiVersions = "supported_api_versions",
     Capabilities = "capabilities",
     NotifyCapabilities = "notify_capabilities",
+    ThemeChange = "theme_change",
+    LanguageChange = "language_change",
     TakeScreenshot = "screenshot",
     UpdateVisibility = "visibility",
     OpenIDCredentials = "openid_credentials",
