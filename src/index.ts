@@ -60,6 +60,7 @@ export * from "./interfaces/TurnServerActions";
 export * from "./interfaces/ReadRelationsAction";
 export * from "./interfaces/GetMediaConfigAction";
 export * from "./interfaces/UpdateDelayedEventAction";
+export * from "./interfaces/UpdateStateAction";
 export * from "./interfaces/UploadFileAction";
 export * from "./interfaces/DownloadFileAction";
 
