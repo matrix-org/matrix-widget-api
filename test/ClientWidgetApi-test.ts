@@ -25,7 +25,7 @@ import { IWidgetApiRequest } from '../src/interfaces/IWidgetApiRequest';
 import { IReadRelationsFromWidgetActionRequest } from '../src/interfaces/ReadRelationsAction';
 import { ISupportedVersionsActionRequest } from '../src/interfaces/SupportedVersionsAction';
 import { IUserDirectorySearchFromWidgetActionRequest } from '../src/interfaces/UserDirectorySearchAction';
-import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
+import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from '../src/interfaces/WidgetApiAction';
 import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
 import { Widget } from '../src/models/Widget';
 import { PostmessageTransport } from '../src/transport/PostmessageTransport';
@@ -2193,5 +2193,15 @@ describe('ClientWidgetApi', () => {
                 });
             });
         });
+    });
+
+    it('updates theme', () => {
+        clientWidgetApi.updateTheme({ name: 'dark' });
+        expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.ThemeChange, { name: 'dark' });
+    });
+
+    it('updates language', () => {
+        clientWidgetApi.updateLanguage('tlh');
+        expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.LanguageChange, { lang: 'tlh' });
     });
 });

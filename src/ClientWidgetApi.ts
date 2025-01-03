@@ -102,6 +102,7 @@ import {
     IDownloadFileActionFromWidgetActionRequest,
     IDownloadFileActionFromWidgetResponseData,
 } from "./interfaces/DownloadFileAction";
+import { IThemeChangeActionRequestData } from "./interfaces/ThemeChangeAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -894,6 +895,22 @@ export class ClientWidgetApi extends EventEmitter {
                     });
             }
         }
+    }
+
+    /**
+     * Informs the widget that the client's theme has changed.
+     * @param theme The theme data, as an object with arbitrary contents.
+     */
+    public updateTheme(theme: IThemeChangeActionRequestData): Promise<IWidgetApiResponseData> {
+        return this.transport.send(WidgetApiToWidgetAction.ThemeChange, theme);
+    }
+
+    /**
+     * Informs the widget that the client's language has changed.
+     * @param lang The BCP 47 identifier representing the client's current language.
+     */
+    public updateLanguage(lang: string): Promise<IWidgetApiResponseData> {
+        return this.transport.send(WidgetApiToWidgetAction.LanguageChange, { lang });
     }
 
     /**
