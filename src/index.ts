@@ -62,6 +62,8 @@ export type * from "./interfaces/GetMediaConfigAction";
 export * from "./interfaces/UpdateDelayedEventAction";
 export type * from "./interfaces/UploadFileAction";
 export type * from "./interfaces/DownloadFileAction";
+export type * from "./interfaces/ThemeChangeAction";
+export type * from "./interfaces/LanguageChangeAction";
 
 // Complex models
 export * from "./models/WidgetEventCapability";
