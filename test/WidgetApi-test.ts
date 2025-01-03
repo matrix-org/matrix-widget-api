@@ -37,8 +37,8 @@ import {
 } from '../src';
 
 type SendRequestArgs = {
-    action: WidgetApiFromWidgetAction,
-    data: IWidgetApiRequestData,
+    action: WidgetApiFromWidgetAction;
+    data: IWidgetApiRequestData;
 };
 
 class TransportChannels {
@@ -54,7 +54,7 @@ class WidgetTransportHelper {
     /** For ignoring the request sent by {@link WidgetApi.start} */
     private skippedFirstRequest = false;
 
-    constructor(private channels: TransportChannels) {}
+    public constructor(private channels: TransportChannels) {}
 
     public nextTrackedRequest(): SendRequestArgs | undefined {
         if (!this.skippedFirstRequest) {
@@ -70,7 +70,7 @@ class WidgetTransportHelper {
 }
 
 class ClientTransportHelper {
-    constructor(private channels: TransportChannels) {}
+    public constructor(private channels: TransportChannels) {}
 
     public trackRequest(action: WidgetApiFromWidgetAction, data: IWidgetApiRequestData): void {
         this.channels.requestQueue.push({action, data});
@@ -91,7 +91,7 @@ describe('WidgetApi', () => {
         widgetTransportHelper = new WidgetTransportHelper(channels);
         const clientTrafficHelper = new ClientTransportHelper(channels);
 
-        clientListener = (e: MessageEvent) => {
+        clientListener = (e: MessageEvent): void => {
             if (!e.data.action || !e.data.requestId || !e.data.widgetId) return; // invalid request/response
             if ("response" in e.data || e.data.api !== WidgetApiDirection.FromWidget) return; // not a request
             const request = <IWidgetApiRequest>e.data;
@@ -111,7 +111,7 @@ describe('WidgetApi', () => {
                     "*",
                 );
             }
-        }
+        };
         window.addEventListener("message", clientListener);
 
         widgetApi = new WidgetApi("WidgetApi-test", "*");
@@ -171,7 +171,7 @@ describe('WidgetApi', () => {
             expect(request).not.toEqual({
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
                 data: expect.anything(),
-            } satisfies SendRequestArgs)
+            } satisfies SendRequestArgs);
         });
 
         it('should handle an error', async () => {
@@ -486,13 +486,13 @@ describe('WidgetApi', () => {
                     ],
                 } as ISupportedVersionsActionResponseData,
             );
-        })
+        });
 
         it('should request supported client versions', async () => {
             await expect(widgetApi.getClientVersions()).resolves.toEqual([
                 'org.matrix.msc3869', 'org.matrix.msc2762',
             ]);
-        })
+        });
 
         it('should cache supported client versions on successive calls', async () => {
             await expect(widgetApi.getClientVersions()).resolves.toEqual([
@@ -505,7 +505,7 @@ describe('WidgetApi', () => {
 
             expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
             expect(widgetTransportHelper.nextTrackedRequest()).toBeUndefined();
-        })
+        });
     });
 
     describe('searchUserDirectory', () => {

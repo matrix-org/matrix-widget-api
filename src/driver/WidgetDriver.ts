@@ -289,7 +289,7 @@ export abstract class WidgetDriver {
      * met properly. By default, the widget driver will block all OIDC requests.
      * @param {SimpleObservable<IOpenIDUpdate>} observer The observable to feed updates into.
      */
-    public askOpenID(observer: SimpleObservable<IOpenIDUpdate>) {
+    public askOpenID(observer: SimpleObservable<IOpenIDUpdate>): void {
         observer.update({state: OpenIDRequestState.Blocked});
     }
 

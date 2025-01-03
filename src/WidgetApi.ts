@@ -15,6 +15,7 @@
  */
 
 import { EventEmitter } from "events";
+
 import { Capability } from "./interfaces/Capabilities";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
 import { IWidgetApiAcknowledgeResponseData } from "./interfaces/IWidgetApiResponse";
@@ -177,7 +178,7 @@ export class WidgetApi extends EventEmitter {
      * @throws Throws if the capabilities negotiation has already started and the
      * widget is unable to request additional capabilities.
      */
-    public requestCapability(capability: Capability) {
+    public requestCapability(capability: Capability): void {
         if (this.capabilitiesFinished && !this.supportsMSC2974Renegotiate) {
             throw new Error("Capabilities have already been negotiated");
         }
@@ -191,7 +192,7 @@ export class WidgetApi extends EventEmitter {
      * @param {Capability[]} capabilities The capabilities to request.
      * @throws Throws if the capabilities negotiation has already started.
      */
-    public requestCapabilities(capabilities: Capability[]) {
+    public requestCapabilities(capabilities: Capability[]): void {
         capabilities.forEach(cap => this.requestCapability(cap));
     }
 
@@ -201,7 +202,7 @@ export class WidgetApi extends EventEmitter {
      * @param {string | Symbols.AnyRoom} roomId The room ID, or `Symbols.AnyRoom` to
      * denote all known rooms.
      */
-    public requestCapabilityForRoomTimeline(roomId: string | Symbols.AnyRoom) {
+    public requestCapabilityForRoomTimeline(roomId: string | Symbols.AnyRoom): void {
         this.requestCapability(`org.matrix.msc2762.timeline:${roomId}`);
     }
 
@@ -213,7 +214,7 @@ export class WidgetApi extends EventEmitter {
      * @param {string} stateKey If specified, the specific state key to request.
      * Otherwise all state keys will be requested.
      */
-    public requestCapabilityToSendState(eventType: string, stateKey?: string) {
+    public requestCapabilityToSendState(eventType: string, stateKey?: string): void {
         this.requestCapability(WidgetEventCapability.forStateEvent(EventDirection.Send, eventType, stateKey).raw);
     }
 
@@ -225,7 +226,7 @@ export class WidgetApi extends EventEmitter {
      * @param {string} stateKey If specified, the specific state key to request.
      * Otherwise all state keys will be requested.
      */
-    public requestCapabilityToReceiveState(eventType: string, stateKey?: string) {
+    public requestCapabilityToReceiveState(eventType: string, stateKey?: string): void {
         this.requestCapability(WidgetEventCapability.forStateEvent(EventDirection.Receive, eventType, stateKey).raw);
     }
 
@@ -235,7 +236,7 @@ export class WidgetApi extends EventEmitter {
      * not already happened.
      * @param {string} eventType The room event type to ask for.
      */
-    public requestCapabilityToSendToDevice(eventType: string) {
+    public requestCapabilityToSendToDevice(eventType: string): void {
         this.requestCapability(WidgetEventCapability.forToDeviceEvent(EventDirection.Send, eventType).raw);
     }
 
@@ -245,7 +246,7 @@ export class WidgetApi extends EventEmitter {
      * not already happened.
      * @param {string} eventType The room event type to ask for.
      */
-    public requestCapabilityToReceiveToDevice(eventType: string) {
+    public requestCapabilityToReceiveToDevice(eventType: string): void {
         this.requestCapability(WidgetEventCapability.forToDeviceEvent(EventDirection.Receive, eventType).raw);
     }
 
@@ -254,7 +255,7 @@ export class WidgetApi extends EventEmitter {
      * allowed, but will be asked for if the negotiation has not already happened.
      * @param {string} eventType The room event type to ask for.
      */
-    public requestCapabilityToSendEvent(eventType: string) {
+    public requestCapabilityToSendEvent(eventType: string): void {
         this.requestCapability(WidgetEventCapability.forRoomEvent(EventDirection.Send, eventType).raw);
     }
 
@@ -263,7 +264,7 @@ export class WidgetApi extends EventEmitter {
      * allowed, but will be asked for if the negotiation has not already happened.
      * @param {string} eventType The room event type to ask for.
      */
-    public requestCapabilityToReceiveEvent(eventType: string) {
+    public requestCapabilityToReceiveEvent(eventType: string): void {
         this.requestCapability(WidgetEventCapability.forRoomEvent(EventDirection.Receive, eventType).raw);
     }
 
@@ -274,7 +275,7 @@ export class WidgetApi extends EventEmitter {
      * @param {string} msgtype If specified, the specific msgtype to request.
      * Otherwise all message types will be requested.
      */
-    public requestCapabilityToSendMessage(msgtype?: string) {
+    public requestCapabilityToSendMessage(msgtype?: string): void {
         this.requestCapability(WidgetEventCapability.forRoomMessageEvent(EventDirection.Send, msgtype).raw);
     }
 
@@ -285,7 +286,7 @@ export class WidgetApi extends EventEmitter {
      * @param {string} msgtype If specified, the specific msgtype to request.
      * Otherwise all message types will be requested.
      */
-    public requestCapabilityToReceiveMessage(msgtype?: string) {
+    public requestCapabilityToReceiveMessage(msgtype?: string): void {
         this.requestCapability(WidgetEventCapability.forRoomMessageEvent(EventDirection.Receive, msgtype).raw);
     }
 
@@ -294,7 +295,7 @@ export class WidgetApi extends EventEmitter {
      * allowed, but will be asked for if the negotiation has not already happened.
      * @param {string} eventType The state event type to ask for.
      */
-    public requestCapabilityToReceiveRoomAccountData(eventType: string) {
+    public requestCapabilityToReceiveRoomAccountData(eventType: string): void {
         this.requestCapability(WidgetEventCapability.forRoomAccountData(EventDirection.Receive, eventType).raw);
     }
 
@@ -317,7 +318,7 @@ export class WidgetApi extends EventEmitter {
                 } else if (rdata.state === OpenIDRequestState.Blocked) {
                     reject(new Error("User declined to verify their identity"));
                 } else if (rdata.state === OpenIDRequestState.PendingUserConfirmation) {
-                    const handlerFn = (ev: CustomEvent<IOpenIDCredentialsActionRequest>) => {
+                    const handlerFn = (ev: CustomEvent<IOpenIDCredentialsActionRequest>): void => {
                         ev.preventDefault();
                         const request = ev.detail;
                         if (request.data.original_request_id !== response.requestId) return;
@@ -574,7 +575,7 @@ export class WidgetApi extends EventEmitter {
     ): Promise<IReadRelationsFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC3869)) {
-            throw new Error("The read_relations action is not supported by the client.")
+            throw new Error("The read_relations action is not supported by the client.");
         }
 
         const data: IReadRelationsFromWidgetRequestData = {
@@ -591,7 +592,7 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<IReadRelationsFromWidgetRequestData, IReadRelationsFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC3869ReadRelations,
             data,
-        )
+        );
     }
 
     public readStateEvents(
@@ -662,7 +663,7 @@ export class WidgetApi extends EventEmitter {
     public async* getTurnServers(): AsyncGenerator<ITurnServer> {
         let setTurnServer: (server: ITurnServer) => void;
 
-        const onUpdateTurnServers = async (ev: CustomEvent<IUpdateTurnServersRequest>) => {
+        const onUpdateTurnServers = async (ev: CustomEvent<IUpdateTurnServersRequest>): Promise<void> => {
             ev.preventDefault();
             setTurnServer(ev.detail.data);
             await this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
@@ -713,7 +714,7 @@ export class WidgetApi extends EventEmitter {
     ): Promise<IUserDirectorySearchFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC3973)) {
-            throw new Error("The user_directory_search action is not supported by the client.")
+            throw new Error("The user_directory_search action is not supported by the client.");
         }
 
         const data: IUserDirectorySearchFromWidgetRequestData = {
@@ -734,7 +735,7 @@ export class WidgetApi extends EventEmitter {
     public async getMediaConfig(): Promise<IGetMediaConfigActionFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC4039)) {
-            throw new Error("The get_media_config action is not supported by the client.")
+            throw new Error("The get_media_config action is not supported by the client.");
         }
 
         const data: IGetMediaConfigActionFromWidgetRequestData = {};
@@ -754,7 +755,7 @@ export class WidgetApi extends EventEmitter {
     public async uploadFile(file: XMLHttpRequestBodyInit): Promise<IUploadFileActionFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC4039)) {
-            throw new Error("The upload_file action is not supported by the client.")
+            throw new Error("The upload_file action is not supported by the client.");
         }
 
         const data: IUploadFileActionFromWidgetRequestData = {
@@ -775,7 +776,7 @@ export class WidgetApi extends EventEmitter {
     public async downloadFile(contentUri: string): Promise<IDownloadFileActionFromWidgetResponseData> {
         const versions = await this.getClientVersions();
         if (!versions.includes(UnstableApiVersion.MSC4039)) {
-            throw new Error("The download_file action is not supported by the client.")
+            throw new Error("The download_file action is not supported by the client.");
         }
 
         const data: IDownloadFileActionFromWidgetRequestData = {
@@ -792,7 +793,7 @@ export class WidgetApi extends EventEmitter {
      * Starts the communication channel. This should be done early to ensure
      * that messages are not missed. Communication can only be stopped by the client.
      */
-    public start() {
+    public start(): void {
         this.transport.start();
         this.getClientVersions().then(v => {
             if (v.includes(UnstableApiVersion.MSC2974)) {
@@ -801,7 +802,7 @@ export class WidgetApi extends EventEmitter {
         });
     }
 
-    private handleMessage(ev: CustomEvent<IWidgetApiRequest>) {
+    private handleMessage(ev: CustomEvent<IWidgetApiRequest>): void | Promise<void> {
         const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
             detail: ev.detail,
             cancelable: true,
@@ -827,7 +828,7 @@ export class WidgetApi extends EventEmitter {
         }
     }
 
-    private replyVersions(request: ISupportedVersionsActionRequest) {
+    private replyVersions(request: ISupportedVersionsActionRequest): void {
         this.transport.reply<ISupportedVersionsActionResponseData>(request, {
             supported_versions: CurrentApiVersions,
         });
@@ -849,7 +850,7 @@ export class WidgetApi extends EventEmitter {
         });
     }
 
-    private handleCapabilities(request: ICapabilitiesActionRequest) {
+    private handleCapabilities(request: ICapabilitiesActionRequest): void | Promise<void> {
         if (this.capabilitiesFinished) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: {

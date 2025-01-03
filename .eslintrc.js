@@ -1,8 +1,13 @@
 module.exports = {
-    extends: ["matrix-org"],
     plugins: [
-        "babel",
+        "matrix-org",
     ],
+    extends: [
+        "plugin:matrix-org/babel",
+    ],
+    parserOptions: {
+        project: ["./tsconfig-dev.json"],
+    },
     env: {
         browser: true,
     },
@@ -29,12 +34,17 @@ module.exports = {
     },
     overrides: [{
         "files": ["src/**/*.ts", "test/**/*.ts"],
-        "extends": ["matrix-org/ts"],
+        "extends": ["plugin:matrix-org/typescript"],
         "rules": {
             // TypeScript has its own version of this
             "babel/no-invalid-this": "off",
 
             "quotes": "off",
+        },
+    }, {
+        "files": ["src/interfaces/**/*.ts"],
+        "rules": {
+            "@typescript-eslint/no-empty-object-type": "off",
         },
     }],
 };

@@ -23,17 +23,17 @@ export class SimpleObservable<T> {
         if (initialFn) this.listeners.push(initialFn);
     }
 
-    public onUpdate(fn: ObservableFunction<T>) {
+    public onUpdate(fn: ObservableFunction<T>): void {
         this.listeners.push(fn);
     }
 
-    public update(val: T) {
+    public update(val: T): void {
         for (const listener of this.listeners) {
             listener(val);
         }
     }
 
-    public close() {
+    public close(): void {
         this.listeners = []; // reset
     }
 }

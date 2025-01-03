@@ -33,5 +33,6 @@ export interface IWidgetApiRequest {
     data: IWidgetApiRequestData;
     // XXX: This is for Scalar support
     // TODO: Fix scalar
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     visible?: any;
 }
