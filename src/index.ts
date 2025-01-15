@@ -60,6 +60,7 @@ export type * from "./interfaces/TurnServerActions";
 export type * from "./interfaces/ReadRelationsAction";
 export type * from "./interfaces/GetMediaConfigAction";
 export * from "./interfaces/UpdateDelayedEventAction";
+export type * from "./interfaces/UpdateStateAction";
 export type * from "./interfaces/UploadFileAction";
 export type * from "./interfaces/DownloadFileAction";
 export type * from "./interfaces/ThemeChangeAction";
