@@ -276,8 +276,8 @@ export class ClientWidgetApi extends EventEmitter {
             }
         }
         // If new events are allowed and the currently viewed room isn't covered
-        // by a timeline capability, then this is the widget's opportunity to
-        // learn the state of the viewed room
+        // by a timeline capability, then we know that there could be some state
+        // in the viewed room that the widget hasn't learned about yet- push it.
         if (allowedEvents.length > 0 && this.viewedRoomId !== null && !this.canUseRoomTimeline(this.viewedRoomId)) {
             this.pushRoomState(this.viewedRoomId);
         }
