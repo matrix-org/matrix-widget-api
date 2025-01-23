@@ -17,8 +17,8 @@
 
 import { waitFor } from '@testing-library/dom';
 
-import { ClientWidgetApi } from "../src/ClientWidgetApi";
-import { WidgetDriver } from "../src/driver/WidgetDriver";
+import { ClientWidgetApi } from '../src/ClientWidgetApi';
+import { WidgetDriver } from '../src/driver/WidgetDriver';
 import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
 import { Capability } from '../src/interfaces/Capabilities';
 import { IRoomEvent } from '../src/interfaces/IRoomEvent';
@@ -80,18 +80,20 @@ class CustomMatrixError extends Error {
 }
 
 function processCustomMatrixError(e: unknown): IWidgetApiErrorResponseDataDetails | undefined {
-    return e instanceof CustomMatrixError ? {
-        matrix_api_error: {
-            http_status: e.httpStatus,
-            http_headers: {},
-            url: '',
-            response: {
-                errcode: e.name,
-                error: e.message,
-                ...e.data,
-            },
-        },
-    } : undefined;
+    return e instanceof CustomMatrixError
+        ? {
+              matrix_api_error: {
+                  http_status: e.httpStatus,
+                  http_headers: {},
+                  url: '',
+                  response: {
+                      errcode: e.name,
+                      error: e.message,
+                      ...e.data,
+                  },
+              },
+          }
+        : undefined;
 }
 
 describe('ClientWidgetApi', () => {
@@ -100,12 +102,12 @@ describe('ClientWidgetApi', () => {
     let driver: jest.Mocked<WidgetDriver>;
     let clientWidgetApi: ClientWidgetApi;
     let transport: PostmessageTransport;
-    let emitEvent: Parameters<PostmessageTransport["on"]>["1"];
+    let emitEvent: Parameters<PostmessageTransport['on']>['1'];
 
     async function loadIframe(caps: Capability[] = []): Promise<void> {
         capabilities = caps;
 
-        const ready = new Promise<void>(resolve => {
+        const ready = new Promise<void>((resolve) => {
             clientWidgetApi.once('ready', resolve);
         });
 
@@ -141,10 +143,10 @@ describe('ClientWidgetApi', () => {
 
         clientWidgetApi = new ClientWidgetApi(
             new Widget({
-                id: "test",
-                creatorUserId: "@alice:example.org",
-                type: "example",
-                url: "https://example.org",
+                id: 'test',
+                creatorUserId: '@alice:example.org',
+                type: 'example',
+                url: 'https://example.org',
             }),
             iframe,
             driver,
@@ -154,9 +156,7 @@ describe('ClientWidgetApi', () => {
         emitEvent = jest.mocked(transport.on).mock.calls[0][1];
 
         jest.mocked(transport.send).mockResolvedValue({});
-        jest.mocked(driver.validateCapabilities).mockImplementation(
-            async () => new Set(capabilities),
-        );
+        jest.mocked(driver.validateCapabilities).mockImplementation(async () => new Set(capabilities));
     });
 
     afterEach(() => {
@@ -193,9 +193,7 @@ describe('ClientWidgetApi', () => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {});
             });
 
-            expect(driver.navigate).toHaveBeenCalledWith(
-                event.data.uri,
-            );
+            expect(driver.navigate).toHaveBeenCalledWith(event.data.uri);
         });
 
         it('fails to navigate', async () => {
@@ -247,9 +245,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.navigate.mockRejectedValue(
-                new Error("M_UNKNOWN: Unknown error"),
-            );
+            driver.navigate.mockRejectedValue(new Error('M_UNKNOWN: Unknown error'));
 
             const event: INavigateActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -276,14 +272,9 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.navigate.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to navigate',
-                    400,
-                    'M_UNKNOWN',
-                    {
-                        reason: 'Unknown error',
-                    },
-                ),
+                new CustomMatrixError('failed to navigate', 400, 'M_UNKNOWN', {
+                    reason: 'Unknown error',
+                }),
             );
 
             const event: INavigateActionRequest = {
@@ -356,12 +347,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.sendEvent).toHaveBeenCalledWith(
-                event.data.type,
-                event.data.content,
-                null,
-                roomId,
-            );
+            expect(driver.sendEvent).toHaveBeenCalledWith(event.data.type, event.data.content, null, roomId);
         });
 
         it('sends state events', async () => {
@@ -400,20 +386,13 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.sendEvent).toHaveBeenCalledWith(
-                event.data.type,
-                event.data.content,
-                '',
-                roomId,
-            );
+            expect(driver.sendEvent).toHaveBeenCalledWith(event.data.type, event.data.content, '', roomId);
         });
 
         it('should reject requests when the driver throws an exception', async () => {
             const roomId = '!room:example.org';
 
-            driver.sendEvent.mockRejectedValue(
-                new Error("M_BAD_JSON: Content must be a JSON object"),
-            );
+            driver.sendEvent.mockRejectedValue(new Error('M_BAD_JSON: Content must be a JSON object'));
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -447,14 +426,9 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendEvent.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to send event',
-                    400,
-                    'M_NOT_JSON',
-                    {
-                        reason: 'Content must be a JSON object.',
-                    },
-                ),
+                new CustomMatrixError('failed to send event', 400, 'M_NOT_JSON', {
+                    reason: 'Content must be a JSON object.',
+                }),
             );
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -632,9 +606,7 @@ describe('ClientWidgetApi', () => {
         it('should reject requests when the driver throws an exception', async () => {
             const roomId = '!room:example.org';
 
-            driver.sendDelayedEvent.mockRejectedValue(
-                new Error("M_BAD_JSON: Content must be a JSON object"),
-            );
+            driver.sendDelayedEvent.mockRejectedValue(new Error('M_BAD_JSON: Content must be a JSON object'));
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -671,14 +643,9 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendDelayedEvent.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to send event',
-                    400,
-                    'M_NOT_JSON',
-                    {
-                        reason: 'Content must be a JSON object.',
-                    },
-                ),
+                new CustomMatrixError('failed to send event', 400, 'M_NOT_JSON', {
+                    reason: 'Content must be a JSON object.',
+                }),
             );
 
             const event: ISendEventFromWidgetActionRequest = {
@@ -819,7 +786,7 @@ describe('ClientWidgetApi', () => {
 
             // Artificially delay the delivery of the join rules event
             let resolveJoinRules: () => void;
-            const joinRules = new Promise<void>(resolve => resolveJoinRules = resolve);
+            const joinRules = new Promise<void>((resolve) => (resolveJoinRules = resolve));
 
             driver.readRoomState.mockImplementation(async (rId, eventType, stateKey) => {
                 if (rId === roomId) {
@@ -856,15 +823,13 @@ describe('ClientWidgetApi', () => {
 
             await waitFor(() => {
                 // The initial topic and name should have been pushed
-                expect(transport.send).toHaveBeenCalledWith(
-                    WidgetApiToWidgetAction.UpdateState,
-                    { state: [topicEvent, nameEvent, newJoinRulesEvent] },
-                );
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState, {
+                    state: [topicEvent, nameEvent, newJoinRulesEvent],
+                });
                 // Only the updated join rules should have been delivered
-                expect(transport.send).not.toHaveBeenCalledWith(
-                    WidgetApiToWidgetAction.UpdateState,
-                    { state: expect.arrayContaining([joinRules]) },
-                );
+                expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState, {
+                    state: expect.arrayContaining([joinRules]),
+                });
             });
 
             // Check that further updates to room state are pushed to the widget
@@ -878,28 +843,25 @@ describe('ClientWidgetApi', () => {
             clientWidgetApi.feedStateUpdate(newTopicEvent);
 
             await waitFor(() => {
-                expect(transport.send).toHaveBeenCalledWith(
-                    WidgetApiToWidgetAction.UpdateState,
-                    { state: [newTopicEvent] },
-                );
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState, {
+                    state: [newTopicEvent],
+                });
             });
 
             // Up to this point we should not have received any state for the
             // other (unviewed) room
-            expect(transport.send).not.toHaveBeenCalledWith(
-                WidgetApiToWidgetAction.UpdateState,
-                { state: expect.arrayContaining([otherRoomNameEvent]) },
-            );
+            expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState, {
+                state: expect.arrayContaining([otherRoomNameEvent]),
+            });
             // Now view the other room
             clientWidgetApi.setViewedRoomId(otherRoomId);
             (transport.send as unknown as jest.SpyInstance).mockClear();
 
             await waitFor(() => {
                 // The state of the other room should now be pushed
-                expect(transport.send).toHaveBeenCalledWith(
-                    WidgetApiToWidgetAction.UpdateState,
-                    { state: expect.arrayContaining([otherRoomNameEvent]) },
-                );
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState, {
+                    state: expect.arrayContaining([otherRoomNameEvent]),
+                });
             });
         });
     });
@@ -982,17 +944,12 @@ describe('ClientWidgetApi', () => {
                     expect(transport.reply).toHaveBeenCalledWith(event, {});
                 });
 
-                expect(driver.updateDelayedEvent).toHaveBeenCalledWith(
-                    event.data.delay_id,
-                    event.data.action,
-                );
+                expect(driver.updateDelayedEvent).toHaveBeenCalledWith(event.data.delay_id, event.data.action);
             }
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.updateDelayedEvent.mockRejectedValue(
-                new Error("M_BAD_JSON: Content must be a JSON object"),
-            );
+            driver.updateDelayedEvent.mockRejectedValue(new Error('M_BAD_JSON: Content must be a JSON object'));
 
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1020,14 +977,9 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.updateDelayedEvent.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to update delayed event',
-                    400,
-                    'M_NOT_JSON',
-                    {
-                        reason: 'Content must be a JSON object.',
-                    },
-                ),
+                new CustomMatrixError('failed to update delayed event', 400, 'M_NOT_JSON', {
+                    reason: 'Content must be a JSON object.',
+                }),
             );
 
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
@@ -1077,8 +1029,8 @@ describe('ClientWidgetApi', () => {
                     encrypted: false,
                     messages: {
                         '@foo:bar.com': {
-                            'DEVICEID': {
-                                'example_content_key': 'value',
+                            DEVICEID: {
+                                example_content_key: 'value',
                             },
                         },
                     },
@@ -1110,8 +1062,8 @@ describe('ClientWidgetApi', () => {
                     encrypted: false,
                     messages: {
                         '@foo:bar.com': {
-                            'DEVICEID': {
-                                'example_content_key': 'value',
+                            DEVICEID: {
+                                example_content_key: 'value',
                             },
                         },
                     },
@@ -1166,8 +1118,8 @@ describe('ClientWidgetApi', () => {
                     type: 'net.example.test',
                     messages: {
                         '@foo:bar.com': {
-                            'DEVICEID': {
-                                'example_content_key': 'value',
+                            DEVICEID: {
+                                example_content_key: 'value',
                             },
                         },
                     },
@@ -1198,8 +1150,8 @@ describe('ClientWidgetApi', () => {
                     encrypted: false,
                     messages: {
                         '@foo:bar.com': {
-                            'DEVICEID': {
-                                'example_content_key': 'value',
+                            DEVICEID: {
+                                example_content_key: 'value',
                             },
                         },
                     },
@@ -1234,8 +1186,8 @@ describe('ClientWidgetApi', () => {
                     encrypted: false,
                     messages: {
                         '@foo:bar.com': {
-                            'DEVICEID': {
-                                'example_content_key': 'value',
+                            DEVICEID: {
+                                example_content_key: 'value',
                             },
                         },
                     },
@@ -1257,14 +1209,9 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendToDevice.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to send event',
-                    400,
-                    'M_FORBIDDEN',
-                    {
-                        reason: "You don't have permission to send to-device events",
-                    },
-                ),
+                new CustomMatrixError('failed to send event', 400, 'M_FORBIDDEN', {
+                    reason: "You don't have permission to send to-device events",
+                }),
             );
 
             const event: ISendToDeviceFromWidgetActionRequest = {
@@ -1277,8 +1224,8 @@ describe('ClientWidgetApi', () => {
                     encrypted: false,
                     messages: {
                         '@foo:bar.com': {
-                            'DEVICEID': {
-                                'example_content_key': 'value',
+                            DEVICEID: {
+                                example_content_key: 'value',
                             },
                         },
                     },
@@ -1315,7 +1262,7 @@ describe('ClientWidgetApi', () => {
                 observable.update({
                     state: OpenIDRequestState.Allowed,
                     token: {
-                        access_token: "access_token",
+                        access_token: 'access_token',
                     },
                 });
             });
@@ -1335,7 +1282,7 @@ describe('ClientWidgetApi', () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     state: OpenIDRequestState.Allowed,
-                    access_token: "access_token",
+                    access_token: 'access_token',
                 });
             });
 
@@ -1376,11 +1323,13 @@ describe('ClientWidgetApi', () => {
             const type = 'net.example.test';
             const roomId = '!room:example.org';
 
-            driver.readRoomAccountData.mockResolvedValue([{
-                type,
-                room_id: roomId,
-                content: {},
-            }]);
+            driver.readRoomAccountData.mockResolvedValue([
+                {
+                    type,
+                    room_id: roomId,
+                    content: {},
+                },
+            ]);
 
             const event: IReadRoomAccountDataFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1393,19 +1342,19 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                `com.beeper.capabilities.receive.room_account_data:${type}`,
-            ]);
+            await loadIframe([`com.beeper.capabilities.receive.room_account_data:${type}`]);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
-                    events: [{
-                        type,
-                        room_id: roomId,
-                        content: {},
-                    }],
+                    events: [
+                        {
+                            type,
+                            room_id: roomId,
+                            content: {},
+                        },
+                    ],
                 });
             });
 
@@ -1416,11 +1365,13 @@ describe('ClientWidgetApi', () => {
             const type = 'net.example.test';
             const roomId = '!room:example.org';
 
-            driver.readRoomAccountData.mockResolvedValue([{
-                type,
-                room_id: roomId,
-                content: {},
-            }]);
+            driver.readRoomAccountData.mockResolvedValue([
+                {
+                    type,
+                    room_id: roomId,
+                    content: {},
+                },
+            ]);
 
             const event: IReadRoomAccountDataFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1482,7 +1433,12 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readRoomTimeline).toHaveBeenCalledWith(
-                roomId, 'net.example.test', undefined, undefined, 0, undefined,
+                roomId,
+                'net.example.test',
+                undefined,
+                undefined,
+                0,
+                undefined,
             );
         });
 
@@ -1524,10 +1480,20 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readRoomTimeline).toHaveBeenCalledWith(
-                roomId, 'net.example.test', undefined, undefined, 0, undefined,
+                roomId,
+                'net.example.test',
+                undefined,
+                undefined,
+                0,
+                undefined,
             );
             expect(driver.readRoomTimeline).toHaveBeenCalledWith(
-                otherRoomId, 'net.example.test', undefined, undefined, 0, undefined,
+                otherRoomId,
+                'net.example.test',
+                undefined,
+                undefined,
+                0,
+                undefined,
             );
         });
 
@@ -1563,7 +1529,12 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readRoomTimeline).toBeCalledWith(
-                '!room-id', 'net.example.test', undefined, undefined, 0, undefined,
+                '!room-id',
+                'net.example.test',
+                undefined,
+                undefined,
+                0,
+                undefined,
             );
         });
 
@@ -1593,9 +1564,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('reads state events with a specific state key', async () => {
-            driver.readRoomTimeline.mockResolvedValue([
-                createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
-            ]);
+            driver.readRoomTimeline.mockResolvedValue([createRoomEvent({ type: 'net.example.test', state_key: 'B' })]);
 
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1615,14 +1584,17 @@ describe('ClientWidgetApi', () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    events: [
-                        createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
-                    ],
+                    events: [createRoomEvent({ type: 'net.example.test', state_key: 'B' })],
                 });
             });
 
             expect(driver.readRoomTimeline).toBeCalledWith(
-                '!room-id', 'net.example.test', undefined, 'B', 0, undefined,
+                '!room-id',
+                'net.example.test',
+                undefined,
+                'B',
+                0,
+                undefined,
             );
         });
 
@@ -1666,9 +1638,7 @@ describe('ClientWidgetApi', () => {
             emitEvent(new CustomEvent('', { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                supported_versions: expect.arrayContaining([
-                    UnstableApiVersion.MSC3869,
-                ]),
+                supported_versions: expect.arrayContaining([UnstableApiVersion.MSC3869]),
             });
         });
 
@@ -1685,9 +1655,7 @@ describe('ClientWidgetApi', () => {
                 data: { event_id: '$event' },
             };
 
-            await loadIframe([
-                'org.matrix.msc2762.receive.event:m.room.message',
-            ]);
+            await loadIframe(['org.matrix.msc2762.receive.event:m.room.message']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -1698,8 +1666,14 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readEventRelations).toBeCalledWith(
-                '$event', undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined,
+                '$event',
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
             );
         });
 
@@ -1730,16 +1704,19 @@ describe('ClientWidgetApi', () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    chunk: [
-                        createRoomEvent(),
-                        createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
-                    ],
+                    chunk: [createRoomEvent(), createRoomEvent({ type: 'net.example.test', state_key: 'A' })],
                 });
             });
 
             expect(driver.readEventRelations).toBeCalledWith(
-                '$event', undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined,
+                '$event',
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
             );
         });
 
@@ -1765,9 +1742,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc2762.timeline:!room-id',
-            ]);
+            await loadIframe(['org.matrix.msc2762.timeline:!room-id']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -1778,8 +1753,14 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readEventRelations).toBeCalledWith(
-                '$event', '!room-id', 'm.reference', 'm.room.message',
-                'from-token', 'to-token', 25, 'f',
+                '$event',
+                '!room-id',
+                'm.reference',
+                'm.room.message',
+                'from-token',
+                'to-token',
+                25,
+                'f',
             );
         });
 
@@ -1865,14 +1846,9 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.readEventRelations.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to read relations',
-                    403,
-                    'M_FORBIDDEN',
-                    {
-                        reason: "You don't have permission to access that event",
-                    },
-                ),
+                new CustomMatrixError('failed to read relations', 403, 'M_FORBIDDEN', {
+                    reason: "You don't have permission to access that event",
+                }),
             );
 
             const event: IReadRelationsFromWidgetActionRequest = {
@@ -1920,18 +1896,18 @@ describe('ClientWidgetApi', () => {
             emitEvent(new CustomEvent('', { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                supported_versions: expect.arrayContaining([
-                    UnstableApiVersion.MSC3973,
-                ]),
+                supported_versions: expect.arrayContaining([UnstableApiVersion.MSC3973]),
             });
         });
 
         it('should handle and process the request', async () => {
             driver.searchUserDirectory.mockResolvedValue({
                 limited: true,
-                results: [{
-                    userId: '@foo:bar.com',
-                }],
+                results: [
+                    {
+                        userId: '@foo:bar.com',
+                    },
+                ],
             });
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
@@ -1942,20 +1918,20 @@ describe('ClientWidgetApi', () => {
                 data: { search_term: 'foo' },
             };
 
-            await loadIframe([
-                'org.matrix.msc3973.user_directory_search',
-            ]);
+            await loadIframe(['org.matrix.msc3973.user_directory_search']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     limited: true,
-                    results: [{
-                        user_id: '@foo:bar.com',
-                        display_name: undefined,
-                        avatar_url: undefined,
-                    }],
+                    results: [
+                        {
+                            user_id: '@foo:bar.com',
+                            display_name: undefined,
+                            avatar_url: undefined,
+                        },
+                    ],
                 });
             });
 
@@ -1988,9 +1964,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc3973.user_directory_search',
-            ]);
+            await loadIframe(['org.matrix.msc3973.user_directory_search']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2029,9 +2003,7 @@ describe('ClientWidgetApi', () => {
                 data: { search_term: '' },
             };
 
-            await loadIframe([
-                'org.matrix.msc3973.user_directory_search',
-            ]);
+            await loadIframe(['org.matrix.msc3973.user_directory_search']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2072,9 +2044,7 @@ describe('ClientWidgetApi', () => {
                 data: {},
             };
 
-            await loadIframe([
-                'org.matrix.msc3973.user_directory_search',
-            ]);
+            await loadIframe(['org.matrix.msc3973.user_directory_search']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2097,9 +2067,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc3973.user_directory_search',
-            ]);
+            await loadIframe(['org.matrix.msc3973.user_directory_search']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2111,9 +2079,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.searchUserDirectory.mockRejectedValue(
-                new Error("M_LIMIT_EXCEEDED: Too many requests"),
-            );
+            driver.searchUserDirectory.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -2123,9 +2089,7 @@ describe('ClientWidgetApi', () => {
                 data: { search_term: 'foo' },
             };
 
-            await loadIframe([
-                'org.matrix.msc3973.user_directory_search',
-            ]);
+            await loadIframe(['org.matrix.msc3973.user_directory_search']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2140,15 +2104,10 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.searchUserDirectory.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to search the user directory',
-                    429,
-                    'M_LIMIT_EXCEEDED',
-                    {
-                        reason: 'Too many requests',
-                        retry_after_ms: 2000,
-                    },
-                ),
+                new CustomMatrixError('failed to search the user directory', 429, 'M_LIMIT_EXCEEDED', {
+                    reason: 'Too many requests',
+                    retry_after_ms: 2000,
+                }),
             );
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
@@ -2159,9 +2118,7 @@ describe('ClientWidgetApi', () => {
                 data: { search_term: 'foo' },
             };
 
-            await loadIframe([
-                'org.matrix.msc3973.user_directory_search',
-            ]);
+            await loadIframe(['org.matrix.msc3973.user_directory_search']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2199,9 +2156,7 @@ describe('ClientWidgetApi', () => {
             emitEvent(new CustomEvent('', { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                supported_versions: expect.arrayContaining([
-                    UnstableApiVersion.MSC4039,
-                ]),
+                supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4039]),
             });
         });
 
@@ -2218,9 +2173,7 @@ describe('ClientWidgetApi', () => {
                 data: {},
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.upload_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.upload_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2252,9 +2205,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.getMediaConfig.mockRejectedValue(
-                new Error("M_LIMIT_EXCEEDED: Too many requests"),
-            );
+            driver.getMediaConfig.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
 
             const event: IGetMediaConfigActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -2264,9 +2215,7 @@ describe('ClientWidgetApi', () => {
                 data: {},
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.upload_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.upload_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2281,15 +2230,10 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.getMediaConfig.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to get the media configuration',
-                    429,
-                    'M_LIMIT_EXCEEDED',
-                    {
-                        reason: 'Too many requests',
-                        retry_after_ms: 2000,
-                    },
-                ),
+                new CustomMatrixError('failed to get the media configuration', 429, 'M_LIMIT_EXCEEDED', {
+                    reason: 'Too many requests',
+                    retry_after_ms: 2000,
+                }),
             );
 
             const event: IGetMediaConfigActionFromWidgetActionRequest = {
@@ -2300,9 +2244,7 @@ describe('ClientWidgetApi', () => {
                 data: {},
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.upload_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.upload_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2340,9 +2282,7 @@ describe('ClientWidgetApi', () => {
             emitEvent(new CustomEvent('', { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                supported_versions: expect.arrayContaining([
-                    UnstableApiVersion.MSC4039,
-                ]),
+                supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4039]),
             });
         });
     });
@@ -2363,9 +2303,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.upload_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.upload_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2399,9 +2337,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.uploadFile.mockRejectedValue(
-                new Error("M_LIMIT_EXCEEDED: Too many requests"),
-            );
+            driver.uploadFile.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
 
             const event: IUploadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -2413,9 +2349,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.upload_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.upload_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2430,15 +2364,10 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.uploadFile.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to upload a file',
-                    429,
-                    'M_LIMIT_EXCEEDED',
-                    {
-                        reason: 'Too many requests',
-                        retry_after_ms: 2000,
-                    },
-                ),
+                new CustomMatrixError('failed to upload a file', 429, 'M_LIMIT_EXCEEDED', {
+                    reason: 'Too many requests',
+                    retry_after_ms: 2000,
+                }),
             );
 
             const event: IUploadFileActionFromWidgetActionRequest = {
@@ -2451,9 +2380,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.upload_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.upload_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2494,9 +2421,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.download_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.download_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2506,7 +2431,7 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.downloadFile).toHaveBeenCalledWith( 'mxc://example.com/test_file');
+            expect(driver.downloadFile).toHaveBeenCalledWith('mxc://example.com/test_file');
         });
 
         it('should reject requests when the capability was not requested', async () => {
@@ -2530,9 +2455,7 @@ describe('ClientWidgetApi', () => {
         });
 
         it('should reject requests when the driver throws an exception', async () => {
-            driver.downloadFile.mockRejectedValue(
-                new Error("M_LIMIT_EXCEEDED: Too many requests"),
-            );
+            driver.downloadFile.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
 
             const event: IDownloadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -2544,9 +2467,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.download_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.download_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 
@@ -2561,15 +2482,10 @@ describe('ClientWidgetApi', () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.downloadFile.mockRejectedValue(
-                new CustomMatrixError(
-                    'failed to download a file',
-                    429,
-                    'M_LIMIT_EXCEEDED',
-                    {
-                        reason: 'Too many requests',
-                        retry_after_ms: 2000,
-                    },
-                ),
+                new CustomMatrixError('failed to download a file', 429, 'M_LIMIT_EXCEEDED', {
+                    reason: 'Too many requests',
+                    retry_after_ms: 2000,
+                }),
             );
 
             const event: IDownloadFileActionFromWidgetActionRequest = {
@@ -2582,9 +2498,7 @@ describe('ClientWidgetApi', () => {
                 },
             };
 
-            await loadIframe([
-                'org.matrix.msc4039.download_file',
-            ]);
+            await loadIframe(['org.matrix.msc4039.download_file']);
 
             emitEvent(new CustomEvent('', { detail: event }));
 

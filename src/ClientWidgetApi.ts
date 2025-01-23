@@ -174,12 +174,7 @@ export class ClientWidgetApi extends EventEmitter {
         if (!driver) {
             throw new Error("Invalid driver");
         }
-        this.transport = new PostmessageTransport(
-            WidgetApiDirection.ToWidget,
-            widget.id,
-            iframe.contentWindow,
-            window,
-        );
+        this.transport = new PostmessageTransport(WidgetApiDirection.ToWidget, widget.id, iframe.contentWindow, window);
         this.transport.targetOrigin = widget.origin;
         this.transport.on("message", this.handleMessage.bind(this));
 
@@ -193,36 +188,38 @@ export class ClientWidgetApi extends EventEmitter {
     }
 
     public canUseRoomTimeline(roomId: string | Symbols.AnyRoom): boolean {
-        return this.hasCapability(`org.matrix.msc2762.timeline:${Symbols.AnyRoom}`)
-            || this.hasCapability(`org.matrix.msc2762.timeline:${roomId}`);
+        return (
+            this.hasCapability(`org.matrix.msc2762.timeline:${Symbols.AnyRoom}`) ||
+            this.hasCapability(`org.matrix.msc2762.timeline:${roomId}`)
+        );
     }
 
     public canSendRoomEvent(eventType: string, msgtype: string | null = null): boolean {
-        return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Send, eventType, msgtype));
+        return this.allowedEvents.some((e) => e.matchesAsRoomEvent(EventDirection.Send, eventType, msgtype));
     }
 
     public canSendStateEvent(eventType: string, stateKey: string): boolean {
-        return this.allowedEvents.some(e => e.matchesAsStateEvent(EventDirection.Send, eventType, stateKey));
+        return this.allowedEvents.some((e) => e.matchesAsStateEvent(EventDirection.Send, eventType, stateKey));
     }
 
     public canSendToDeviceEvent(eventType: string): boolean {
-        return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Send, eventType));
+        return this.allowedEvents.some((e) => e.matchesAsToDeviceEvent(EventDirection.Send, eventType));
     }
 
     public canReceiveRoomEvent(eventType: string, msgtype: string | null = null): boolean {
-        return this.allowedEvents.some(e => e.matchesAsRoomEvent(EventDirection.Receive, eventType, msgtype));
+        return this.allowedEvents.some((e) => e.matchesAsRoomEvent(EventDirection.Receive, eventType, msgtype));
     }
 
     public canReceiveStateEvent(eventType: string, stateKey: string | null): boolean {
-        return this.allowedEvents.some(e => e.matchesAsStateEvent(EventDirection.Receive, eventType, stateKey));
+        return this.allowedEvents.some((e) => e.matchesAsStateEvent(EventDirection.Receive, eventType, stateKey));
     }
 
     public canReceiveToDeviceEvent(eventType: string): boolean {
-        return this.allowedEvents.some(e => e.matchesAsToDeviceEvent(EventDirection.Receive, eventType));
+        return this.allowedEvents.some((e) => e.matchesAsToDeviceEvent(EventDirection.Receive, eventType));
     }
 
     public canReceiveRoomAccountData(eventType: string): boolean {
-        return this.allowedEvents.some(e => e.matchesAsRoomAccountData(EventDirection.Receive, eventType));
+        return this.allowedEvents.some((e) => e.matchesAsRoomAccountData(EventDirection.Receive, eventType));
     }
 
     public stop(): void {
@@ -235,17 +232,19 @@ export class ClientWidgetApi extends EventEmitter {
         this.emit("preparing");
 
         let requestedCaps: Capability[];
-        this.transport.send<IWidgetApiRequestEmptyData, ICapabilitiesActionResponseData>(
-            WidgetApiToWidgetAction.Capabilities, {},
-        ).then(caps => {
-            requestedCaps = caps.capabilities;
-            return this.driver.validateCapabilities(new Set(caps.capabilities));
-        }).then(allowedCaps => {
-            this.allowCapabilities([...allowedCaps], requestedCaps);
-            this.emit("ready");
-        }).catch(e => {
-            this.emit("error:preparing", e);
-        });
+        this.transport
+            .send<IWidgetApiRequestEmptyData, ICapabilitiesActionResponseData>(WidgetApiToWidgetAction.Capabilities, {})
+            .then((caps) => {
+                requestedCaps = caps.capabilities;
+                return this.driver.validateCapabilities(new Set(caps.capabilities));
+            })
+            .then((allowedCaps) => {
+                this.allowCapabilities([...allowedCaps], requestedCaps);
+                this.emit("ready");
+            })
+            .catch((e) => {
+                this.emit("error:preparing", e);
+            });
     }
 
     private allowCapabilities(allowed: string[], requested: string[]): void {
@@ -255,14 +254,17 @@ export class ClientWidgetApi extends EventEmitter {
         const allowedEvents = WidgetEventCapability.findEventCapabilities(allowed);
         this.allowedEvents.push(...allowedEvents);
 
-        this.transport.send(WidgetApiToWidgetAction.NotifyCapabilities, <INotifyCapabilitiesActionRequestData>{
-            requested,
-            approved: Array.from(this.allowedCapabilities),
-        }).catch(e => {
-            console.warn("non-fatal error notifying widget of approved capabilities:", e);
-        }).then(() => {
-            this.emit("capabilitiesNotified");
-        });
+        this.transport
+            .send(WidgetApiToWidgetAction.NotifyCapabilities, <INotifyCapabilitiesActionRequestData>{
+                requested,
+                approved: Array.from(this.allowedCapabilities),
+            })
+            .catch((e) => {
+                console.warn("non-fatal error notifying widget of approved capabilities:", e);
+            })
+            .then(() => {
+                this.emit("capabilitiesNotified");
+            });
 
         // Push the initial room state for all rooms with a timeline capability
         for (const c of allowed) {
@@ -307,14 +309,17 @@ export class ClientWidgetApi extends EventEmitter {
             this.contentLoadedWaitTimer = undefined;
         }
         if (this.contentLoadedActionSent) {
-            throw new Error("Improper sequence: ContentLoaded Action can only be sent once after the widget loaded "
-                            +"and should only be used if waitForIframeLoad is false (default=true)");
+            throw new Error(
+                "Improper sequence: ContentLoaded Action can only be sent once after the widget loaded " +
+                    "and should only be used if waitForIframeLoad is false (default=true)",
+            );
         }
         if (this.widget.waitForIframeLoad) {
             this.transport.reply(action, <IWidgetApiErrorResponseData>{
                 error: {
-                    message: "Improper sequence: not expecting ContentLoaded event if "
-                    +"waitForIframeLoad is true (default=true)",
+                    message:
+                        "Improper sequence: not expecting ContentLoaded event if " +
+                        "waitForIframeLoad is true (default=true)",
                 },
             });
         } else {
@@ -335,26 +340,27 @@ export class ClientWidgetApi extends EventEmitter {
         this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
 
         const requested = request.data?.capabilities || [];
-        const newlyRequested = new Set(requested.filter(r => !this.hasCapability(r)));
+        const newlyRequested = new Set(requested.filter((r) => !this.hasCapability(r)));
         if (newlyRequested.size === 0) {
             // Nothing to do - skip validation
             this.allowCapabilities([], []);
         }
 
-        this.driver.validateCapabilities(newlyRequested)
-            .then(allowed => this.allowCapabilities([...allowed], [...newlyRequested]));
+        this.driver
+            .validateCapabilities(newlyRequested)
+            .then((allowed) => this.allowCapabilities([...allowed], [...newlyRequested]));
     }
 
     private handleNavigate(request: INavigateActionRequest): void {
         if (!this.hasCapability(MatrixCapabilities.MSC2931Navigate)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Missing capability"},
+                error: { message: "Missing capability" },
             });
         }
 
         if (!request.data?.uri || !request.data?.uri.toString().startsWith("https://matrix.to/#")) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid matrix.to URI"},
+                error: { message: "Invalid matrix.to URI" },
             });
         }
 
@@ -364,9 +370,12 @@ export class ClientWidgetApi extends EventEmitter {
         };
 
         try {
-            this.driver.navigate(request.data.uri.toString()).catch((e: unknown) => onErr(e)).then(() => {
-                return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
-            });
+            this.driver
+                .navigate(request.data.uri.toString())
+                .catch((e: unknown) => onErr(e))
+                .then(() => {
+                    return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+                });
         } catch (e) {
             return onErr(e);
         }
@@ -375,7 +384,10 @@ export class ClientWidgetApi extends EventEmitter {
     private handleOIDC(request: IGetOpenIDActionRequest): void {
         let phase = 1; // 1 = initial request, 2 = after user manual confirmation
 
-        const replyState = (state: OpenIDRequestState, credential?: IOpenIDCredentials): void | Promise<IWidgetApiAcknowledgeResponseData> => {
+        const replyState = (
+            state: OpenIDRequestState,
+            credential?: IOpenIDCredentials,
+        ): void | Promise<IWidgetApiAcknowledgeResponseData> => {
             credential = credential || {};
             if (phase > 1) {
                 return this.transport.send<IOpenIDCredentialsActionRequestData>(
@@ -402,12 +414,12 @@ export class ClientWidgetApi extends EventEmitter {
                 return replyState(OpenIDRequestState.Blocked);
             } else {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: msg},
+                    error: { message: msg },
                 });
             }
         };
 
-        const observer = new SimpleObservable<IOpenIDUpdate>(update => {
+        const observer = new SimpleObservable<IOpenIDUpdate>((update) => {
             if (update.state === OpenIDRequestState.PendingUserConfirmation && phase > 1) {
                 observer.close();
                 return replyError("client provided out-of-phase response to OIDC flow");
@@ -438,24 +450,24 @@ export class ClientWidgetApi extends EventEmitter {
 
         if (!this.canReceiveRoomAccountData(request.data.type)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Cannot read room account data of this type"},
+                error: { message: "Cannot read room account data of this type" },
             });
         }
 
         return events.then((evs) => {
-            this.transport.reply<IReadRoomAccountDataFromWidgetResponseData>(request, {events: evs});
+            this.transport.reply<IReadRoomAccountDataFromWidgetResponseData>(request, { events: evs });
         });
     }
 
     private async handleReadEvents(request: IReadEventFromWidgetActionRequest): Promise<void> {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing event type"},
+                error: { message: "Invalid request - missing event type" },
             });
         }
         if (request.data.limit !== undefined && (!request.data.limit || request.data.limit < 0)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - limit out of range"},
+                error: { message: "Invalid request - limit out of range" },
             });
         }
 
@@ -463,13 +475,13 @@ export class ClientWidgetApi extends EventEmitter {
         if (request.data.room_ids === undefined) {
             askRoomIds = this.viewedRoomId === null ? [] : [this.viewedRoomId];
         } else if (request.data.room_ids === Symbols.AnyRoom) {
-            askRoomIds = this.driver.getKnownRooms().filter(roomId => this.canUseRoomTimeline(roomId));
+            askRoomIds = this.driver.getKnownRooms().filter((roomId) => this.canUseRoomTimeline(roomId));
         } else {
             askRoomIds = request.data.room_ids;
             for (const roomId of askRoomIds) {
                 if (!this.canUseRoomTimeline(roomId)) {
                     return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                        error: {message: `Unable to access room timeline: ${roomId}`},
+                        error: { message: `Unable to access room timeline: ${roomId}` },
                     });
                 }
             }
@@ -484,14 +496,14 @@ export class ClientWidgetApi extends EventEmitter {
             stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
             if (!this.canReceiveStateEvent(request.data.type, stateKey ?? null)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Cannot read state events of this type"},
+                    error: { message: "Cannot read state events of this type" },
                 });
             }
         } else {
             msgtype = request.data.msgtype;
             if (!this.canReceiveRoomEvent(request.data.type, msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Cannot read room events of this type"},
+                    error: { message: "Cannot read room events of this type" },
                 });
             }
         }
@@ -499,45 +511,46 @@ export class ClientWidgetApi extends EventEmitter {
         // For backwards compatibility we still call the deprecated
         // readRoomEvents and readStateEvents methods in case the client isn't
         // letting us know the currently viewed room via setViewedRoomId
-        const events = request.data.room_ids === undefined && askRoomIds.length === 0
-            ? await (
-                request.data.state_key === undefined
-                    ? this.driver.readRoomEvents(request.data.type, msgtype, limit, null, since)
-                    : this.driver.readStateEvents(request.data.type, stateKey, limit, null)
-            )
-            : (
-                await Promise.all(askRoomIds.map(roomId =>
-                    this.driver.readRoomTimeline(roomId, request.data.type, msgtype, stateKey, limit, since),
-                ))
-            ).flat(1);
+        const events =
+            request.data.room_ids === undefined && askRoomIds.length === 0
+                ? await (request.data.state_key === undefined
+                      ? this.driver.readRoomEvents(request.data.type, msgtype, limit, null, since)
+                      : this.driver.readStateEvents(request.data.type, stateKey, limit, null))
+                : (
+                      await Promise.all(
+                          askRoomIds.map((roomId) =>
+                              this.driver.readRoomTimeline(roomId, request.data.type, msgtype, stateKey, limit, since),
+                          ),
+                      )
+                  ).flat(1);
         this.transport.reply<IReadEventFromWidgetResponseData>(request, { events });
     }
 
     private handleSendEvent(request: ISendEventFromWidgetActionRequest): void {
         if (!request.data.type) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing event type"},
+                error: { message: "Invalid request - missing event type" },
             });
         }
 
         if (!!request.data.room_id && !this.canUseRoomTimeline(request.data.room_id)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: `Unable to access room timeline: ${request.data.room_id}`},
+                error: { message: `Unable to access room timeline: ${request.data.room_id}` },
             });
         }
 
         const isDelayedEvent = request.data.delay !== undefined || request.data.parent_delay_id !== undefined;
         if (isDelayedEvent && !this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Missing capability"},
+                error: { message: "Missing capability" },
             });
         }
 
-        let sendEventPromise: Promise<ISendEventDetails|ISendDelayedEventDetails>;
+        let sendEventPromise: Promise<ISendEventDetails | ISendDelayedEventDetails>;
         if (request.data.state_key !== undefined) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Cannot send state events of this type"},
+                    error: { message: "Cannot send state events of this type" },
                 });
             }
 
@@ -559,11 +572,11 @@ export class ClientWidgetApi extends EventEmitter {
                 );
             }
         } else {
-            const content = request.data.content as { msgtype?: string } || {};
-            const msgtype = content['msgtype'];
+            const content = (request.data.content as { msgtype?: string }) || {};
+            const msgtype = content["msgtype"];
             if (!this.canSendRoomEvent(request.data.type, msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Cannot send room events of this type"},
+                    error: { message: "Cannot send room events of this type" },
                 });
             }
 
@@ -586,31 +599,35 @@ export class ClientWidgetApi extends EventEmitter {
             }
         }
 
-        sendEventPromise.then(sentEvent => {
-            return this.transport.reply<ISendEventFromWidgetResponseData>(request, {
-                room_id: sentEvent.roomId,
-                ...("eventId" in sentEvent ? {
-                    event_id: sentEvent.eventId,
-                } : {
-                    delay_id: sentEvent.delayId,
-                }),
+        sendEventPromise
+            .then((sentEvent) => {
+                return this.transport.reply<ISendEventFromWidgetResponseData>(request, {
+                    room_id: sentEvent.roomId,
+                    ...("eventId" in sentEvent
+                        ? {
+                              event_id: sentEvent.eventId,
+                          }
+                        : {
+                              delay_id: sentEvent.delayId,
+                          }),
+                });
+            })
+            .catch((e: unknown) => {
+                console.error("error sending event: ", e);
+                this.handleDriverError(e, request, "Error sending event");
             });
-        }).catch((e: unknown) => {
-            console.error("error sending event: ", e);
-            this.handleDriverError(e, request, "Error sending event");
-        });
     }
 
     private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest): void {
         if (!request.data.delay_id) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing delay_id"},
+                error: { message: "Invalid request - missing delay_id" },
             });
         }
 
         if (!this.hasCapability(MatrixCapabilities.MSC4157UpdateDelayedEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Missing capability"},
+                error: { message: "Missing capability" },
             });
         }
 
@@ -618,16 +635,19 @@ export class ClientWidgetApi extends EventEmitter {
             case UpdateDelayedEventAction.Cancel:
             case UpdateDelayedEventAction.Restart:
             case UpdateDelayedEventAction.Send:
-                this.driver.updateDelayedEvent(request.data.delay_id, request.data.action).then(() => {
-                    return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
-                }).catch((e: unknown) => {
-                    console.error("error updating delayed event: ", e);
-                    this.handleDriverError(e, request, "Error updating delayed event");
-                });
+                this.driver
+                    .updateDelayedEvent(request.data.delay_id, request.data.action)
+                    .then(() => {
+                        return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+                    })
+                    .catch((e: unknown) => {
+                        console.error("error updating delayed event: ", e);
+                        this.handleDriverError(e, request, "Error updating delayed event");
+                    });
                 break;
             default:
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "Invalid request - unsupported action"},
+                    error: { message: "Invalid request - unsupported action" },
                 });
         }
     }
@@ -635,19 +655,19 @@ export class ClientWidgetApi extends EventEmitter {
     private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {
         if (!request.data.type) {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing event type"},
+                error: { message: "Invalid request - missing event type" },
             });
         } else if (!request.data.messages) {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing event contents"},
+                error: { message: "Invalid request - missing event contents" },
             });
         } else if (typeof request.data.encrypted !== "boolean") {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Invalid request - missing encryption flag"},
+                error: { message: "Invalid request - missing encryption flag" },
             });
         } else if (!this.canSendToDeviceEvent(request.data.type)) {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Cannot send to-device events of this type"},
+                error: { message: "Cannot send to-device events of this type" },
             });
         } else {
             try {
@@ -682,7 +702,7 @@ export class ClientWidgetApi extends EventEmitter {
     private async handleWatchTurnServers(request: IWatchTurnServersRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC3846TurnServers)) {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Missing capability"},
+                error: { message: "Missing capability" },
             });
         } else if (this.turnServers) {
             // We're already polling, so this is a no-op
@@ -703,7 +723,7 @@ export class ClientWidgetApi extends EventEmitter {
             } catch (e) {
                 console.error("error getting first TURN server results", e);
                 await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {message: "TURN servers not available"},
+                    error: { message: "TURN servers not available" },
                 });
             }
         }
@@ -712,7 +732,7 @@ export class ClientWidgetApi extends EventEmitter {
     private async handleUnwatchTurnServers(request: IUnwatchTurnServersRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC3846TurnServers)) {
             await this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {message: "Missing capability"},
+                error: { message: "Missing capability" },
             });
         } else if (!this.turnServers) {
             // We weren't polling anyways, so this is a no-op
@@ -746,28 +766,30 @@ export class ClientWidgetApi extends EventEmitter {
 
         try {
             const result = await this.driver.readEventRelations(
-                request.data.event_id, request.data.room_id, request.data.rel_type,
-                request.data.event_type, request.data.from, request.data.to,
-                request.data.limit, request.data.direction,
+                request.data.event_id,
+                request.data.room_id,
+                request.data.rel_type,
+                request.data.event_type,
+                request.data.from,
+                request.data.to,
+                request.data.limit,
+                request.data.direction,
             );
 
             // only return events that the user has the permission to receive
-            const chunk = result.chunk.filter(e => {
+            const chunk = result.chunk.filter((e) => {
                 if (e.state_key !== undefined) {
                     return this.canReceiveStateEvent(e.type, e.state_key);
                 } else {
-                    return this.canReceiveRoomEvent(e.type, (e.content as { msgtype?: string })['msgtype']);
+                    return this.canReceiveRoomEvent(e.type, (e.content as { msgtype?: string })["msgtype"]);
                 }
             });
 
-            return this.transport.reply<IReadRelationsFromWidgetResponseData>(
-                request,
-                {
-                    chunk,
-                    prev_batch: result.prevBatch,
-                    next_batch: result.nextBatch,
-                },
-            );
+            return this.transport.reply<IReadRelationsFromWidgetResponseData>(request, {
+                chunk,
+                prev_batch: result.prevBatch,
+                next_batch: result.nextBatch,
+            });
         } catch (e) {
             console.error("error getting the relations", e);
             this.handleDriverError(e, request, "Unexpected error while reading relations");
@@ -781,7 +803,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        if (typeof request.data.search_term !== 'string') {
+        if (typeof request.data.search_term !== "string") {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Invalid request - missing search term" },
             });
@@ -794,21 +816,16 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         try {
-            const result = await this.driver.searchUserDirectory(
-                request.data.search_term, request.data.limit,
-            );
+            const result = await this.driver.searchUserDirectory(request.data.search_term, request.data.limit);
 
-            return this.transport.reply<IUserDirectorySearchFromWidgetResponseData>(
-                request,
-                {
-                    limited: result.limited,
-                    results: result.results.map(r => ({
-                        user_id: r.userId,
-                        display_name: r.displayName,
-                        avatar_url: r.avatarUrl,
-                    })),
-                },
-            );
+            return this.transport.reply<IUserDirectorySearchFromWidgetResponseData>(request, {
+                limited: result.limited,
+                results: result.results.map((r) => ({
+                    user_id: r.userId,
+                    display_name: r.displayName,
+                    avatar_url: r.avatarUrl,
+                })),
+            });
         } catch (e) {
             console.error("error searching in the user directory", e);
             this.handleDriverError(e, request, "Unexpected error while searching in the user directory");
@@ -825,10 +842,7 @@ export class ClientWidgetApi extends EventEmitter {
         try {
             const result = await this.driver.getMediaConfig();
 
-            return this.transport.reply<IGetMediaConfigActionFromWidgetResponseData>(
-                request,
-                result,
-            );
+            return this.transport.reply<IGetMediaConfigActionFromWidgetResponseData>(request, result);
         } catch (e) {
             console.error("error while getting the media configuration", e);
             this.handleDriverError(e, request, "Unexpected error while getting the media configuration");
@@ -845,10 +859,9 @@ export class ClientWidgetApi extends EventEmitter {
         try {
             const result = await this.driver.uploadFile(request.data.file);
 
-            return this.transport.reply<IUploadFileActionFromWidgetResponseData>(
-                request,
-                { content_uri: result.contentUri },
-            );
+            return this.transport.reply<IUploadFileActionFromWidgetResponseData>(request, {
+                content_uri: result.contentUri,
+            });
         } catch (e) {
             console.error("error while uploading a file", e);
             this.handleDriverError(e, request, "Unexpected error while uploading a file");
@@ -865,10 +878,7 @@ export class ClientWidgetApi extends EventEmitter {
         try {
             const result = await this.driver.downloadFile(request.data.content_uri);
 
-            return this.transport.reply<IDownloadFileActionFromWidgetResponseData>(
-                request,
-                { file: result.file },
-            );
+            return this.transport.reply<IDownloadFileActionFromWidgetResponseData>(request, { file: result.file });
         } catch (e) {
             console.error("error while downloading a file", e);
             this.handleDriverError(e, request, "Unexpected error while downloading a file");
@@ -980,15 +990,13 @@ export class ClientWidgetApi extends EventEmitter {
     }
 
     public notifyModalWidgetButtonClicked(id: IModalWidgetOpenRequestDataButton["id"]): Promise<void> {
-        return this.transport.send<IModalWidgetButtonClickedRequestData>(
-            WidgetApiToWidgetAction.ButtonClicked, {id},
-        ).then();
+        return this.transport
+            .send<IModalWidgetButtonClickedRequestData>(WidgetApiToWidgetAction.ButtonClicked, { id })
+            .then();
     }
 
     public notifyModalWidgetClose(data: IModalWidgetReturnData): Promise<void> {
-        return this.transport.send<IModalWidgetReturnData>(
-            WidgetApiToWidgetAction.CloseModalWidget, data,
-        ).then();
+        return this.transport.send<IModalWidgetReturnData>(WidgetApiToWidgetAction.CloseModalWidget, data).then();
     }
 
     /**
@@ -1087,10 +1095,9 @@ export class ClientWidgetApi extends EventEmitter {
                     events.push(...stateKeyMap.values());
                 }
             }
-            await this.transport.send<IUpdateStateToWidgetRequestData>(
-                WidgetApiToWidgetAction.UpdateState,
-                { state: events },
-            );
+            await this.transport.send<IUpdateStateToWidgetRequestData>(WidgetApiToWidgetAction.UpdateState, {
+                state: events,
+            });
         } finally {
             this.flushRoomStateTask = null;
         }
@@ -1105,38 +1112,42 @@ export class ClientWidgetApi extends EventEmitter {
             if (cap.kind === EventKind.State && cap.direction === EventDirection.Receive) {
                 // Initiate the task
                 const events = this.driver.readRoomState(roomId, cap.eventType, cap.keyStr ?? undefined);
-                const task = events.then(
-                    events => {
-                        // When complete, queue the resulting events to be
-                        // pushed to the widget
-                        for (const event of events) {
-                            let eventTypeMap = this.pushRoomStateResult.get(roomId);
-                            if (eventTypeMap === undefined) {
-                                eventTypeMap = new Map();
-                                this.pushRoomStateResult.set(roomId, eventTypeMap);
+                const task = events
+                    .then(
+                        (events) => {
+                            // When complete, queue the resulting events to be
+                            // pushed to the widget
+                            for (const event of events) {
+                                let eventTypeMap = this.pushRoomStateResult.get(roomId);
+                                if (eventTypeMap === undefined) {
+                                    eventTypeMap = new Map();
+                                    this.pushRoomStateResult.set(roomId, eventTypeMap);
+                                }
+                                let stateKeyMap = eventTypeMap.get(cap.eventType);
+                                if (stateKeyMap === undefined) {
+                                    stateKeyMap = new Map();
+                                    eventTypeMap.set(cap.eventType, stateKeyMap);
+                                }
+                                if (!stateKeyMap.has(event.state_key!)) stateKeyMap.set(event.state_key!, event);
                             }
-                            let stateKeyMap = eventTypeMap.get(cap.eventType);
-                            if (stateKeyMap === undefined) {
-                                stateKeyMap = new Map();
-                                eventTypeMap.set(cap.eventType, stateKeyMap);
-                            }
-                            if (!stateKeyMap.has(event.state_key!)) stateKeyMap.set(event.state_key!, event);
-                        }
-                    },
-                    e => console.error(`Failed to read room state for ${roomId} (${
-                        cap.eventType
-                    }, ${cap.keyStr})`, e),
-                ).then(() => {
-                    // Mark request as no longer pending
-                    this.pushRoomStateTasks.delete(task);
-                });
+                        },
+                        (e) =>
+                            console.error(
+                                `Failed to read room state for ${roomId} (${cap.eventType}, ${cap.keyStr})`,
+                                e,
+                            ),
+                    )
+                    .then(() => {
+                        // Mark request as no longer pending
+                        this.pushRoomStateTasks.delete(task);
+                    });
 
                 // Mark task as pending
                 this.pushRoomStateTasks.add(task);
                 // Assuming no other tasks are already happening concurrently,
                 // schedule the widget action that actually pushes the events
                 this.flushRoomStateTask ??= this.flushRoomState();
-                this.flushRoomStateTask.catch(e => console.error('Failed to push room state', e));
+                this.flushRoomStateTask.catch((e) => console.error("Failed to push room state", e));
             }
         }
     }
@@ -1152,18 +1163,17 @@ export class ClientWidgetApi extends EventEmitter {
          widget failed to handle the update.
      */
     public async feedStateUpdate(rawEvent: IRoomEvent): Promise<void> {
-        if (rawEvent.state_key === undefined) throw new Error('Not a state event');
+        if (rawEvent.state_key === undefined) throw new Error("Not a state event");
         if (
-            (rawEvent.room_id === this.viewedRoomId || this.canUseRoomTimeline(rawEvent.room_id))
-            && this.canReceiveStateEvent(rawEvent.type, rawEvent.state_key)
+            (rawEvent.room_id === this.viewedRoomId || this.canUseRoomTimeline(rawEvent.room_id)) &&
+            this.canReceiveStateEvent(rawEvent.type, rawEvent.state_key)
         ) {
             // Updates could race with the initial push of the room's state
             if (this.pushRoomStateTasks.size === 0) {
                 // No initial push tasks are pending; safe to send immediately
-                await this.transport.send<IUpdateStateToWidgetRequestData>(
-                    WidgetApiToWidgetAction.UpdateState,
-                    { state: [rawEvent] },
-                );
+                await this.transport.send<IUpdateStateToWidgetRequestData>(WidgetApiToWidgetAction.UpdateState, {
+                    state: [rawEvent],
+                });
             } else {
                 // Lump the update in with whatever data will be sent in the
                 // initial push later. Even if we set it to an "outdated" entry

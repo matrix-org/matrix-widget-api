@@ -10,13 +10,8 @@
     "outDir": "./lib",
     "declaration": true,
     "types": ["jest"],
-    "lib": [
-      "es2020",
-      "dom"
-    ],
+    "lib": ["es2020", "dom"],
     "strict": true
   },
-  "include": [
-    "./src/**/*.ts"
-  ]
+  "include": ["./src/**/*.ts"]
 }
