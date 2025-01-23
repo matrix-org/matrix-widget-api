@@ -1,10 +1,6 @@
 module.exports = {
   plugins: ["matrix-org"],
-  extends: [
-    "plugin:matrix-org/babel",
-    "plugin:matrix-org/typescript",
-    "prettier",
-  ],
+  extends: ["plugin:matrix-org/babel"],
   parserOptions: {
     project: ["./tsconfig-dev.json"],
   },
@@ -38,7 +34,7 @@ module.exports = {
   overrides: [
     {
       files: ["src/**/*.ts", "test/**/*.ts"],
-      extends: ["plugin:matrix-org/typescript"],
+      extends: ["plugin:matrix-org/typescript", "prettier"],
       rules: {
         // TypeScript has its own version of this
         "babel/no-invalid-this": "off",
