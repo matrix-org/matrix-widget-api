@@ -14,21 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { env } from "process";
+import { env } from "process"
 
-import type { Config } from "jest";
+import type { Config } from "jest"
 
 const config: Config = {
-  testEnvironment: "jsdom",
-  testMatch: ["<rootDir>/test/**/*-test.[jt]s?(x)"],
-  collectCoverageFrom: ["<rootDir>/src/**/*.{js,ts,tsx}"],
-  coverageReporters: ["text-summary", "lcov"],
-  testResultsProcessor: "@casualbot/jest-sonar-reporter",
-};
+    testEnvironment: "jsdom",
+    testMatch: ["<rootDir>/test/**/*-test.[jt]s?(x)"],
+    collectCoverageFrom: ["<rootDir>/src/**/*.{js,ts,tsx}"],
+    coverageReporters: ["text-summary", "lcov"],
+    testResultsProcessor: "@casualbot/jest-sonar-reporter",
+}
 
 // if we're running under GHA, enable the GHA reporter
 if (env["GITHUB_ACTIONS"] !== undefined) {
-  config.reporters = [["github-actions", { silent: false }], "summary"];
+    config.reporters = [["github-actions", { silent: false }], "summary"]
 }
 
-export default config;
+export default config

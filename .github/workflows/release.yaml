@@ -1,59 +1,59 @@
 name: Release Automation
 on:
-  workflow_dispatch:
-    inputs:
-      version-bump:
-        description: The scale of the version bump required for semver compatibility
-        required: true
-        default: patch
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+    workflow_dispatch:
+        inputs:
+            version-bump:
+                description: The scale of the version bump required for semver compatibility
+                required: true
+                default: patch
+                type: choice
+                options:
+                    - patch
+                    - minor
+                    - major
 concurrency: release
 permissions:
-  contents: write
+    contents: write
 jobs:
-  release:
-    name: "Release & Publish"
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🧮 Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.ELEMENT_BOT_TOKEN }}
+    release:
+        name: "Release & Publish"
+        runs-on: ubuntu-latest
+        steps:
+            - name: 🧮 Checkout code
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.ELEMENT_BOT_TOKEN }}
 
-      - name: 🔧 Set up node environment
-        uses: actions/setup-node@v4
-        with:
-          cache: "yarn"
+            - name: 🔧 Set up node environment
+              uses: actions/setup-node@v4
+              with:
+                  cache: "yarn"
 
-      - name: 🛠️ Setup
-        run: yarn install --pure-lockfile
+            - name: 🛠️ Setup
+              run: yarn install --pure-lockfile
 
-      - name: 👊 Bump version
-        run: |
-          yarn version --no-git-tag-version --${{ github.event.inputs.version-bump }}
-          git config --global user.name 'ElementRobot'
-          git config --global user.email 'releases@riot.im'
-          git commit -am "${{ github.event.inputs.version-bump }} version bump"
-          git push
+            - name: 👊 Bump version
+              run: |
+                  yarn version --no-git-tag-version --${{ github.event.inputs.version-bump }}
+                  git config --global user.name 'ElementRobot'
+                  git config --global user.email 'releases@riot.im'
+                  git commit -am "${{ github.event.inputs.version-bump }} version bump"
+                  git push
 
-      - name: 📖 Build lib
-        run: yarn build
+            - name: 📖 Build lib
+              run: yarn build
 
-      - name: 🚀 Publish to npm
-        id: npm-publish
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          access: public
+            - name: 🚀 Publish to npm
+              id: npm-publish
+              uses: JS-DevTools/npm-publish@v3
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+                  access: public
 
-      - name: 🧬 Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.npm-publish.outputs.version }}
-          body: ${{ steps.npm-publish.outputs.version }} Release
-          draft: false
-          prerelease: false
+            - name: 🧬 Create release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: v${{ steps.npm-publish.outputs.version }}
+                  body: ${{ steps.npm-publish.outputs.version }} Release
+                  draft: false
+                  prerelease: false

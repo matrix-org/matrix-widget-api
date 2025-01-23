@@ -15,7 +15,7 @@
  */
 
 export enum WidgetKind {
-  Room = "room",
-  Account = "account",
-  Modal = "modal",
+    Room = "room",
+    Account = "account",
+    Modal = "modal",
 }

@@ -14,50 +14,50 @@
  * limitations under the License.
  */
 
-import { runTemplate } from "../src";
+import { runTemplate } from "../src"
 
 describe("runTemplate", () => {
-  it("should replace device id template in url", () => {
-    const url =
-      "https://localhost/?my-query#device_id=$org.matrix.msc3819.matrix_device_id";
-    const replacedUrl = runTemplate(
-      url,
-      {
-        id: "widget-id",
-        creatorUserId: "@user-id",
-        type: "type",
-        url,
-      },
-      {
-        deviceId: "my-device-id",
-        currentUserId: "@user-id",
-      },
-    );
+    it("should replace device id template in url", () => {
+        const url =
+            "https://localhost/?my-query#device_id=$org.matrix.msc3819.matrix_device_id"
+        const replacedUrl = runTemplate(
+            url,
+            {
+                id: "widget-id",
+                creatorUserId: "@user-id",
+                type: "type",
+                url,
+            },
+            {
+                deviceId: "my-device-id",
+                currentUserId: "@user-id",
+            },
+        )
 
-    expect(replacedUrl).toBe(
-      "https://localhost/?my-query#device_id=my-device-id",
-    );
-  });
+        expect(replacedUrl).toBe(
+            "https://localhost/?my-query#device_id=my-device-id",
+        )
+    })
 
-  it("should replace base url template in url", () => {
-    const url =
-      "https://localhost/?my-query#base_url=$org.matrix.msc4039.matrix_base_url";
-    const replacedUrl = runTemplate(
-      url,
-      {
-        id: "widget-id",
-        creatorUserId: "@user-id",
-        type: "type",
-        url,
-      },
-      {
-        currentUserId: "@user-id",
-        baseUrl: "https://localhost/api",
-      },
-    );
+    it("should replace base url template in url", () => {
+        const url =
+            "https://localhost/?my-query#base_url=$org.matrix.msc4039.matrix_base_url"
+        const replacedUrl = runTemplate(
+            url,
+            {
+                id: "widget-id",
+                creatorUserId: "@user-id",
+                type: "type",
+                url,
+            },
+            {
+                currentUserId: "@user-id",
+                baseUrl: "https://localhost/api",
+            },
+        )
 
-    expect(replacedUrl).toBe(
-      "https://localhost/?my-query#base_url=https%3A%2F%2Flocalhost%2Fapi",
-    );
-  });
-});
+        expect(replacedUrl).toBe(
+            "https://localhost/?my-query#base_url=https%3A%2F%2Flocalhost%2Fapi",
+        )
+    })
+})

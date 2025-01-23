@@ -1,5 +1,5 @@
 {
-  "sourceMaps": true,
-  "presets": ["@babel/preset-env", "@babel/preset-typescript"],
-  "plugins": ["@babel/plugin-proposal-class-properties"]
+    "sourceMaps": true,
+    "presets": ["@babel/preset-env", "@babel/preset-typescript"],
+    "plugins": ["@babel/plugin-proposal-class-properties"]
 }

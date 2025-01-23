@@ -16,24 +16,24 @@
 
 html,
 body {
-  background-color: #ffffff;
-  color: #000000;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  padding: 20px;
+    padding: 20px;
 }
 
 button {
-  border: none;
-  color: #ffffff;
-  background-color: #2a9d8f;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
+    border: none;
+    color: #ffffff;
+    background-color: #2a9d8f;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
 }
 
 #stickyState {
-  color: #3d5a80;
+    color: #3d5a80;
 }

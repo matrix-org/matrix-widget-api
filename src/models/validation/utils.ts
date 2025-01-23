@@ -16,10 +16,10 @@
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function assertPresent<O extends Record<any, any>>(
-  obj: O,
-  key: keyof O,
+    obj: O,
+    key: keyof O,
 ): void {
-  if (!obj[key]) {
-    throw new Error(`${String(key)} is required`);
-  }
+    if (!obj[key]) {
+        throw new Error(`${String(key)} is required`)
+    }
 }

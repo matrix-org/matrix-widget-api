@@ -14,127 +14,127 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "events"
 
-import { Capability } from "./interfaces/Capabilities";
+import { Capability } from "./interfaces/Capabilities"
 import {
-  IWidgetApiRequest,
-  IWidgetApiRequestEmptyData,
-} from "./interfaces/IWidgetApiRequest";
-import { IWidgetApiAcknowledgeResponseData } from "./interfaces/IWidgetApiResponse";
-import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
+    IWidgetApiRequest,
+    IWidgetApiRequestEmptyData,
+} from "./interfaces/IWidgetApiRequest"
+import { IWidgetApiAcknowledgeResponseData } from "./interfaces/IWidgetApiResponse"
+import { WidgetApiDirection } from "./interfaces/WidgetApiDirection"
 import {
-  ISupportedVersionsActionRequest,
-  ISupportedVersionsActionResponseData,
-} from "./interfaces/SupportedVersionsAction";
+    ISupportedVersionsActionRequest,
+    ISupportedVersionsActionResponseData,
+} from "./interfaces/SupportedVersionsAction"
 import {
-  ApiVersion,
-  CurrentApiVersions,
-  UnstableApiVersion,
-} from "./interfaces/ApiVersion";
+    ApiVersion,
+    CurrentApiVersions,
+    UnstableApiVersion,
+} from "./interfaces/ApiVersion"
 import {
-  ICapabilitiesActionRequest,
-  ICapabilitiesActionResponseData,
-  INotifyCapabilitiesActionRequest,
-  IRenegotiateCapabilitiesRequestData,
-} from "./interfaces/CapabilitiesAction";
-import { ITransport } from "./transport/ITransport";
-import { PostmessageTransport } from "./transport/PostmessageTransport";
+    ICapabilitiesActionRequest,
+    ICapabilitiesActionResponseData,
+    INotifyCapabilitiesActionRequest,
+    IRenegotiateCapabilitiesRequestData,
+} from "./interfaces/CapabilitiesAction"
+import { ITransport } from "./transport/ITransport"
+import { PostmessageTransport } from "./transport/PostmessageTransport"
 import {
-  WidgetApiFromWidgetAction,
-  WidgetApiToWidgetAction,
-} from "./interfaces/WidgetApiAction";
+    WidgetApiFromWidgetAction,
+    WidgetApiToWidgetAction,
+} from "./interfaces/WidgetApiAction"
 import {
-  IWidgetApiErrorResponseData,
-  IWidgetApiErrorResponseDataDetails,
-} from "./interfaces/IWidgetApiErrorResponse";
-import { IStickerActionRequestData } from "./interfaces/StickerAction";
+    IWidgetApiErrorResponseData,
+    IWidgetApiErrorResponseDataDetails,
+} from "./interfaces/IWidgetApiErrorResponse"
+import { IStickerActionRequestData } from "./interfaces/StickerAction"
 import {
-  IStickyActionRequestData,
-  IStickyActionResponseData,
-} from "./interfaces/StickyAction";
+    IStickyActionRequestData,
+    IStickyActionResponseData,
+} from "./interfaces/StickyAction"
 import {
-  IGetOpenIDActionRequestData,
-  IGetOpenIDActionResponse,
-  IOpenIDCredentials,
-  OpenIDRequestState,
-} from "./interfaces/GetOpenIDAction";
-import { IOpenIDCredentialsActionRequest } from "./interfaces/OpenIDCredentialsAction";
-import { MatrixWidgetType, WidgetType } from "./interfaces/WidgetType";
+    IGetOpenIDActionRequestData,
+    IGetOpenIDActionResponse,
+    IOpenIDCredentials,
+    OpenIDRequestState,
+} from "./interfaces/GetOpenIDAction"
+import { IOpenIDCredentialsActionRequest } from "./interfaces/OpenIDCredentialsAction"
+import { MatrixWidgetType, WidgetType } from "./interfaces/WidgetType"
 import {
-  BuiltInModalButtonID,
-  IModalWidgetCreateData,
-  IModalWidgetOpenRequestData,
-  IModalWidgetOpenRequestDataButton,
-  IModalWidgetReturnData,
-  ModalButtonID,
-} from "./interfaces/ModalWidgetActions";
-import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
+    BuiltInModalButtonID,
+    IModalWidgetCreateData,
+    IModalWidgetOpenRequestData,
+    IModalWidgetOpenRequestDataButton,
+    IModalWidgetReturnData,
+    ModalButtonID,
+} from "./interfaces/ModalWidgetActions"
+import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction"
 import {
-  ISendEventFromWidgetRequestData,
-  ISendEventFromWidgetResponseData,
-} from "./interfaces/SendEventAction";
+    ISendEventFromWidgetRequestData,
+    ISendEventFromWidgetResponseData,
+} from "./interfaces/SendEventAction"
 import {
-  ISendToDeviceFromWidgetRequestData,
-  ISendToDeviceFromWidgetResponseData,
-} from "./interfaces/SendToDeviceAction";
+    ISendToDeviceFromWidgetRequestData,
+    ISendToDeviceFromWidgetResponseData,
+} from "./interfaces/SendToDeviceAction"
 import {
-  EventDirection,
-  WidgetEventCapability,
-} from "./models/WidgetEventCapability";
-import { INavigateActionRequestData } from "./interfaces/NavigateAction";
+    EventDirection,
+    WidgetEventCapability,
+} from "./models/WidgetEventCapability"
+import { INavigateActionRequestData } from "./interfaces/NavigateAction"
 import {
-  IReadEventFromWidgetRequestData,
-  IReadEventFromWidgetResponseData,
-} from "./interfaces/ReadEventAction";
+    IReadEventFromWidgetRequestData,
+    IReadEventFromWidgetResponseData,
+} from "./interfaces/ReadEventAction"
 import {
-  IReadRoomAccountDataFromWidgetRequestData,
-  IReadRoomAccountDataFromWidgetResponseData,
-} from "./interfaces/ReadRoomAccountDataAction";
-import { IRoomEvent } from "./interfaces/IRoomEvent";
-import { IRoomAccountData } from "./interfaces/IRoomAccountData";
+    IReadRoomAccountDataFromWidgetRequestData,
+    IReadRoomAccountDataFromWidgetResponseData,
+} from "./interfaces/ReadRoomAccountDataAction"
+import { IRoomEvent } from "./interfaces/IRoomEvent"
+import { IRoomAccountData } from "./interfaces/IRoomAccountData"
 import {
-  ITurnServer,
-  IUpdateTurnServersRequest,
-} from "./interfaces/TurnServerActions";
-import { Symbols } from "./Symbols";
+    ITurnServer,
+    IUpdateTurnServersRequest,
+} from "./interfaces/TurnServerActions"
+import { Symbols } from "./Symbols"
 import {
-  IReadRelationsFromWidgetRequestData,
-  IReadRelationsFromWidgetResponseData,
-} from "./interfaces/ReadRelationsAction";
+    IReadRelationsFromWidgetRequestData,
+    IReadRelationsFromWidgetResponseData,
+} from "./interfaces/ReadRelationsAction"
 import {
-  IUserDirectorySearchFromWidgetRequestData,
-  IUserDirectorySearchFromWidgetResponseData,
-} from "./interfaces/UserDirectorySearchAction";
+    IUserDirectorySearchFromWidgetRequestData,
+    IUserDirectorySearchFromWidgetResponseData,
+} from "./interfaces/UserDirectorySearchAction"
 import {
-  IGetMediaConfigActionFromWidgetRequestData,
-  IGetMediaConfigActionFromWidgetResponseData,
-} from "./interfaces/GetMediaConfigAction";
+    IGetMediaConfigActionFromWidgetRequestData,
+    IGetMediaConfigActionFromWidgetResponseData,
+} from "./interfaces/GetMediaConfigAction"
 import {
-  IUploadFileActionFromWidgetRequestData,
-  IUploadFileActionFromWidgetResponseData,
-} from "./interfaces/UploadFileAction";
+    IUploadFileActionFromWidgetRequestData,
+    IUploadFileActionFromWidgetResponseData,
+} from "./interfaces/UploadFileAction"
 import {
-  IDownloadFileActionFromWidgetRequestData,
-  IDownloadFileActionFromWidgetResponseData,
-} from "./interfaces/DownloadFileAction";
+    IDownloadFileActionFromWidgetRequestData,
+    IDownloadFileActionFromWidgetResponseData,
+} from "./interfaces/DownloadFileAction"
 import {
-  IUpdateDelayedEventFromWidgetRequestData,
-  IUpdateDelayedEventFromWidgetResponseData,
-  UpdateDelayedEventAction,
-} from "./interfaces/UpdateDelayedEventAction";
+    IUpdateDelayedEventFromWidgetRequestData,
+    IUpdateDelayedEventFromWidgetResponseData,
+    UpdateDelayedEventAction,
+} from "./interfaces/UpdateDelayedEventAction"
 
 export class WidgetApiResponseError extends Error {
-  static {
-    this.prototype.name = this.name;
-  }
+    static {
+        this.prototype.name = this.name
+    }
 
-  public constructor(
-    message: string,
-    public readonly data: IWidgetApiErrorResponseDataDetails,
-  ) {
-    super(message);
-  }
+    public constructor(
+        message: string,
+        public readonly data: IWidgetApiErrorResponseDataDetails,
+    ) {
+        super(message)
+    }
 }
 
 /**
@@ -155,930 +155,989 @@ export class WidgetApiResponseError extends Error {
  * can be sent and the transport will be ready.
  */
 export class WidgetApi extends EventEmitter {
-  public readonly transport: ITransport;
+    public readonly transport: ITransport
 
-  private capabilitiesFinished = false;
-  private supportsMSC2974Renegotiate = false;
-  private requestedCapabilities: Capability[] = [];
-  private approvedCapabilities?: Capability[];
-  private cachedClientVersions?: ApiVersion[];
-  private turnServerWatchers = 0;
+    private capabilitiesFinished = false
+    private supportsMSC2974Renegotiate = false
+    private requestedCapabilities: Capability[] = []
+    private approvedCapabilities?: Capability[]
+    private cachedClientVersions?: ApiVersion[]
+    private turnServerWatchers = 0
 
-  /**
-   * Creates a new API handler for the given widget.
-   * @param {string} widgetId The widget ID to listen for. If not supplied then
-   * the API will use the widget ID from the first valid request it receives.
-   * @param {string} clientOrigin The origin of the client, or null if not known.
-   */
-  public constructor(
-    widgetId: string | null = null,
-    private clientOrigin: string | null = null,
-  ) {
-    super();
-    if (!window.parent) {
-      throw new Error(
-        "No parent window. This widget doesn't appear to be embedded properly.",
-      );
-    }
-    this.transport = new PostmessageTransport(
-      WidgetApiDirection.FromWidget,
-      widgetId,
-      window.parent,
-      window,
-    );
-    this.transport.targetOrigin = clientOrigin;
-    this.transport.on("message", this.handleMessage.bind(this));
-  }
-
-  /**
-   * Determines if the widget was granted a particular capability. Note that on
-   * clients where the capabilities are not fed back to the widget this function
-   * will rely on requested capabilities instead.
-   * @param {Capability} capability The capability to check for approval of.
-   * @returns {boolean} True if the widget has approval for the given capability.
-   */
-  public hasCapability(capability: Capability): boolean {
-    if (Array.isArray(this.approvedCapabilities)) {
-      return this.approvedCapabilities.includes(capability);
-    }
-    return this.requestedCapabilities.includes(capability);
-  }
-
-  /**
-   * Request a capability from the client. It is not guaranteed to be allowed,
-   * but will be asked for.
-   * @param {Capability} capability The capability to request.
-   * @throws Throws if the capabilities negotiation has already started and the
-   * widget is unable to request additional capabilities.
-   */
-  public requestCapability(capability: Capability): void {
-    if (this.capabilitiesFinished && !this.supportsMSC2974Renegotiate) {
-      throw new Error("Capabilities have already been negotiated");
-    }
-
-    this.requestedCapabilities.push(capability);
-  }
-
-  /**
-   * Request capabilities from the client. They are not guaranteed to be allowed,
-   * but will be asked for if the negotiation has not already happened.
-   * @param {Capability[]} capabilities The capabilities to request.
-   * @throws Throws if the capabilities negotiation has already started.
-   */
-  public requestCapabilities(capabilities: Capability[]): void {
-    capabilities.forEach((cap) => this.requestCapability(cap));
-  }
-
-  /**
-   * Requests the capability to interact with rooms other than the user's currently
-   * viewed room. Applies to event receiving and sending.
-   * @param {string | Symbols.AnyRoom} roomId The room ID, or `Symbols.AnyRoom` to
-   * denote all known rooms.
-   */
-  public requestCapabilityForRoomTimeline(
-    roomId: string | Symbols.AnyRoom,
-  ): void {
-    this.requestCapability(`org.matrix.msc2762.timeline:${roomId}`);
-  }
-
-  /**
-   * Requests the capability to send a given state event with optional explicit
-   * state key. It is not guaranteed to be allowed, but will be asked for if the
-   * negotiation has not already happened.
-   * @param {string} eventType The state event type to ask for.
-   * @param {string} stateKey If specified, the specific state key to request.
-   * Otherwise all state keys will be requested.
-   */
-  public requestCapabilityToSendState(
-    eventType: string,
-    stateKey?: string,
-  ): void {
-    this.requestCapability(
-      WidgetEventCapability.forStateEvent(
-        EventDirection.Send,
-        eventType,
-        stateKey,
-      ).raw,
-    );
-  }
-
-  /**
-   * Requests the capability to receive a given state event with optional explicit
-   * state key. It is not guaranteed to be allowed, but will be asked for if the
-   * negotiation has not already happened.
-   * @param {string} eventType The state event type to ask for.
-   * @param {string} stateKey If specified, the specific state key to request.
-   * Otherwise all state keys will be requested.
-   */
-  public requestCapabilityToReceiveState(
-    eventType: string,
-    stateKey?: string,
-  ): void {
-    this.requestCapability(
-      WidgetEventCapability.forStateEvent(
-        EventDirection.Receive,
-        eventType,
-        stateKey,
-      ).raw,
-    );
-  }
-
-  /**
-   * Requests the capability to send a given to-device event. It is not
-   * guaranteed to be allowed, but will be asked for if the negotiation has
-   * not already happened.
-   * @param {string} eventType The room event type to ask for.
-   */
-  public requestCapabilityToSendToDevice(eventType: string): void {
-    this.requestCapability(
-      WidgetEventCapability.forToDeviceEvent(EventDirection.Send, eventType)
-        .raw,
-    );
-  }
-
-  /**
-   * Requests the capability to receive a given to-device event. It is not
-   * guaranteed to be allowed, but will be asked for if the negotiation has
-   * not already happened.
-   * @param {string} eventType The room event type to ask for.
-   */
-  public requestCapabilityToReceiveToDevice(eventType: string): void {
-    this.requestCapability(
-      WidgetEventCapability.forToDeviceEvent(EventDirection.Receive, eventType)
-        .raw,
-    );
-  }
-
-  /**
-   * Requests the capability to send a given room event. It is not guaranteed to be
-   * allowed, but will be asked for if the negotiation has not already happened.
-   * @param {string} eventType The room event type to ask for.
-   */
-  public requestCapabilityToSendEvent(eventType: string): void {
-    this.requestCapability(
-      WidgetEventCapability.forRoomEvent(EventDirection.Send, eventType).raw,
-    );
-  }
-
-  /**
-   * Requests the capability to receive a given room event. It is not guaranteed to be
-   * allowed, but will be asked for if the negotiation has not already happened.
-   * @param {string} eventType The room event type to ask for.
-   */
-  public requestCapabilityToReceiveEvent(eventType: string): void {
-    this.requestCapability(
-      WidgetEventCapability.forRoomEvent(EventDirection.Receive, eventType).raw,
-    );
-  }
-
-  /**
-   * Requests the capability to send a given message event with optional explicit
-   * `msgtype`. It is not guaranteed to be allowed, but will be asked for if the
-   * negotiation has not already happened.
-   * @param {string} msgtype If specified, the specific msgtype to request.
-   * Otherwise all message types will be requested.
-   */
-  public requestCapabilityToSendMessage(msgtype?: string): void {
-    this.requestCapability(
-      WidgetEventCapability.forRoomMessageEvent(EventDirection.Send, msgtype)
-        .raw,
-    );
-  }
-
-  /**
-   * Requests the capability to receive a given message event with optional explicit
-   * `msgtype`. It is not guaranteed to be allowed, but will be asked for if the
-   * negotiation has not already happened.
-   * @param {string} msgtype If specified, the specific msgtype to request.
-   * Otherwise all message types will be requested.
-   */
-  public requestCapabilityToReceiveMessage(msgtype?: string): void {
-    this.requestCapability(
-      WidgetEventCapability.forRoomMessageEvent(EventDirection.Receive, msgtype)
-        .raw,
-    );
-  }
-
-  /**
-   * Requests the capability to receive a given item in room account data. It is not guaranteed to be
-   * allowed, but will be asked for if the negotiation has not already happened.
-   * @param {string} eventType The state event type to ask for.
-   */
-  public requestCapabilityToReceiveRoomAccountData(eventType: string): void {
-    this.requestCapability(
-      WidgetEventCapability.forRoomAccountData(
-        EventDirection.Receive,
-        eventType,
-      ).raw,
-    );
-  }
-
-  /**
-   * Requests an OpenID Connect token from the client for the currently logged in
-   * user. This token can be validated server-side with the federation API. Note
-   * that the widget is responsible for validating the token and caching any results
-   * it needs.
-   * @returns {Promise<IOpenIDCredentials>} Resolves to a token for verification.
-   * @throws Throws if the user rejected the request or the request failed.
-   */
-  public requestOpenIDConnectToken(): Promise<IOpenIDCredentials> {
-    return new Promise<IOpenIDCredentials>((resolve, reject) => {
-      this.transport
-        .sendComplete<IGetOpenIDActionRequestData, IGetOpenIDActionResponse>(
-          WidgetApiFromWidgetAction.GetOpenIDCredentials,
-          {},
+    /**
+     * Creates a new API handler for the given widget.
+     * @param {string} widgetId The widget ID to listen for. If not supplied then
+     * the API will use the widget ID from the first valid request it receives.
+     * @param {string} clientOrigin The origin of the client, or null if not known.
+     */
+    public constructor(
+        widgetId: string | null = null,
+        private clientOrigin: string | null = null,
+    ) {
+        super()
+        if (!window.parent) {
+            throw new Error(
+                "No parent window. This widget doesn't appear to be embedded properly.",
+            )
+        }
+        this.transport = new PostmessageTransport(
+            WidgetApiDirection.FromWidget,
+            widgetId,
+            window.parent,
+            window,
         )
-        .then((response) => {
-          const rdata = response.response;
-          if (rdata.state === OpenIDRequestState.Allowed) {
-            resolve(rdata);
-          } else if (rdata.state === OpenIDRequestState.Blocked) {
-            reject(new Error("User declined to verify their identity"));
-          } else if (
-            rdata.state === OpenIDRequestState.PendingUserConfirmation
-          ) {
-            const handlerFn = (
-              ev: CustomEvent<IOpenIDCredentialsActionRequest>,
-            ): void => {
-              ev.preventDefault();
-              const request = ev.detail;
-              if (request.data.original_request_id !== response.requestId)
-                return;
-              if (request.data.state === OpenIDRequestState.Allowed) {
-                resolve(request.data);
-                this.transport.reply(request, <IWidgetApiRequestEmptyData>{}); // ack
-              } else if (request.data.state === OpenIDRequestState.Blocked) {
-                reject(new Error("User declined to verify their identity"));
-                this.transport.reply(request, <IWidgetApiRequestEmptyData>{}); // ack
-              } else {
-                reject(new Error("Invalid state on reply: " + rdata.state));
-                this.transport.reply(request, <IWidgetApiErrorResponseData>{
-                  error: {
-                    message: "Invalid state",
-                  },
-                });
-              }
-              this.off(
-                `action:${WidgetApiToWidgetAction.OpenIDCredentials}`,
-                handlerFn,
-              );
-            };
-            this.on(
-              `action:${WidgetApiToWidgetAction.OpenIDCredentials}`,
-              handlerFn,
-            );
-          } else {
-            reject(new Error("Invalid state: " + rdata.state));
-          }
+        this.transport.targetOrigin = clientOrigin
+        this.transport.on("message", this.handleMessage.bind(this))
+    }
+
+    /**
+     * Determines if the widget was granted a particular capability. Note that on
+     * clients where the capabilities are not fed back to the widget this function
+     * will rely on requested capabilities instead.
+     * @param {Capability} capability The capability to check for approval of.
+     * @returns {boolean} True if the widget has approval for the given capability.
+     */
+    public hasCapability(capability: Capability): boolean {
+        if (Array.isArray(this.approvedCapabilities)) {
+            return this.approvedCapabilities.includes(capability)
+        }
+        return this.requestedCapabilities.includes(capability)
+    }
+
+    /**
+     * Request a capability from the client. It is not guaranteed to be allowed,
+     * but will be asked for.
+     * @param {Capability} capability The capability to request.
+     * @throws Throws if the capabilities negotiation has already started and the
+     * widget is unable to request additional capabilities.
+     */
+    public requestCapability(capability: Capability): void {
+        if (this.capabilitiesFinished && !this.supportsMSC2974Renegotiate) {
+            throw new Error("Capabilities have already been negotiated")
+        }
+
+        this.requestedCapabilities.push(capability)
+    }
+
+    /**
+     * Request capabilities from the client. They are not guaranteed to be allowed,
+     * but will be asked for if the negotiation has not already happened.
+     * @param {Capability[]} capabilities The capabilities to request.
+     * @throws Throws if the capabilities negotiation has already started.
+     */
+    public requestCapabilities(capabilities: Capability[]): void {
+        capabilities.forEach((cap) => this.requestCapability(cap))
+    }
+
+    /**
+     * Requests the capability to interact with rooms other than the user's currently
+     * viewed room. Applies to event receiving and sending.
+     * @param {string | Symbols.AnyRoom} roomId The room ID, or `Symbols.AnyRoom` to
+     * denote all known rooms.
+     */
+    public requestCapabilityForRoomTimeline(
+        roomId: string | Symbols.AnyRoom,
+    ): void {
+        this.requestCapability(`org.matrix.msc2762.timeline:${roomId}`)
+    }
+
+    /**
+     * Requests the capability to send a given state event with optional explicit
+     * state key. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} eventType The state event type to ask for.
+     * @param {string} stateKey If specified, the specific state key to request.
+     * Otherwise all state keys will be requested.
+     */
+    public requestCapabilityToSendState(
+        eventType: string,
+        stateKey?: string,
+    ): void {
+        this.requestCapability(
+            WidgetEventCapability.forStateEvent(
+                EventDirection.Send,
+                eventType,
+                stateKey,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests the capability to receive a given state event with optional explicit
+     * state key. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} eventType The state event type to ask for.
+     * @param {string} stateKey If specified, the specific state key to request.
+     * Otherwise all state keys will be requested.
+     */
+    public requestCapabilityToReceiveState(
+        eventType: string,
+        stateKey?: string,
+    ): void {
+        this.requestCapability(
+            WidgetEventCapability.forStateEvent(
+                EventDirection.Receive,
+                eventType,
+                stateKey,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests the capability to send a given to-device event. It is not
+     * guaranteed to be allowed, but will be asked for if the negotiation has
+     * not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToSendToDevice(eventType: string): void {
+        this.requestCapability(
+            WidgetEventCapability.forToDeviceEvent(
+                EventDirection.Send,
+                eventType,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests the capability to receive a given to-device event. It is not
+     * guaranteed to be allowed, but will be asked for if the negotiation has
+     * not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToReceiveToDevice(eventType: string): void {
+        this.requestCapability(
+            WidgetEventCapability.forToDeviceEvent(
+                EventDirection.Receive,
+                eventType,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests the capability to send a given room event. It is not guaranteed to be
+     * allowed, but will be asked for if the negotiation has not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToSendEvent(eventType: string): void {
+        this.requestCapability(
+            WidgetEventCapability.forRoomEvent(EventDirection.Send, eventType)
+                .raw,
+        )
+    }
+
+    /**
+     * Requests the capability to receive a given room event. It is not guaranteed to be
+     * allowed, but will be asked for if the negotiation has not already happened.
+     * @param {string} eventType The room event type to ask for.
+     */
+    public requestCapabilityToReceiveEvent(eventType: string): void {
+        this.requestCapability(
+            WidgetEventCapability.forRoomEvent(
+                EventDirection.Receive,
+                eventType,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests the capability to send a given message event with optional explicit
+     * `msgtype`. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} msgtype If specified, the specific msgtype to request.
+     * Otherwise all message types will be requested.
+     */
+    public requestCapabilityToSendMessage(msgtype?: string): void {
+        this.requestCapability(
+            WidgetEventCapability.forRoomMessageEvent(
+                EventDirection.Send,
+                msgtype,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests the capability to receive a given message event with optional explicit
+     * `msgtype`. It is not guaranteed to be allowed, but will be asked for if the
+     * negotiation has not already happened.
+     * @param {string} msgtype If specified, the specific msgtype to request.
+     * Otherwise all message types will be requested.
+     */
+    public requestCapabilityToReceiveMessage(msgtype?: string): void {
+        this.requestCapability(
+            WidgetEventCapability.forRoomMessageEvent(
+                EventDirection.Receive,
+                msgtype,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests the capability to receive a given item in room account data. It is not guaranteed to be
+     * allowed, but will be asked for if the negotiation has not already happened.
+     * @param {string} eventType The state event type to ask for.
+     */
+    public requestCapabilityToReceiveRoomAccountData(eventType: string): void {
+        this.requestCapability(
+            WidgetEventCapability.forRoomAccountData(
+                EventDirection.Receive,
+                eventType,
+            ).raw,
+        )
+    }
+
+    /**
+     * Requests an OpenID Connect token from the client for the currently logged in
+     * user. This token can be validated server-side with the federation API. Note
+     * that the widget is responsible for validating the token and caching any results
+     * it needs.
+     * @returns {Promise<IOpenIDCredentials>} Resolves to a token for verification.
+     * @throws Throws if the user rejected the request or the request failed.
+     */
+    public requestOpenIDConnectToken(): Promise<IOpenIDCredentials> {
+        return new Promise<IOpenIDCredentials>((resolve, reject) => {
+            this.transport
+                .sendComplete<
+                    IGetOpenIDActionRequestData,
+                    IGetOpenIDActionResponse
+                >(WidgetApiFromWidgetAction.GetOpenIDCredentials, {})
+                .then((response) => {
+                    const rdata = response.response
+                    if (rdata.state === OpenIDRequestState.Allowed) {
+                        resolve(rdata)
+                    } else if (rdata.state === OpenIDRequestState.Blocked) {
+                        reject(
+                            new Error("User declined to verify their identity"),
+                        )
+                    } else if (
+                        rdata.state ===
+                        OpenIDRequestState.PendingUserConfirmation
+                    ) {
+                        const handlerFn = (
+                            ev: CustomEvent<IOpenIDCredentialsActionRequest>,
+                        ): void => {
+                            ev.preventDefault()
+                            const request = ev.detail
+                            if (
+                                request.data.original_request_id !==
+                                response.requestId
+                            )
+                                return
+                            if (
+                                request.data.state ===
+                                OpenIDRequestState.Allowed
+                            ) {
+                                resolve(request.data)
+                                this.transport.reply(
+                                    request,
+                                    <IWidgetApiRequestEmptyData>{},
+                                ) // ack
+                            } else if (
+                                request.data.state ===
+                                OpenIDRequestState.Blocked
+                            ) {
+                                reject(
+                                    new Error(
+                                        "User declined to verify their identity",
+                                    ),
+                                )
+                                this.transport.reply(
+                                    request,
+                                    <IWidgetApiRequestEmptyData>{},
+                                ) // ack
+                            } else {
+                                reject(
+                                    new Error(
+                                        "Invalid state on reply: " +
+                                            rdata.state,
+                                    ),
+                                )
+                                this.transport.reply(request, <
+                                    IWidgetApiErrorResponseData
+                                >{
+                                    error: {
+                                        message: "Invalid state",
+                                    },
+                                })
+                            }
+                            this.off(
+                                `action:${WidgetApiToWidgetAction.OpenIDCredentials}`,
+                                handlerFn,
+                            )
+                        }
+                        this.on(
+                            `action:${WidgetApiToWidgetAction.OpenIDCredentials}`,
+                            handlerFn,
+                        )
+                    } else {
+                        reject(new Error("Invalid state: " + rdata.state))
+                    }
+                })
+                .catch(reject)
         })
-        .catch(reject);
-    });
-  }
-
-  /**
-   * Asks the client for additional capabilities. Capabilities can be queued for this
-   * request with the requestCapability() functions.
-   * @returns {Promise<void>} Resolves when complete. Note that the promise resolves when
-   * the capabilities request has gone through, not when the capabilities are approved/denied.
-   * Use the WidgetApiToWidgetAction.NotifyCapabilities action to detect changes.
-   */
-  public updateRequestedCapabilities(): Promise<void> {
-    return this.transport
-      .send(WidgetApiFromWidgetAction.MSC2974RenegotiateCapabilities, <
-        IRenegotiateCapabilitiesRequestData
-      >{
-        capabilities: this.requestedCapabilities,
-      })
-      .then();
-  }
-
-  /**
-   * Tell the client that the content has been loaded.
-   * @returns {Promise} Resolves when the client acknowledges the request.
-   */
-  public sendContentLoaded(): Promise<void> {
-    return this.transport
-      .send(
-        WidgetApiFromWidgetAction.ContentLoaded,
-        <IWidgetApiRequestEmptyData>{},
-      )
-      .then();
-  }
-
-  /**
-   * Sends a sticker to the client.
-   * @param {IStickerActionRequestData} sticker The sticker to send.
-   * @returns {Promise} Resolves when the client acknowledges the request.
-   */
-  public sendSticker(sticker: IStickerActionRequestData): Promise<void> {
-    return this.transport
-      .send(WidgetApiFromWidgetAction.SendSticker, sticker)
-      .then();
-  }
-
-  /**
-   * Asks the client to set the always-on-screen status for this widget.
-   * @param {boolean} value The new state to request.
-   * @returns {Promise<boolean>} Resolve with true if the client was able to fulfill
-   * the request, resolves to false otherwise. Rejects if an error occurred.
-   */
-  public setAlwaysOnScreen(value: boolean): Promise<boolean> {
-    return this.transport
-      .send<
-        IStickyActionRequestData,
-        IStickyActionResponseData
-      >(WidgetApiFromWidgetAction.UpdateAlwaysOnScreen, { value })
-      .then((res) => res.success);
-  }
-
-  /**
-   * Opens a modal widget.
-   * @param {string} url The URL to the modal widget.
-   * @param {string} name The name of the widget.
-   * @param {IModalWidgetOpenRequestDataButton[]} buttons The buttons to have on the widget.
-   * @param {IModalWidgetCreateData} data Data to supply to the modal widget.
-   * @param {WidgetType} type The type of modal widget.
-   * @returns {Promise<void>} Resolves when the modal widget has been opened.
-   */
-  public openModalWidget(
-    url: string,
-    name: string,
-    buttons: IModalWidgetOpenRequestDataButton[] = [],
-    data: IModalWidgetCreateData = {},
-    type: WidgetType = MatrixWidgetType.Custom,
-  ): Promise<void> {
-    return this.transport
-      .send<IModalWidgetOpenRequestData>(
-        WidgetApiFromWidgetAction.OpenModalWidget,
-        {
-          type,
-          url,
-          name,
-          buttons,
-          data,
-        },
-      )
-      .then();
-  }
-
-  /**
-   * Closes the modal widget. The widget's session will be terminated shortly after.
-   * @param {IModalWidgetReturnData} data Optional data to close the modal widget with.
-   * @returns {Promise<void>} Resolves when complete.
-   */
-  public closeModalWidget(data: IModalWidgetReturnData = {}): Promise<void> {
-    return this.transport
-      .send<IModalWidgetReturnData>(
-        WidgetApiFromWidgetAction.CloseModalWidget,
-        data,
-      )
-      .then();
-  }
-
-  public sendRoomEvent(
-    eventType: string,
-    content: unknown,
-    roomId?: string,
-    delay?: number,
-    parentDelayId?: string,
-  ): Promise<ISendEventFromWidgetResponseData> {
-    return this.sendEvent(
-      eventType,
-      undefined,
-      content,
-      roomId,
-      delay,
-      parentDelayId,
-    );
-  }
-
-  public sendStateEvent(
-    eventType: string,
-    stateKey: string,
-    content: unknown,
-    roomId?: string,
-    delay?: number,
-    parentDelayId?: string,
-  ): Promise<ISendEventFromWidgetResponseData> {
-    return this.sendEvent(
-      eventType,
-      stateKey,
-      content,
-      roomId,
-      delay,
-      parentDelayId,
-    );
-  }
-
-  private sendEvent(
-    eventType: string,
-    stateKey: string | undefined,
-    content: unknown,
-    roomId?: string,
-    delay?: number,
-    parentDelayId?: string,
-  ): Promise<ISendEventFromWidgetResponseData> {
-    return this.transport.send<
-      ISendEventFromWidgetRequestData,
-      ISendEventFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.SendEvent, {
-      type: eventType,
-      content,
-      ...(stateKey !== undefined && { state_key: stateKey }),
-      ...(roomId !== undefined && { room_id: roomId }),
-      ...(delay !== undefined && { delay }),
-      ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
-    });
-  }
-
-  /**
-   * @deprecated This currently relies on an unstable MSC (MSC4157).
-   */
-  public updateDelayedEvent(
-    delayId: string,
-    action: UpdateDelayedEventAction,
-  ): Promise<IUpdateDelayedEventFromWidgetResponseData> {
-    return this.transport.send<
-      IUpdateDelayedEventFromWidgetRequestData,
-      IUpdateDelayedEventFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent, {
-      delay_id: delayId,
-      action,
-    });
-  }
-
-  /**
-   * Sends a to-device event.
-   * @param {string} eventType The type of events being sent.
-   * @param {boolean} encrypted Whether to encrypt the message contents.
-   * @param {Object} contentMap A map from user IDs to device IDs to message contents.
-   * @returns {Promise<ISendToDeviceFromWidgetResponseData>} Resolves when complete.
-   */
-  public sendToDevice(
-    eventType: string,
-    encrypted: boolean,
-    contentMap: { [userId: string]: { [deviceId: string]: object } },
-  ): Promise<ISendToDeviceFromWidgetResponseData> {
-    return this.transport.send<
-      ISendToDeviceFromWidgetRequestData,
-      ISendToDeviceFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.SendToDevice, {
-      type: eventType,
-      encrypted,
-      messages: contentMap,
-    });
-  }
-
-  public readRoomAccountData(
-    eventType: string,
-    roomIds?: (string | Symbols.AnyRoom)[],
-  ): Promise<IRoomAccountData[]> {
-    const data: IReadEventFromWidgetRequestData = { type: eventType };
-
-    if (roomIds) {
-      if (roomIds.includes(Symbols.AnyRoom)) {
-        data.room_ids = Symbols.AnyRoom;
-      } else {
-        data.room_ids = roomIds;
-      }
-    }
-    return this.transport
-      .send<
-        IReadRoomAccountDataFromWidgetRequestData,
-        IReadRoomAccountDataFromWidgetResponseData
-      >(WidgetApiFromWidgetAction.BeeperReadRoomAccountData, data)
-      .then((r) => r.events);
-  }
-
-  public readRoomEvents(
-    eventType: string,
-    limit?: number,
-    msgtype?: string,
-    roomIds?: (string | Symbols.AnyRoom)[],
-    since?: string | undefined,
-  ): Promise<IRoomEvent[]> {
-    const data: IReadEventFromWidgetRequestData = {
-      type: eventType,
-      msgtype: msgtype,
-    };
-    if (limit !== undefined) {
-      data.limit = limit;
-    }
-    if (roomIds) {
-      if (roomIds.includes(Symbols.AnyRoom)) {
-        data.room_ids = Symbols.AnyRoom;
-      } else {
-        data.room_ids = roomIds;
-      }
-    }
-    if (since) {
-      data.since = since;
-    }
-    return this.transport
-      .send<
-        IReadEventFromWidgetRequestData,
-        IReadEventFromWidgetResponseData
-      >(WidgetApiFromWidgetAction.MSC2876ReadEvents, data)
-      .then((r) => r.events);
-  }
-
-  /**
-   * Reads all related events given a known eventId.
-   * @param eventId The id of the parent event to be read.
-   * @param roomId The room to look within. When undefined, the user's currently
-   * viewed room.
-   * @param relationType The relationship type of child events to search for.
-   * When undefined, all relations are returned.
-   * @param eventType The event type of child events to search for. When undefined,
-   * all related events are returned.
-   * @param limit The maximum number of events to retrieve per room. If not
-   * supplied, the server will apply a default limit.
-   * @param from The pagination token to start returning results from, as
-   * received from a previous call. If not supplied, results start at the most
-   * recent topological event known to the server.
-   * @param to The pagination token to stop returning results at. If not
-   * supplied, results continue up to limit or until there are no more events.
-   * @param direction The direction to search for according to MSC3715.
-   * @returns Resolves to the room relations.
-   */
-  public async readEventRelations(
-    eventId: string,
-    roomId?: string,
-    relationType?: string,
-    eventType?: string,
-    limit?: number,
-    from?: string,
-    to?: string,
-    direction?: "f" | "b",
-  ): Promise<IReadRelationsFromWidgetResponseData> {
-    const versions = await this.getClientVersions();
-    if (!versions.includes(UnstableApiVersion.MSC3869)) {
-      throw new Error(
-        "The read_relations action is not supported by the client.",
-      );
     }
 
-    const data: IReadRelationsFromWidgetRequestData = {
-      event_id: eventId,
-      rel_type: relationType,
-      event_type: eventType,
-      room_id: roomId,
-      to,
-      from,
-      limit,
-      direction,
-    };
-
-    return this.transport.send<
-      IReadRelationsFromWidgetRequestData,
-      IReadRelationsFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.MSC3869ReadRelations, data);
-  }
-
-  public readStateEvents(
-    eventType: string,
-    limit?: number,
-    stateKey?: string,
-    roomIds?: (string | Symbols.AnyRoom)[],
-  ): Promise<IRoomEvent[]> {
-    const data: IReadEventFromWidgetRequestData = {
-      type: eventType,
-      state_key: stateKey === undefined ? true : stateKey,
-    };
-    if (limit !== undefined) {
-      data.limit = limit;
-    }
-    if (roomIds) {
-      if (roomIds.includes(Symbols.AnyRoom)) {
-        data.room_ids = Symbols.AnyRoom;
-      } else {
-        data.room_ids = roomIds;
-      }
-    }
-    return this.transport
-      .send<
-        IReadEventFromWidgetRequestData,
-        IReadEventFromWidgetResponseData
-      >(WidgetApiFromWidgetAction.MSC2876ReadEvents, data)
-      .then((r) => r.events);
-  }
-
-  /**
-   * Sets a button as disabled or enabled on the modal widget. Buttons are enabled by default.
-   * @param {ModalButtonID} buttonId The button ID to enable/disable.
-   * @param {boolean} isEnabled Whether or not the button is enabled.
-   * @returns {Promise<void>} Resolves when complete.
-   * @throws Throws if the button cannot be disabled, or the client refuses to disable the button.
-   */
-  public setModalButtonEnabled(
-    buttonId: ModalButtonID,
-    isEnabled: boolean,
-  ): Promise<void> {
-    if (buttonId === BuiltInModalButtonID.Close) {
-      throw new Error("The close button cannot be disabled");
-    }
-    return this.transport
-      .send<ISetModalButtonEnabledActionRequestData>(
-        WidgetApiFromWidgetAction.SetModalButtonEnabled,
-        {
-          button: buttonId,
-          enabled: isEnabled,
-        },
-      )
-      .then();
-  }
-
-  /**
-   * Attempts to navigate the client to the given URI. This can only be called with Matrix URIs
-   * (currently only matrix.to, but in future a Matrix URI scheme will be defined).
-   * @param {string} uri The URI to navigate to.
-   * @returns {Promise<void>} Resolves when complete.
-   * @throws Throws if the URI is invalid or cannot be processed.
-   * @deprecated This currently relies on an unstable MSC (MSC2931).
-   */
-  public navigateTo(uri: string): Promise<void> {
-    if (!uri || !uri.startsWith("https://matrix.to/#")) {
-      throw new Error("Invalid matrix.to URI");
+    /**
+     * Asks the client for additional capabilities. Capabilities can be queued for this
+     * request with the requestCapability() functions.
+     * @returns {Promise<void>} Resolves when complete. Note that the promise resolves when
+     * the capabilities request has gone through, not when the capabilities are approved/denied.
+     * Use the WidgetApiToWidgetAction.NotifyCapabilities action to detect changes.
+     */
+    public updateRequestedCapabilities(): Promise<void> {
+        return this.transport
+            .send(WidgetApiFromWidgetAction.MSC2974RenegotiateCapabilities, <
+                IRenegotiateCapabilitiesRequestData
+            >{
+                capabilities: this.requestedCapabilities,
+            })
+            .then()
     }
 
-    return this.transport
-      .send<INavigateActionRequestData>(
-        WidgetApiFromWidgetAction.MSC2931Navigate,
-        { uri },
-      )
-      .then();
-  }
-
-  /**
-   * Starts watching for TURN servers, yielding an initial set of credentials as soon as possible,
-   * and thereafter yielding new credentials whenever the previous ones expire.
-   * @yields {ITurnServer} The TURN server URIs and credentials currently available to the widget.
-   */
-  public async *getTurnServers(): AsyncGenerator<ITurnServer> {
-    let setTurnServer: (server: ITurnServer) => void;
-
-    const onUpdateTurnServers = async (
-      ev: CustomEvent<IUpdateTurnServersRequest>,
-    ): Promise<void> => {
-      ev.preventDefault();
-      setTurnServer(ev.detail.data);
-      await this.transport.reply<IWidgetApiAcknowledgeResponseData>(
-        ev.detail,
-        {},
-      );
-    };
-
-    // Start listening for updates before we even start watching, to catch
-    // TURN data that is sent immediately
-    this.on(
-      `action:${WidgetApiToWidgetAction.UpdateTurnServers}`,
-      onUpdateTurnServers,
-    );
-
-    // Only send the 'watch' action if we aren't already watching
-    if (this.turnServerWatchers === 0) {
-      try {
-        await this.transport.send<IWidgetApiRequestEmptyData>(
-          WidgetApiFromWidgetAction.WatchTurnServers,
-          {},
-        );
-      } catch (e) {
-        this.off(
-          `action:${WidgetApiToWidgetAction.UpdateTurnServers}`,
-          onUpdateTurnServers,
-        );
-        throw e;
-      }
-    }
-    this.turnServerWatchers++;
-
-    try {
-      // Watch for new data indefinitely (until this generator's return method is called)
-      while (true) {
-        yield await new Promise<ITurnServer>(
-          (resolve) => (setTurnServer = resolve),
-        );
-      }
-    } finally {
-      // The loop was broken by the caller - clean up
-      this.off(
-        `action:${WidgetApiToWidgetAction.UpdateTurnServers}`,
-        onUpdateTurnServers,
-      );
-
-      // Since sending the 'unwatch' action will end updates for all other
-      // consumers, only send it if we're the only consumer remaining
-      this.turnServerWatchers--;
-      if (this.turnServerWatchers === 0) {
-        await this.transport.send<IWidgetApiRequestEmptyData>(
-          WidgetApiFromWidgetAction.UnwatchTurnServers,
-          {},
-        );
-      }
-    }
-  }
-
-  /**
-   * Search for users in the user directory.
-   * @param searchTerm The term to search for.
-   * @param limit The maximum number of results to return. If not supplied, the
-   * @returns Resolves to the search results.
-   */
-  public async searchUserDirectory(
-    searchTerm: string,
-    limit?: number,
-  ): Promise<IUserDirectorySearchFromWidgetResponseData> {
-    const versions = await this.getClientVersions();
-    if (!versions.includes(UnstableApiVersion.MSC3973)) {
-      throw new Error(
-        "The user_directory_search action is not supported by the client.",
-      );
+    /**
+     * Tell the client that the content has been loaded.
+     * @returns {Promise} Resolves when the client acknowledges the request.
+     */
+    public sendContentLoaded(): Promise<void> {
+        return this.transport
+            .send(
+                WidgetApiFromWidgetAction.ContentLoaded,
+                <IWidgetApiRequestEmptyData>{},
+            )
+            .then()
     }
 
-    const data: IUserDirectorySearchFromWidgetRequestData = {
-      search_term: searchTerm,
-      limit,
-    };
-
-    return this.transport.send<
-      IUserDirectorySearchFromWidgetRequestData,
-      IUserDirectorySearchFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.MSC3973UserDirectorySearch, data);
-  }
-
-  /**
-   * Get the config for the media repository.
-   * @returns Promise which resolves with an object containing the config.
-   */
-  public async getMediaConfig(): Promise<IGetMediaConfigActionFromWidgetResponseData> {
-    const versions = await this.getClientVersions();
-    if (!versions.includes(UnstableApiVersion.MSC4039)) {
-      throw new Error(
-        "The get_media_config action is not supported by the client.",
-      );
+    /**
+     * Sends a sticker to the client.
+     * @param {IStickerActionRequestData} sticker The sticker to send.
+     * @returns {Promise} Resolves when the client acknowledges the request.
+     */
+    public sendSticker(sticker: IStickerActionRequestData): Promise<void> {
+        return this.transport
+            .send(WidgetApiFromWidgetAction.SendSticker, sticker)
+            .then()
     }
 
-    const data: IGetMediaConfigActionFromWidgetRequestData = {};
-
-    return this.transport.send<
-      IGetMediaConfigActionFromWidgetRequestData,
-      IGetMediaConfigActionFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction, data);
-  }
-
-  /**
-   * Upload a file to the media repository on the homeserver.
-   * @param file - The object to upload. Something that can be sent to
-   *               XMLHttpRequest.send (typically a File).
-   * @returns Resolves to the location of the uploaded file.
-   */
-  public async uploadFile(
-    file: XMLHttpRequestBodyInit,
-  ): Promise<IUploadFileActionFromWidgetResponseData> {
-    const versions = await this.getClientVersions();
-    if (!versions.includes(UnstableApiVersion.MSC4039)) {
-      throw new Error("The upload_file action is not supported by the client.");
+    /**
+     * Asks the client to set the always-on-screen status for this widget.
+     * @param {boolean} value The new state to request.
+     * @returns {Promise<boolean>} Resolve with true if the client was able to fulfill
+     * the request, resolves to false otherwise. Rejects if an error occurred.
+     */
+    public setAlwaysOnScreen(value: boolean): Promise<boolean> {
+        return this.transport
+            .send<
+                IStickyActionRequestData,
+                IStickyActionResponseData
+            >(WidgetApiFromWidgetAction.UpdateAlwaysOnScreen, { value })
+            .then((res) => res.success)
     }
 
-    const data: IUploadFileActionFromWidgetRequestData = {
-      file,
-    };
-
-    return this.transport.send<
-      IUploadFileActionFromWidgetRequestData,
-      IUploadFileActionFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.MSC4039UploadFileAction, data);
-  }
-
-  /**
-   * Download a file from the media repository on the homeserver.
-   * @param contentUri - MXC URI of the file to download.
-   * @returns Resolves to the contents of the file.
-   */
-  public async downloadFile(
-    contentUri: string,
-  ): Promise<IDownloadFileActionFromWidgetResponseData> {
-    const versions = await this.getClientVersions();
-    if (!versions.includes(UnstableApiVersion.MSC4039)) {
-      throw new Error(
-        "The download_file action is not supported by the client.",
-      );
+    /**
+     * Opens a modal widget.
+     * @param {string} url The URL to the modal widget.
+     * @param {string} name The name of the widget.
+     * @param {IModalWidgetOpenRequestDataButton[]} buttons The buttons to have on the widget.
+     * @param {IModalWidgetCreateData} data Data to supply to the modal widget.
+     * @param {WidgetType} type The type of modal widget.
+     * @returns {Promise<void>} Resolves when the modal widget has been opened.
+     */
+    public openModalWidget(
+        url: string,
+        name: string,
+        buttons: IModalWidgetOpenRequestDataButton[] = [],
+        data: IModalWidgetCreateData = {},
+        type: WidgetType = MatrixWidgetType.Custom,
+    ): Promise<void> {
+        return this.transport
+            .send<IModalWidgetOpenRequestData>(
+                WidgetApiFromWidgetAction.OpenModalWidget,
+                {
+                    type,
+                    url,
+                    name,
+                    buttons,
+                    data,
+                },
+            )
+            .then()
     }
 
-    const data: IDownloadFileActionFromWidgetRequestData = {
-      content_uri: contentUri,
-    };
-
-    return this.transport.send<
-      IDownloadFileActionFromWidgetRequestData,
-      IDownloadFileActionFromWidgetResponseData
-    >(WidgetApiFromWidgetAction.MSC4039DownloadFileAction, data);
-  }
-
-  /**
-   * Starts the communication channel. This should be done early to ensure
-   * that messages are not missed. Communication can only be stopped by the client.
-   */
-  public start(): void {
-    this.transport.start();
-    this.getClientVersions().then((v) => {
-      if (v.includes(UnstableApiVersion.MSC2974)) {
-        this.supportsMSC2974Renegotiate = true;
-      }
-    });
-  }
-
-  private handleMessage(
-    ev: CustomEvent<IWidgetApiRequest>,
-  ): void | Promise<void> {
-    const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
-      detail: ev.detail,
-      cancelable: true,
-    });
-    this.emit(`action:${ev.detail.action}`, actionEv);
-    if (!actionEv.defaultPrevented) {
-      switch (ev.detail.action) {
-        case WidgetApiToWidgetAction.SupportedApiVersions:
-          return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
-        case WidgetApiToWidgetAction.Capabilities:
-          return this.handleCapabilities(<ICapabilitiesActionRequest>ev.detail);
-        case WidgetApiToWidgetAction.UpdateVisibility:
-          return this.transport.reply(
-            ev.detail,
-            <IWidgetApiRequestEmptyData>{},
-          ); // ack to avoid error spam
-        case WidgetApiToWidgetAction.NotifyCapabilities:
-          return this.transport.reply(
-            ev.detail,
-            <IWidgetApiRequestEmptyData>{},
-          ); // ack to avoid error spam
-        default:
-          return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
-            error: {
-              message: "Unknown or unsupported action: " + ev.detail.action,
-            },
-          });
-      }
-    }
-  }
-
-  private replyVersions(request: ISupportedVersionsActionRequest): void {
-    this.transport.reply<ISupportedVersionsActionResponseData>(request, {
-      supported_versions: CurrentApiVersions,
-    });
-  }
-
-  public getClientVersions(): Promise<ApiVersion[]> {
-    if (Array.isArray(this.cachedClientVersions)) {
-      return Promise.resolve(this.cachedClientVersions);
+    /**
+     * Closes the modal widget. The widget's session will be terminated shortly after.
+     * @param {IModalWidgetReturnData} data Optional data to close the modal widget with.
+     * @returns {Promise<void>} Resolves when complete.
+     */
+    public closeModalWidget(data: IModalWidgetReturnData = {}): Promise<void> {
+        return this.transport
+            .send<IModalWidgetReturnData>(
+                WidgetApiFromWidgetAction.CloseModalWidget,
+                data,
+            )
+            .then()
     }
 
-    return this.transport
-      .send<IWidgetApiRequestEmptyData, ISupportedVersionsActionResponseData>(
-        WidgetApiFromWidgetAction.SupportedApiVersions,
-        {},
-      )
-      .then((r) => {
-        this.cachedClientVersions = r.supported_versions;
-        return r.supported_versions;
-      })
-      .catch((e) => {
-        console.warn("non-fatal error getting supported client versions: ", e);
-        return [];
-      });
-  }
-
-  private handleCapabilities(
-    request: ICapabilitiesActionRequest,
-  ): void | Promise<void> {
-    if (this.capabilitiesFinished) {
-      return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-        error: {
-          message: "Capability negotiation already completed",
-        },
-      });
+    public sendRoomEvent(
+        eventType: string,
+        content: unknown,
+        roomId?: string,
+        delay?: number,
+        parentDelayId?: string,
+    ): Promise<ISendEventFromWidgetResponseData> {
+        return this.sendEvent(
+            eventType,
+            undefined,
+            content,
+            roomId,
+            delay,
+            parentDelayId,
+        )
     }
 
-    // See if we can expect a capabilities notification or not
-    return this.getClientVersions().then((v) => {
-      if (v.includes(UnstableApiVersion.MSC2871)) {
-        this.once(
-          `action:${WidgetApiToWidgetAction.NotifyCapabilities}`,
-          (ev: CustomEvent<INotifyCapabilitiesActionRequest>) => {
-            this.approvedCapabilities = ev.detail.data.approved;
-            this.emit("ready");
-          },
-        );
-      } else {
-        // if we can't expect notification, we're as done as we can be
-        this.emit("ready");
-      }
+    public sendStateEvent(
+        eventType: string,
+        stateKey: string,
+        content: unknown,
+        roomId?: string,
+        delay?: number,
+        parentDelayId?: string,
+    ): Promise<ISendEventFromWidgetResponseData> {
+        return this.sendEvent(
+            eventType,
+            stateKey,
+            content,
+            roomId,
+            delay,
+            parentDelayId,
+        )
+    }
 
-      // in either case, reply to that capabilities request
-      this.capabilitiesFinished = true;
-      return this.transport.reply<ICapabilitiesActionResponseData>(request, {
-        capabilities: this.requestedCapabilities,
-      });
-    });
-  }
+    private sendEvent(
+        eventType: string,
+        stateKey: string | undefined,
+        content: unknown,
+        roomId?: string,
+        delay?: number,
+        parentDelayId?: string,
+    ): Promise<ISendEventFromWidgetResponseData> {
+        return this.transport.send<
+            ISendEventFromWidgetRequestData,
+            ISendEventFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.SendEvent, {
+            type: eventType,
+            content,
+            ...(stateKey !== undefined && { state_key: stateKey }),
+            ...(roomId !== undefined && { room_id: roomId }),
+            ...(delay !== undefined && { delay }),
+            ...(parentDelayId !== undefined && {
+                parent_delay_id: parentDelayId,
+            }),
+        })
+    }
+
+    /**
+     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     */
+    public updateDelayedEvent(
+        delayId: string,
+        action: UpdateDelayedEventAction,
+    ): Promise<IUpdateDelayedEventFromWidgetResponseData> {
+        return this.transport.send<
+            IUpdateDelayedEventFromWidgetRequestData,
+            IUpdateDelayedEventFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent, {
+            delay_id: delayId,
+            action,
+        })
+    }
+
+    /**
+     * Sends a to-device event.
+     * @param {string} eventType The type of events being sent.
+     * @param {boolean} encrypted Whether to encrypt the message contents.
+     * @param {Object} contentMap A map from user IDs to device IDs to message contents.
+     * @returns {Promise<ISendToDeviceFromWidgetResponseData>} Resolves when complete.
+     */
+    public sendToDevice(
+        eventType: string,
+        encrypted: boolean,
+        contentMap: { [userId: string]: { [deviceId: string]: object } },
+    ): Promise<ISendToDeviceFromWidgetResponseData> {
+        return this.transport.send<
+            ISendToDeviceFromWidgetRequestData,
+            ISendToDeviceFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.SendToDevice, {
+            type: eventType,
+            encrypted,
+            messages: contentMap,
+        })
+    }
+
+    public readRoomAccountData(
+        eventType: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<IRoomAccountData[]> {
+        const data: IReadEventFromWidgetRequestData = { type: eventType }
+
+        if (roomIds) {
+            if (roomIds.includes(Symbols.AnyRoom)) {
+                data.room_ids = Symbols.AnyRoom
+            } else {
+                data.room_ids = roomIds
+            }
+        }
+        return this.transport
+            .send<
+                IReadRoomAccountDataFromWidgetRequestData,
+                IReadRoomAccountDataFromWidgetResponseData
+            >(WidgetApiFromWidgetAction.BeeperReadRoomAccountData, data)
+            .then((r) => r.events)
+    }
+
+    public readRoomEvents(
+        eventType: string,
+        limit?: number,
+        msgtype?: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+        since?: string | undefined,
+    ): Promise<IRoomEvent[]> {
+        const data: IReadEventFromWidgetRequestData = {
+            type: eventType,
+            msgtype: msgtype,
+        }
+        if (limit !== undefined) {
+            data.limit = limit
+        }
+        if (roomIds) {
+            if (roomIds.includes(Symbols.AnyRoom)) {
+                data.room_ids = Symbols.AnyRoom
+            } else {
+                data.room_ids = roomIds
+            }
+        }
+        if (since) {
+            data.since = since
+        }
+        return this.transport
+            .send<
+                IReadEventFromWidgetRequestData,
+                IReadEventFromWidgetResponseData
+            >(WidgetApiFromWidgetAction.MSC2876ReadEvents, data)
+            .then((r) => r.events)
+    }
+
+    /**
+     * Reads all related events given a known eventId.
+     * @param eventId The id of the parent event to be read.
+     * @param roomId The room to look within. When undefined, the user's currently
+     * viewed room.
+     * @param relationType The relationship type of child events to search for.
+     * When undefined, all relations are returned.
+     * @param eventType The event type of child events to search for. When undefined,
+     * all related events are returned.
+     * @param limit The maximum number of events to retrieve per room. If not
+     * supplied, the server will apply a default limit.
+     * @param from The pagination token to start returning results from, as
+     * received from a previous call. If not supplied, results start at the most
+     * recent topological event known to the server.
+     * @param to The pagination token to stop returning results at. If not
+     * supplied, results continue up to limit or until there are no more events.
+     * @param direction The direction to search for according to MSC3715.
+     * @returns Resolves to the room relations.
+     */
+    public async readEventRelations(
+        eventId: string,
+        roomId?: string,
+        relationType?: string,
+        eventType?: string,
+        limit?: number,
+        from?: string,
+        to?: string,
+        direction?: "f" | "b",
+    ): Promise<IReadRelationsFromWidgetResponseData> {
+        const versions = await this.getClientVersions()
+        if (!versions.includes(UnstableApiVersion.MSC3869)) {
+            throw new Error(
+                "The read_relations action is not supported by the client.",
+            )
+        }
+
+        const data: IReadRelationsFromWidgetRequestData = {
+            event_id: eventId,
+            rel_type: relationType,
+            event_type: eventType,
+            room_id: roomId,
+            to,
+            from,
+            limit,
+            direction,
+        }
+
+        return this.transport.send<
+            IReadRelationsFromWidgetRequestData,
+            IReadRelationsFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC3869ReadRelations, data)
+    }
+
+    public readStateEvents(
+        eventType: string,
+        limit?: number,
+        stateKey?: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<IRoomEvent[]> {
+        const data: IReadEventFromWidgetRequestData = {
+            type: eventType,
+            state_key: stateKey === undefined ? true : stateKey,
+        }
+        if (limit !== undefined) {
+            data.limit = limit
+        }
+        if (roomIds) {
+            if (roomIds.includes(Symbols.AnyRoom)) {
+                data.room_ids = Symbols.AnyRoom
+            } else {
+                data.room_ids = roomIds
+            }
+        }
+        return this.transport
+            .send<
+                IReadEventFromWidgetRequestData,
+                IReadEventFromWidgetResponseData
+            >(WidgetApiFromWidgetAction.MSC2876ReadEvents, data)
+            .then((r) => r.events)
+    }
+
+    /**
+     * Sets a button as disabled or enabled on the modal widget. Buttons are enabled by default.
+     * @param {ModalButtonID} buttonId The button ID to enable/disable.
+     * @param {boolean} isEnabled Whether or not the button is enabled.
+     * @returns {Promise<void>} Resolves when complete.
+     * @throws Throws if the button cannot be disabled, or the client refuses to disable the button.
+     */
+    public setModalButtonEnabled(
+        buttonId: ModalButtonID,
+        isEnabled: boolean,
+    ): Promise<void> {
+        if (buttonId === BuiltInModalButtonID.Close) {
+            throw new Error("The close button cannot be disabled")
+        }
+        return this.transport
+            .send<ISetModalButtonEnabledActionRequestData>(
+                WidgetApiFromWidgetAction.SetModalButtonEnabled,
+                {
+                    button: buttonId,
+                    enabled: isEnabled,
+                },
+            )
+            .then()
+    }
+
+    /**
+     * Attempts to navigate the client to the given URI. This can only be called with Matrix URIs
+     * (currently only matrix.to, but in future a Matrix URI scheme will be defined).
+     * @param {string} uri The URI to navigate to.
+     * @returns {Promise<void>} Resolves when complete.
+     * @throws Throws if the URI is invalid or cannot be processed.
+     * @deprecated This currently relies on an unstable MSC (MSC2931).
+     */
+    public navigateTo(uri: string): Promise<void> {
+        if (!uri || !uri.startsWith("https://matrix.to/#")) {
+            throw new Error("Invalid matrix.to URI")
+        }
+
+        return this.transport
+            .send<INavigateActionRequestData>(
+                WidgetApiFromWidgetAction.MSC2931Navigate,
+                { uri },
+            )
+            .then()
+    }
+
+    /**
+     * Starts watching for TURN servers, yielding an initial set of credentials as soon as possible,
+     * and thereafter yielding new credentials whenever the previous ones expire.
+     * @yields {ITurnServer} The TURN server URIs and credentials currently available to the widget.
+     */
+    public async *getTurnServers(): AsyncGenerator<ITurnServer> {
+        let setTurnServer: (server: ITurnServer) => void
+
+        const onUpdateTurnServers = async (
+            ev: CustomEvent<IUpdateTurnServersRequest>,
+        ): Promise<void> => {
+            ev.preventDefault()
+            setTurnServer(ev.detail.data)
+            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(
+                ev.detail,
+                {},
+            )
+        }
+
+        // Start listening for updates before we even start watching, to catch
+        // TURN data that is sent immediately
+        this.on(
+            `action:${WidgetApiToWidgetAction.UpdateTurnServers}`,
+            onUpdateTurnServers,
+        )
+
+        // Only send the 'watch' action if we aren't already watching
+        if (this.turnServerWatchers === 0) {
+            try {
+                await this.transport.send<IWidgetApiRequestEmptyData>(
+                    WidgetApiFromWidgetAction.WatchTurnServers,
+                    {},
+                )
+            } catch (e) {
+                this.off(
+                    `action:${WidgetApiToWidgetAction.UpdateTurnServers}`,
+                    onUpdateTurnServers,
+                )
+                throw e
+            }
+        }
+        this.turnServerWatchers++
+
+        try {
+            // Watch for new data indefinitely (until this generator's return method is called)
+            while (true) {
+                yield await new Promise<ITurnServer>(
+                    (resolve) => (setTurnServer = resolve),
+                )
+            }
+        } finally {
+            // The loop was broken by the caller - clean up
+            this.off(
+                `action:${WidgetApiToWidgetAction.UpdateTurnServers}`,
+                onUpdateTurnServers,
+            )
+
+            // Since sending the 'unwatch' action will end updates for all other
+            // consumers, only send it if we're the only consumer remaining
+            this.turnServerWatchers--
+            if (this.turnServerWatchers === 0) {
+                await this.transport.send<IWidgetApiRequestEmptyData>(
+                    WidgetApiFromWidgetAction.UnwatchTurnServers,
+                    {},
+                )
+            }
+        }
+    }
+
+    /**
+     * Search for users in the user directory.
+     * @param searchTerm The term to search for.
+     * @param limit The maximum number of results to return. If not supplied, the
+     * @returns Resolves to the search results.
+     */
+    public async searchUserDirectory(
+        searchTerm: string,
+        limit?: number,
+    ): Promise<IUserDirectorySearchFromWidgetResponseData> {
+        const versions = await this.getClientVersions()
+        if (!versions.includes(UnstableApiVersion.MSC3973)) {
+            throw new Error(
+                "The user_directory_search action is not supported by the client.",
+            )
+        }
+
+        const data: IUserDirectorySearchFromWidgetRequestData = {
+            search_term: searchTerm,
+            limit,
+        }
+
+        return this.transport.send<
+            IUserDirectorySearchFromWidgetRequestData,
+            IUserDirectorySearchFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC3973UserDirectorySearch, data)
+    }
+
+    /**
+     * Get the config for the media repository.
+     * @returns Promise which resolves with an object containing the config.
+     */
+    public async getMediaConfig(): Promise<IGetMediaConfigActionFromWidgetResponseData> {
+        const versions = await this.getClientVersions()
+        if (!versions.includes(UnstableApiVersion.MSC4039)) {
+            throw new Error(
+                "The get_media_config action is not supported by the client.",
+            )
+        }
+
+        const data: IGetMediaConfigActionFromWidgetRequestData = {}
+
+        return this.transport.send<
+            IGetMediaConfigActionFromWidgetRequestData,
+            IGetMediaConfigActionFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction, data)
+    }
+
+    /**
+     * Upload a file to the media repository on the homeserver.
+     * @param file - The object to upload. Something that can be sent to
+     *               XMLHttpRequest.send (typically a File).
+     * @returns Resolves to the location of the uploaded file.
+     */
+    public async uploadFile(
+        file: XMLHttpRequestBodyInit,
+    ): Promise<IUploadFileActionFromWidgetResponseData> {
+        const versions = await this.getClientVersions()
+        if (!versions.includes(UnstableApiVersion.MSC4039)) {
+            throw new Error(
+                "The upload_file action is not supported by the client.",
+            )
+        }
+
+        const data: IUploadFileActionFromWidgetRequestData = {
+            file,
+        }
+
+        return this.transport.send<
+            IUploadFileActionFromWidgetRequestData,
+            IUploadFileActionFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4039UploadFileAction, data)
+    }
+
+    /**
+     * Download a file from the media repository on the homeserver.
+     * @param contentUri - MXC URI of the file to download.
+     * @returns Resolves to the contents of the file.
+     */
+    public async downloadFile(
+        contentUri: string,
+    ): Promise<IDownloadFileActionFromWidgetResponseData> {
+        const versions = await this.getClientVersions()
+        if (!versions.includes(UnstableApiVersion.MSC4039)) {
+            throw new Error(
+                "The download_file action is not supported by the client.",
+            )
+        }
+
+        const data: IDownloadFileActionFromWidgetRequestData = {
+            content_uri: contentUri,
+        }
+
+        return this.transport.send<
+            IDownloadFileActionFromWidgetRequestData,
+            IDownloadFileActionFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4039DownloadFileAction, data)
+    }
+
+    /**
+     * Starts the communication channel. This should be done early to ensure
+     * that messages are not missed. Communication can only be stopped by the client.
+     */
+    public start(): void {
+        this.transport.start()
+        this.getClientVersions().then((v) => {
+            if (v.includes(UnstableApiVersion.MSC2974)) {
+                this.supportsMSC2974Renegotiate = true
+            }
+        })
+    }
+
+    private handleMessage(
+        ev: CustomEvent<IWidgetApiRequest>,
+    ): void | Promise<void> {
+        const actionEv = new CustomEvent(`action:${ev.detail.action}`, {
+            detail: ev.detail,
+            cancelable: true,
+        })
+        this.emit(`action:${ev.detail.action}`, actionEv)
+        if (!actionEv.defaultPrevented) {
+            switch (ev.detail.action) {
+                case WidgetApiToWidgetAction.SupportedApiVersions:
+                    return this.replyVersions(
+                        <ISupportedVersionsActionRequest>ev.detail,
+                    )
+                case WidgetApiToWidgetAction.Capabilities:
+                    return this.handleCapabilities(
+                        <ICapabilitiesActionRequest>ev.detail,
+                    )
+                case WidgetApiToWidgetAction.UpdateVisibility:
+                    return this.transport.reply(
+                        ev.detail,
+                        <IWidgetApiRequestEmptyData>{},
+                    ) // ack to avoid error spam
+                case WidgetApiToWidgetAction.NotifyCapabilities:
+                    return this.transport.reply(
+                        ev.detail,
+                        <IWidgetApiRequestEmptyData>{},
+                    ) // ack to avoid error spam
+                default:
+                    return this.transport.reply(ev.detail, <
+                        IWidgetApiErrorResponseData
+                    >{
+                        error: {
+                            message:
+                                "Unknown or unsupported action: " +
+                                ev.detail.action,
+                        },
+                    })
+            }
+        }
+    }
+
+    private replyVersions(request: ISupportedVersionsActionRequest): void {
+        this.transport.reply<ISupportedVersionsActionResponseData>(request, {
+            supported_versions: CurrentApiVersions,
+        })
+    }
+
+    public getClientVersions(): Promise<ApiVersion[]> {
+        if (Array.isArray(this.cachedClientVersions)) {
+            return Promise.resolve(this.cachedClientVersions)
+        }
+
+        return this.transport
+            .send<
+                IWidgetApiRequestEmptyData,
+                ISupportedVersionsActionResponseData
+            >(WidgetApiFromWidgetAction.SupportedApiVersions, {})
+            .then((r) => {
+                this.cachedClientVersions = r.supported_versions
+                return r.supported_versions
+            })
+            .catch((e) => {
+                console.warn(
+                    "non-fatal error getting supported client versions: ",
+                    e,
+                )
+                return []
+            })
+    }
+
+    private handleCapabilities(
+        request: ICapabilitiesActionRequest,
+    ): void | Promise<void> {
+        if (this.capabilitiesFinished) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: {
+                    message: "Capability negotiation already completed",
+                },
+            })
+        }
+
+        // See if we can expect a capabilities notification or not
+        return this.getClientVersions().then((v) => {
+            if (v.includes(UnstableApiVersion.MSC2871)) {
+                this.once(
+                    `action:${WidgetApiToWidgetAction.NotifyCapabilities}`,
+                    (ev: CustomEvent<INotifyCapabilitiesActionRequest>) => {
+                        this.approvedCapabilities = ev.detail.data.approved
+                        this.emit("ready")
+                    },
+                )
+            } else {
+                // if we can't expect notification, we're as done as we can be
+                this.emit("ready")
+            }
+
+            // in either case, reply to that capabilities request
+            this.capabilitiesFinished = true
+            return this.transport.reply<ICapabilitiesActionResponseData>(
+                request,
+                {
+                    capabilities: this.requestedCapabilities,
+                },
+            )
+        })
+    }
 }

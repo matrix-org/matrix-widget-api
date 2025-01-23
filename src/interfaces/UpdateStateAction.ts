@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
-import { WidgetApiToWidgetAction } from "./WidgetApiAction";
-import { IWidgetApiResponseData } from "./IWidgetApiResponse";
-import { IRoomEvent } from "./IRoomEvent";
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest"
+import { WidgetApiToWidgetAction } from "./WidgetApiAction"
+import { IWidgetApiResponseData } from "./IWidgetApiResponse"
+import { IRoomEvent } from "./IRoomEvent"
 
 export interface IUpdateStateToWidgetRequestData extends IWidgetApiRequestData {
-  state: IRoomEvent[];
+    state: IRoomEvent[]
 }
 
 export interface IUpdateStateToWidgetActionRequest extends IWidgetApiRequest {
-  action: WidgetApiToWidgetAction.UpdateState;
-  data: IUpdateStateToWidgetRequestData;
+    action: WidgetApiToWidgetAction.UpdateState
+    data: IUpdateStateToWidgetRequestData
 }
 
 export interface IUpdateStateToWidgetResponseData
-  extends IWidgetApiResponseData {
-  // nothing
+    extends IWidgetApiResponseData {
+    // nothing
 }
 
 export interface IUpdateStateToWidgetActionResponse
-  extends IUpdateStateToWidgetActionRequest {
-  response: IUpdateStateToWidgetResponseData;
+    extends IUpdateStateToWidgetActionRequest {
+    response: IUpdateStateToWidgetResponseData
 }

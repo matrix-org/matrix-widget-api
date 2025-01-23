@@ -15,29 +15,29 @@
  */
 
 import {
-  IWidgetApiRequest,
-  IWidgetApiRequestEmptyData,
-} from "./IWidgetApiRequest";
+    IWidgetApiRequest,
+    IWidgetApiRequestEmptyData,
+} from "./IWidgetApiRequest"
 import {
-  WidgetApiFromWidgetAction,
-  WidgetApiToWidgetAction,
-} from "./WidgetApiAction";
-import { ApiVersion } from "./ApiVersion";
-import { IWidgetApiResponseData } from "./IWidgetApiResponse";
+    WidgetApiFromWidgetAction,
+    WidgetApiToWidgetAction,
+} from "./WidgetApiAction"
+import { ApiVersion } from "./ApiVersion"
+import { IWidgetApiResponseData } from "./IWidgetApiResponse"
 
 export interface ISupportedVersionsActionRequest extends IWidgetApiRequest {
-  action:
-    | WidgetApiFromWidgetAction.SupportedApiVersions
-    | WidgetApiToWidgetAction.SupportedApiVersions;
-  data: IWidgetApiRequestEmptyData;
+    action:
+        | WidgetApiFromWidgetAction.SupportedApiVersions
+        | WidgetApiToWidgetAction.SupportedApiVersions
+    data: IWidgetApiRequestEmptyData
 }
 
 export interface ISupportedVersionsActionResponseData
-  extends IWidgetApiResponseData {
-  supported_versions: ApiVersion[]; // eslint-disable-line camelcase
+    extends IWidgetApiResponseData {
+    supported_versions: ApiVersion[] // eslint-disable-line camelcase
 }
 
 export interface ISupportedVersionsActionResponse
-  extends ISupportedVersionsActionRequest {
-  response: ISupportedVersionsActionResponseData;
+    extends ISupportedVersionsActionRequest {
+    response: ISupportedVersionsActionResponseData
 }

@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 
-import { IRoomEvent } from "./IRoomEvent";
-import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
-import { IWidgetApiResponseData } from "./IWidgetApiResponse";
-import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
+import { IRoomEvent } from "./IRoomEvent"
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest"
+import { IWidgetApiResponseData } from "./IWidgetApiResponse"
+import { WidgetApiFromWidgetAction } from "./WidgetApiAction"
 
 export interface IReadRelationsFromWidgetRequestData
-  extends IWidgetApiRequestData {
-  event_id: string; // eslint-disable-line camelcase
-  rel_type?: string; // eslint-disable-line camelcase
-  event_type?: string; // eslint-disable-line camelcase
-  room_id?: string; // eslint-disable-line camelcase
+    extends IWidgetApiRequestData {
+    event_id: string // eslint-disable-line camelcase
+    rel_type?: string // eslint-disable-line camelcase
+    event_type?: string // eslint-disable-line camelcase
+    room_id?: string // eslint-disable-line camelcase
 
-  limit?: number;
-  from?: string;
-  to?: string;
-  direction?: "f" | "b";
+    limit?: number
+    from?: string
+    to?: string
+    direction?: "f" | "b"
 }
 
 export interface IReadRelationsFromWidgetActionRequest
-  extends IWidgetApiRequest {
-  action: WidgetApiFromWidgetAction.MSC3869ReadRelations;
-  data: IReadRelationsFromWidgetRequestData;
+    extends IWidgetApiRequest {
+    action: WidgetApiFromWidgetAction.MSC3869ReadRelations
+    data: IReadRelationsFromWidgetRequestData
 }
 
 export interface IReadRelationsFromWidgetResponseData
-  extends IWidgetApiResponseData {
-  chunk: IRoomEvent[];
+    extends IWidgetApiResponseData {
+    chunk: IRoomEvent[]
 
-  next_batch?: string; // eslint-disable-line camelcase
-  prev_batch?: string; // eslint-disable-line camelcase
+    next_batch?: string // eslint-disable-line camelcase
+    prev_batch?: string // eslint-disable-line camelcase
 }
 
 export interface IReadRelationsFromWidgetActionResponse
-  extends IReadRelationsFromWidgetActionRequest {
-  response: IReadRelationsFromWidgetResponseData;
+    extends IReadRelationsFromWidgetActionRequest {
+    response: IReadRelationsFromWidgetResponseData
 }
