@@ -39,6 +39,14 @@
         "options": {
           "tabWidth": 4
         }
+      },
+      {
+        "files": [
+          "test/**/*.ts"
+        ],
+        "options": {
+          "singleQuote": true
+        }
       }
     ]
   },
