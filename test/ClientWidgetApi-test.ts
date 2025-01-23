@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import { waitFor } from '@testing-library/dom';
+import { waitFor } from "@testing-library/dom";
 
-import { ClientWidgetApi } from '../src/ClientWidgetApi';
-import { WidgetDriver } from '../src/driver/WidgetDriver';
-import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
-import { Capability } from '../src/interfaces/Capabilities';
-import { IRoomEvent } from '../src/interfaces/IRoomEvent';
-import { IWidgetApiRequest } from '../src/interfaces/IWidgetApiRequest';
-import { IReadRelationsFromWidgetActionRequest } from '../src/interfaces/ReadRelationsAction';
-import { ISupportedVersionsActionRequest } from '../src/interfaces/SupportedVersionsAction';
-import { IUserDirectorySearchFromWidgetActionRequest } from '../src/interfaces/UserDirectorySearchAction';
-import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from '../src/interfaces/WidgetApiAction';
-import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
-import { Widget } from '../src/models/Widget';
-import { PostmessageTransport } from '../src/transport/PostmessageTransport';
+import { ClientWidgetApi } from "../src/ClientWidgetApi";
+import { WidgetDriver } from "../src/driver/WidgetDriver";
+import { UnstableApiVersion } from "../src/interfaces/ApiVersion";
+import { Capability } from "../src/interfaces/Capabilities";
+import { IRoomEvent } from "../src/interfaces/IRoomEvent";
+import { IWidgetApiRequest } from "../src/interfaces/IWidgetApiRequest";
+import { IReadRelationsFromWidgetActionRequest } from "../src/interfaces/ReadRelationsAction";
+import { ISupportedVersionsActionRequest } from "../src/interfaces/SupportedVersionsAction";
+import { IUserDirectorySearchFromWidgetActionRequest } from "../src/interfaces/UserDirectorySearchAction";
+import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "../src/interfaces/WidgetApiAction";
+import { WidgetApiDirection } from "../src/interfaces/WidgetApiDirection";
+import { Widget } from "../src/models/Widget";
+import { PostmessageTransport } from "../src/transport/PostmessageTransport";
 import {
     IDownloadFileActionFromWidgetActionRequest,
     IGetOpenIDActionRequest,
@@ -45,11 +45,11 @@ import {
     SimpleObservable,
     Symbols,
     UpdateDelayedEventAction,
-} from '../src';
-import { IGetMediaConfigActionFromWidgetActionRequest } from '../src/interfaces/GetMediaConfigAction';
-import { IReadRoomAccountDataFromWidgetActionRequest } from '../src/interfaces/ReadRoomAccountDataAction';
+} from "../src";
+import { IGetMediaConfigActionFromWidgetActionRequest } from "../src/interfaces/GetMediaConfigAction";
+import { IReadRoomAccountDataFromWidgetActionRequest } from "../src/interfaces/ReadRoomAccountDataAction";
 
-jest.mock('../src/transport/PostmessageTransport');
+jest.mock("../src/transport/PostmessageTransport");
 
 afterEach(() => {
     jest.resetAllMocks();
@@ -57,12 +57,12 @@ afterEach(() => {
 
 function createRoomEvent(event: Partial<IRoomEvent> = {}): IRoomEvent {
     return {
-        type: 'm.room.message',
-        sender: 'user-id',
+        type: "m.room.message",
+        sender: "user-id",
         content: {},
         origin_server_ts: 0,
-        event_id: 'id-0',
-        room_id: '!room-id',
+        event_id: "id-0",
+        room_id: "!room-id",
         unsigned: {},
         ...event,
     };
@@ -85,7 +85,7 @@ function processCustomMatrixError(e: unknown): IWidgetApiErrorResponseDataDetail
               matrix_api_error: {
                   http_status: e.httpStatus,
                   http_headers: {},
-                  url: '',
+                  url: "",
                   response: {
                       errcode: e.name,
                       error: e.message,
@@ -96,29 +96,29 @@ function processCustomMatrixError(e: unknown): IWidgetApiErrorResponseDataDetail
         : undefined;
 }
 
-describe('ClientWidgetApi', () => {
+describe("ClientWidgetApi", () => {
     let capabilities: Capability[];
     let iframe: HTMLIFrameElement;
     let driver: jest.Mocked<WidgetDriver>;
     let clientWidgetApi: ClientWidgetApi;
     let transport: PostmessageTransport;
-    let emitEvent: Parameters<PostmessageTransport['on']>['1'];
+    let emitEvent: Parameters<PostmessageTransport["on"]>["1"];
 
     async function loadIframe(caps: Capability[] = []): Promise<void> {
         capabilities = caps;
 
         const ready = new Promise<void>((resolve) => {
-            clientWidgetApi.once('ready', resolve);
+            clientWidgetApi.once("ready", resolve);
         });
 
-        iframe.dispatchEvent(new Event('load'));
+        iframe.dispatchEvent(new Event("load"));
 
         await ready;
     }
 
     beforeEach(() => {
         capabilities = [];
-        iframe = document.createElement('iframe');
+        iframe = document.createElement("iframe");
         document.body.appendChild(iframe);
 
         driver = {
@@ -143,10 +143,10 @@ describe('ClientWidgetApi', () => {
 
         clientWidgetApi = new ClientWidgetApi(
             new Widget({
-                id: 'test',
-                creatorUserId: '@alice:example.org',
-                type: 'example',
-                url: 'https://example.org',
+                id: "test",
+                creatorUserId: "@alice:example.org",
+                type: "example",
+                url: "https://example.org",
             }),
             iframe,
             driver,
@@ -164,30 +164,30 @@ describe('ClientWidgetApi', () => {
         iframe.remove();
     });
 
-    it('should initiate capabilities', async () => {
-        await loadIframe(['m.always_on_screen']);
+    it("should initiate capabilities", async () => {
+        await loadIframe(["m.always_on_screen"]);
 
-        expect(clientWidgetApi.hasCapability('m.always_on_screen')).toBe(true);
-        expect(clientWidgetApi.hasCapability('m.sticker')).toBe(false);
+        expect(clientWidgetApi.hasCapability("m.always_on_screen")).toBe(true);
+        expect(clientWidgetApi.hasCapability("m.sticker")).toBe(false);
     });
 
-    describe('navigate action', () => {
-        it('navigates', async () => {
+    describe("navigate action", () => {
+        it("navigates", async () => {
             driver.navigate.mockResolvedValue(Promise.resolve());
 
             const event: INavigateActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2931Navigate,
                 data: {
-                    uri: 'https://matrix.to/#/#room:example.net',
+                    uri: "https://matrix.to/#/#room:example.net",
                 },
             };
 
-            await loadIframe(['org.matrix.msc2931.navigate']);
+            await loadIframe(["org.matrix.msc2931.navigate"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {});
@@ -196,113 +196,113 @@ describe('ClientWidgetApi', () => {
             expect(driver.navigate).toHaveBeenCalledWith(event.data.uri);
         });
 
-        it('fails to navigate', async () => {
+        it("fails to navigate", async () => {
             const event: INavigateActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2931Navigate,
                 data: {
-                    uri: 'https://matrix.to/#/#room:example.net',
+                    uri: "https://matrix.to/#/#room:example.net",
                 },
             };
 
             await loadIframe([]); // Without the required capability
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Missing capability' },
+                    error: { message: "Missing capability" },
                 });
             });
 
             expect(driver.navigate).not.toBeCalled();
         });
 
-        it('fails to navigate to an unsupported URI', async () => {
+        it("fails to navigate to an unsupported URI", async () => {
             const event: INavigateActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2931Navigate,
                 data: {
-                    uri: 'https://example.net',
+                    uri: "https://example.net",
                 },
             };
 
-            await loadIframe(['org.matrix.msc2931.navigate']);
+            await loadIframe(["org.matrix.msc2931.navigate"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Invalid matrix.to URI' },
+                    error: { message: "Invalid matrix.to URI" },
                 });
             });
 
             expect(driver.navigate).not.toBeCalled();
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            driver.navigate.mockRejectedValue(new Error('M_UNKNOWN: Unknown error'));
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.navigate.mockRejectedValue(new Error("M_UNKNOWN: Unknown error"));
 
             const event: INavigateActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2931Navigate,
                 data: {
-                    uri: 'https://matrix.to/#/#room:example.net',
+                    uri: "https://matrix.to/#/#room:example.net",
                 },
             };
 
-            await loadIframe(['org.matrix.msc2931.navigate']);
+            await loadIframe(["org.matrix.msc2931.navigate"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Error handling navigation' },
+                    error: { message: "Error handling navigation" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.navigate.mockRejectedValue(
-                new CustomMatrixError('failed to navigate', 400, 'M_UNKNOWN', {
-                    reason: 'Unknown error',
+                new CustomMatrixError("failed to navigate", 400, "M_UNKNOWN", {
+                    reason: "Unknown error",
                 }),
             );
 
             const event: INavigateActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2931Navigate,
                 data: {
-                    uri: 'https://matrix.to/#/#room:example.net',
+                    uri: "https://matrix.to/#/#room:example.net",
                 },
             };
 
-            await loadIframe(['org.matrix.msc2931.navigate']);
+            await loadIframe(["org.matrix.msc2931.navigate"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Error handling navigation',
+                        message: "Error handling navigation",
                         matrix_api_error: {
                             http_status: 400,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_UNKNOWN',
-                                error: 'failed to navigate',
-                                reason: 'Unknown error',
+                                errcode: "M_UNKNOWN",
+                                error: "failed to navigate",
+                                reason: "Unknown error",
                             },
                         } satisfies IMatrixApiError,
                     },
@@ -311,10 +311,10 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('send_event action', () => {
-        it('sends message events', async () => {
-            const roomId = '!room:example.org';
-            const eventId = '$event:example.org';
+    describe("send_event action", () => {
+        it("sends message events", async () => {
+            const roomId = "!room:example.org";
+            const eventId = "$event:example.org";
 
             driver.sendEvent.mockResolvedValue({
                 roomId,
@@ -323,11 +323,11 @@ describe('ClientWidgetApi', () => {
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.message',
+                    type: "m.room.message",
                     content: {},
                     room_id: roomId,
                 },
@@ -338,7 +338,7 @@ describe('ClientWidgetApi', () => {
                 `org.matrix.msc2762.send.event:${event.data.type}`,
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
@@ -350,9 +350,9 @@ describe('ClientWidgetApi', () => {
             expect(driver.sendEvent).toHaveBeenCalledWith(event.data.type, event.data.content, null, roomId);
         });
 
-        it('sends state events', async () => {
-            const roomId = '!room:example.org';
-            const eventId = '$event:example.org';
+        it("sends state events", async () => {
+            const roomId = "!room:example.org";
+            const eventId = "$event:example.org";
 
             driver.sendEvent.mockResolvedValue({
                 roomId,
@@ -361,13 +361,13 @@ describe('ClientWidgetApi', () => {
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.topic',
+                    type: "m.room.topic",
                     content: {},
-                    state_key: '',
+                    state_key: "",
                     room_id: roomId,
                 },
             };
@@ -377,7 +377,7 @@ describe('ClientWidgetApi', () => {
                 `org.matrix.msc2762.send.state_event:${event.data.type}`,
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
@@ -386,22 +386,22 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.sendEvent).toHaveBeenCalledWith(event.data.type, event.data.content, '', roomId);
+            expect(driver.sendEvent).toHaveBeenCalledWith(event.data.type, event.data.content, "", roomId);
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            const roomId = '!room:example.org';
+        it("should reject requests when the driver throws an exception", async () => {
+            const roomId = "!room:example.org";
 
-            driver.sendEvent.mockRejectedValue(new Error('M_BAD_JSON: Content must be a JSON object'));
+            driver.sendEvent.mockRejectedValue(new Error("M_BAD_JSON: Content must be a JSON object"));
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.message',
-                    content: 'hello',
+                    type: "m.room.message",
+                    content: "hello",
                     room_id: roomId,
                 },
             };
@@ -411,34 +411,34 @@ describe('ClientWidgetApi', () => {
                 `org.matrix.msc2762.send.event:${event.data.type}`,
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Error sending event' },
+                    error: { message: "Error sending event" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
-            const roomId = '!room:example.org';
+        it("should reject with Matrix API error response thrown by driver", async () => {
+            const roomId = "!room:example.org";
 
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendEvent.mockRejectedValue(
-                new CustomMatrixError('failed to send event', 400, 'M_NOT_JSON', {
-                    reason: 'Content must be a JSON object.',
+                new CustomMatrixError("failed to send event", 400, "M_NOT_JSON", {
+                    reason: "Content must be a JSON object.",
                 }),
             );
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.message',
-                    content: 'hello',
+                    type: "m.room.message",
+                    content: "hello",
                     room_id: roomId,
                 },
             };
@@ -448,20 +448,20 @@ describe('ClientWidgetApi', () => {
                 `org.matrix.msc2762.send.event:${event.data.type}`,
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Error sending event',
+                        message: "Error sending event",
                         matrix_api_error: {
                             http_status: 400,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_NOT_JSON',
-                                error: 'failed to send event',
-                                reason: 'Content must be a JSON object.',
+                                errcode: "M_NOT_JSON",
+                                error: "failed to send event",
+                                reason: "Content must be a JSON object.",
                             },
                         } satisfies IMatrixApiError,
                     },
@@ -470,17 +470,17 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('send_event action for delayed events', () => {
-        it('fails to send delayed events', async () => {
-            const roomId = '!room:example.org';
+    describe("send_event action for delayed events", () => {
+        it("fails to send delayed events", async () => {
+            const roomId = "!room:example.org";
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.message',
+                    type: "m.room.message",
                     content: {},
                     delay: 5000,
                     room_id: roomId,
@@ -493,7 +493,7 @@ describe('ClientWidgetApi', () => {
                 // Without the required capability
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -504,10 +504,10 @@ describe('ClientWidgetApi', () => {
             expect(driver.sendDelayedEvent).not.toBeCalled();
         });
 
-        it('sends delayed message events', async () => {
-            const roomId = '!room:example.org';
-            const parentDelayId = 'fp';
-            const timeoutDelayId = 'ft';
+        it("sends delayed message events", async () => {
+            const roomId = "!room:example.org";
+            const parentDelayId = "fp";
+            const timeoutDelayId = "ft";
 
             driver.sendDelayedEvent.mockResolvedValue({
                 roomId,
@@ -516,11 +516,11 @@ describe('ClientWidgetApi', () => {
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.message',
+                    type: "m.room.message",
                     content: {},
                     room_id: roomId,
                     delay: 5000,
@@ -531,10 +531,10 @@ describe('ClientWidgetApi', () => {
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.event:${event.data.type}`,
-                'org.matrix.msc4157.send.delayed_event',
+                "org.matrix.msc4157.send.delayed_event",
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
@@ -553,10 +553,10 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('sends delayed state events', async () => {
-            const roomId = '!room:example.org';
-            const parentDelayId = 'fp';
-            const timeoutDelayId = 'ft';
+        it("sends delayed state events", async () => {
+            const roomId = "!room:example.org";
+            const parentDelayId = "fp";
+            const timeoutDelayId = "ft";
 
             driver.sendDelayedEvent.mockResolvedValue({
                 roomId,
@@ -565,13 +565,13 @@ describe('ClientWidgetApi', () => {
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.topic',
+                    type: "m.room.topic",
                     content: {},
-                    state_key: '',
+                    state_key: "",
                     room_id: roomId,
                     delay: 5000,
                     parent_delay_id: parentDelayId,
@@ -581,10 +581,10 @@ describe('ClientWidgetApi', () => {
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.state_event:${event.data.type}`,
-                'org.matrix.msc4157.send.delayed_event',
+                "org.matrix.msc4157.send.delayed_event",
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
@@ -598,90 +598,90 @@ describe('ClientWidgetApi', () => {
                 event.data.parent_delay_id,
                 event.data.type,
                 event.data.content,
-                '',
+                "",
                 roomId,
             );
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            const roomId = '!room:example.org';
+        it("should reject requests when the driver throws an exception", async () => {
+            const roomId = "!room:example.org";
 
-            driver.sendDelayedEvent.mockRejectedValue(new Error('M_BAD_JSON: Content must be a JSON object'));
+            driver.sendDelayedEvent.mockRejectedValue(new Error("M_BAD_JSON: Content must be a JSON object"));
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.message',
-                    content: 'hello',
+                    type: "m.room.message",
+                    content: "hello",
                     room_id: roomId,
                     delay: 5000,
-                    parent_delay_id: 'fp',
+                    parent_delay_id: "fp",
                 },
             };
 
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.event:${event.data.type}`,
-                'org.matrix.msc4157.send.delayed_event',
+                "org.matrix.msc4157.send.delayed_event",
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Error sending event' },
+                    error: { message: "Error sending event" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
-            const roomId = '!room:example.org';
+        it("should reject with Matrix API error response thrown by driver", async () => {
+            const roomId = "!room:example.org";
 
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendDelayedEvent.mockRejectedValue(
-                new CustomMatrixError('failed to send event', 400, 'M_NOT_JSON', {
-                    reason: 'Content must be a JSON object.',
+                new CustomMatrixError("failed to send event", 400, "M_NOT_JSON", {
+                    reason: "Content must be a JSON object.",
                 }),
             );
 
             const event: ISendEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendEvent,
                 data: {
-                    type: 'm.room.message',
-                    content: 'hello',
+                    type: "m.room.message",
+                    content: "hello",
                     room_id: roomId,
                     delay: 5000,
-                    parent_delay_id: 'fp',
+                    parent_delay_id: "fp",
                 },
             };
 
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.event:${event.data.type}`,
-                'org.matrix.msc4157.send.delayed_event',
+                "org.matrix.msc4157.send.delayed_event",
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Error sending event',
+                        message: "Error sending event",
                         matrix_api_error: {
                             http_status: 400,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_NOT_JSON',
-                                error: 'failed to send event',
-                                reason: 'Content must be a JSON object.',
+                                errcode: "M_NOT_JSON",
+                                error: "failed to send event",
+                                reason: "Content must be a JSON object.",
                             },
                         } satisfies IMatrixApiError,
                     },
@@ -690,21 +690,21 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('receiving events', () => {
-        const roomId = '!room:example.org';
-        const otherRoomId = '!other-room:example.org';
-        const event = createRoomEvent({ room_id: roomId, type: 'm.room.message', content: 'hello' });
+    describe("receiving events", () => {
+        const roomId = "!room:example.org";
+        const otherRoomId = "!other-room:example.org";
+        const event = createRoomEvent({ room_id: roomId, type: "m.room.message", content: "hello" });
         const eventFromOtherRoom = createRoomEvent({
             room_id: otherRoomId,
-            type: 'm.room.message',
-            content: 'test',
+            type: "m.room.message",
+            content: "test",
         });
 
-        it('forwards events to the widget from one room only', async () => {
+        it("forwards events to the widget from one room only", async () => {
             // Give the widget capabilities to receive from just one room
             await loadIframe([
                 `org.matrix.msc2762.timeline:${roomId}`,
-                'org.matrix.msc2762.receive.event:m.room.message',
+                "org.matrix.msc2762.receive.event:m.room.message",
             ]);
 
             // Event from the matching room should be forwarded
@@ -716,13 +716,13 @@ describe('ClientWidgetApi', () => {
             expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, eventFromOtherRoom);
         });
 
-        it('forwards events to the widget from the currently viewed room', async () => {
+        it("forwards events to the widget from the currently viewed room", async () => {
             clientWidgetApi.setViewedRoomId(roomId);
             // Give the widget capabilities to receive events without specifying
             // any rooms that it can read
             await loadIframe([
                 `org.matrix.msc2762.timeline:${roomId}`,
-                'org.matrix.msc2762.receive.event:m.room.message',
+                "org.matrix.msc2762.receive.event:m.room.message",
             ]);
 
             // Event from the viewed room should be forwarded
@@ -739,11 +739,11 @@ describe('ClientWidgetApi', () => {
             expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, eventFromOtherRoom);
         });
 
-        it('forwards events to the widget from all rooms', async () => {
+        it("forwards events to the widget from all rooms", async () => {
             // Give the widget capabilities to receive from any known room
             await loadIframe([
                 `org.matrix.msc2762.timeline:${Symbols.AnyRoom}`,
-                'org.matrix.msc2762.receive.event:m.room.message',
+                "org.matrix.msc2762.receive.event:m.room.message",
             ]);
 
             // Events from both rooms should be forwarded
@@ -754,34 +754,34 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('receiving room state', () => {
-        it('syncs initial state and feeds updates', async () => {
-            const roomId = '!room:example.org';
-            const otherRoomId = '!other-room:example.org';
+    describe("receiving room state", () => {
+        it("syncs initial state and feeds updates", async () => {
+            const roomId = "!room:example.org";
+            const otherRoomId = "!other-room:example.org";
             clientWidgetApi.setViewedRoomId(roomId);
             const topicEvent = createRoomEvent({
                 room_id: roomId,
-                type: 'm.room.topic',
-                state_key: '',
-                content: { topic: 'Hello world!' },
+                type: "m.room.topic",
+                state_key: "",
+                content: { topic: "Hello world!" },
             });
             const nameEvent = createRoomEvent({
                 room_id: roomId,
-                type: 'm.room.name',
-                state_key: '',
-                content: { name: 'Test room' },
+                type: "m.room.name",
+                state_key: "",
+                content: { name: "Test room" },
             });
             const joinRulesEvent = createRoomEvent({
                 room_id: roomId,
-                type: 'm.room.join_rules',
-                state_key: '',
-                content: { join_rule: 'public' },
+                type: "m.room.join_rules",
+                state_key: "",
+                content: { join_rule: "public" },
             });
             const otherRoomNameEvent = createRoomEvent({
                 room_id: otherRoomId,
-                type: 'm.room.name',
-                state_key: '',
-                content: { name: 'Other room' },
+                type: "m.room.name",
+                state_key: "",
+                content: { name: "Other room" },
             });
 
             // Artificially delay the delivery of the join rules event
@@ -790,31 +790,31 @@ describe('ClientWidgetApi', () => {
 
             driver.readRoomState.mockImplementation(async (rId, eventType, stateKey) => {
                 if (rId === roomId) {
-                    if (eventType === 'm.room.topic' && stateKey === '') return [topicEvent];
-                    if (eventType === 'm.room.name' && stateKey === '') return [nameEvent];
-                    if (eventType === 'm.room.join_rules' && stateKey === '') {
+                    if (eventType === "m.room.topic" && stateKey === "") return [topicEvent];
+                    if (eventType === "m.room.name" && stateKey === "") return [nameEvent];
+                    if (eventType === "m.room.join_rules" && stateKey === "") {
                         await joinRules;
                         return [joinRulesEvent];
                     }
                 } else if (rId === otherRoomId) {
-                    if (eventType === 'm.room.name' && stateKey === '') return [otherRoomNameEvent];
+                    if (eventType === "m.room.name" && stateKey === "") return [otherRoomNameEvent];
                 }
                 return [];
             });
 
             await loadIframe([
-                'org.matrix.msc2762.receive.state_event:m.room.topic#',
-                'org.matrix.msc2762.receive.state_event:m.room.name#',
-                'org.matrix.msc2762.receive.state_event:m.room.join_rules#',
+                "org.matrix.msc2762.receive.state_event:m.room.topic#",
+                "org.matrix.msc2762.receive.state_event:m.room.name#",
+                "org.matrix.msc2762.receive.state_event:m.room.join_rules#",
             ]);
 
             // Simulate a race between reading the original join rules event and
             // the join rules being updated at the same time
             const newJoinRulesEvent = createRoomEvent({
                 room_id: roomId,
-                type: 'm.room.join_rules',
-                state_key: '',
-                content: { join_rule: 'invite' },
+                type: "m.room.join_rules",
+                state_key: "",
+                content: { join_rule: "invite" },
             });
             clientWidgetApi.feedStateUpdate(newJoinRulesEvent);
             // What happens if the original join rules are delivered after the
@@ -836,9 +836,9 @@ describe('ClientWidgetApi', () => {
             // as expected
             const newTopicEvent = createRoomEvent({
                 room_id: roomId,
-                type: 'm.room.topic',
-                state_key: '',
-                content: { topic: 'Our new topic' },
+                type: "m.room.topic",
+                state_key: "",
+                content: { topic: "Our new topic" },
             });
             clientWidgetApi.feedStateUpdate(newTopicEvent);
 
@@ -866,22 +866,22 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('update_delayed_event action', () => {
-        it('fails to update delayed events', async () => {
+    describe("update_delayed_event action", () => {
+        it("fails to update delayed events", async () => {
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
                 data: {
-                    delay_id: 'f',
+                    delay_id: "f",
                     action: UpdateDelayedEventAction.Send,
                 },
             };
 
             await loadIframe([]); // Without the required capability
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -892,21 +892,21 @@ describe('ClientWidgetApi', () => {
             expect(driver.updateDelayedEvent).not.toBeCalled();
         });
 
-        it('fails to update delayed events with unsupported action', async () => {
+        it("fails to update delayed events with unsupported action", async () => {
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
                 data: {
-                    delay_id: 'f',
-                    action: 'unknown' as UpdateDelayedEventAction,
+                    delay_id: "f",
+                    action: "unknown" as UpdateDelayedEventAction,
                 },
             };
 
-            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+            await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -917,7 +917,7 @@ describe('ClientWidgetApi', () => {
             expect(driver.updateDelayedEvent).not.toBeCalled();
         });
 
-        it('updates delayed events', async () => {
+        it("updates delayed events", async () => {
             driver.updateDelayedEvent.mockResolvedValue(undefined);
 
             for (const action of [
@@ -927,18 +927,18 @@ describe('ClientWidgetApi', () => {
             ]) {
                 const event: IUpdateDelayedEventFromWidgetActionRequest = {
                     api: WidgetApiDirection.FromWidget,
-                    widgetId: 'test',
-                    requestId: '0',
+                    widgetId: "test",
+                    requestId: "0",
                     action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
                     data: {
-                        delay_id: 'f',
+                        delay_id: "f",
                         action,
                     },
                 };
 
-                await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+                await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
 
-                emitEvent(new CustomEvent('', { detail: event }));
+                emitEvent(new CustomEvent("", { detail: event }));
 
                 await waitFor(() => {
                     expect(transport.reply).toHaveBeenCalledWith(event, {});
@@ -948,67 +948,67 @@ describe('ClientWidgetApi', () => {
             }
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            driver.updateDelayedEvent.mockRejectedValue(new Error('M_BAD_JSON: Content must be a JSON object'));
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.updateDelayedEvent.mockRejectedValue(new Error("M_BAD_JSON: Content must be a JSON object"));
 
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
                 data: {
-                    delay_id: 'f',
+                    delay_id: "f",
                     action: UpdateDelayedEventAction.Send,
                 },
             };
 
-            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+            await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Error updating delayed event' },
+                    error: { message: "Error updating delayed event" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.updateDelayedEvent.mockRejectedValue(
-                new CustomMatrixError('failed to update delayed event', 400, 'M_NOT_JSON', {
-                    reason: 'Content must be a JSON object.',
+                new CustomMatrixError("failed to update delayed event", 400, "M_NOT_JSON", {
+                    reason: "Content must be a JSON object.",
                 }),
             );
 
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
                 data: {
-                    delay_id: 'f',
+                    delay_id: "f",
                     action: UpdateDelayedEventAction.Send,
                 },
             };
 
-            await loadIframe(['org.matrix.msc4157.update_delayed_event']);
+            await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Error updating delayed event',
+                        message: "Error updating delayed event",
                         matrix_api_error: {
                             http_status: 400,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_NOT_JSON',
-                                error: 'failed to update delayed event',
-                                reason: 'Content must be a JSON object.',
+                                errcode: "M_NOT_JSON",
+                                error: "failed to update delayed event",
+                                reason: "Content must be a JSON object.",
                             },
                         } satisfies IMatrixApiError,
                     },
@@ -1017,20 +1017,20 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('send_to_device action', () => {
-        it('sends unencrypted to-device events', async () => {
+    describe("send_to_device action", () => {
+        it("sends unencrypted to-device events", async () => {
             const event: ISendToDeviceFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendToDevice,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     encrypted: false,
                     messages: {
-                        '@foo:bar.com': {
+                        "@foo:bar.com": {
                             DEVICEID: {
-                                example_content_key: 'value',
+                                example_content_key: "value",
                             },
                         },
                     },
@@ -1039,7 +1039,7 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {});
@@ -1052,18 +1052,18 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('fails to send to-device events without event type', async () => {
+        it("fails to send to-device events without event type", async () => {
             const event: IWidgetApiRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendToDevice,
                 data: {
                     encrypted: false,
                     messages: {
-                        '@foo:bar.com': {
+                        "@foo:bar.com": {
                             DEVICEID: {
-                                example_content_key: 'value',
+                                example_content_key: "value",
                             },
                         },
                     },
@@ -1072,54 +1072,54 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Invalid request - missing event type' },
+                    error: { message: "Invalid request - missing event type" },
                 });
             });
 
             expect(driver.sendToDevice).not.toBeCalled();
         });
 
-        it('fails to send to-device events without event contents', async () => {
+        it("fails to send to-device events without event contents", async () => {
             const event: IWidgetApiRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendToDevice,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     encrypted: false,
                 },
             };
 
             await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Invalid request - missing event contents' },
+                    error: { message: "Invalid request - missing event contents" },
                 });
             });
 
             expect(driver.sendToDevice).not.toBeCalled();
         });
 
-        it('fails to send to-device events without encryption flag', async () => {
+        it("fails to send to-device events without encryption flag", async () => {
             const event: IWidgetApiRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendToDevice,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     messages: {
-                        '@foo:bar.com': {
+                        "@foo:bar.com": {
                             DEVICEID: {
-                                example_content_key: 'value',
+                                example_content_key: "value",
                             },
                         },
                     },
@@ -1128,30 +1128,30 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Invalid request - missing encryption flag' },
+                    error: { message: "Invalid request - missing encryption flag" },
                 });
             });
 
             expect(driver.sendToDevice).not.toBeCalled();
         });
 
-        it('fails to send to-device events with any event type', async () => {
+        it("fails to send to-device events with any event type", async () => {
             const event: ISendToDeviceFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendToDevice,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     encrypted: false,
                     messages: {
-                        '@foo:bar.com': {
+                        "@foo:bar.com": {
                             DEVICEID: {
-                                example_content_key: 'value',
+                                example_content_key: "value",
                             },
                         },
                     },
@@ -1160,34 +1160,34 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}_different`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Cannot send to-device events of this type' },
+                    error: { message: "Cannot send to-device events of this type" },
                 });
             });
 
             expect(driver.sendToDevice).not.toBeCalled();
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
+        it("should reject requests when the driver throws an exception", async () => {
             driver.sendToDevice.mockRejectedValue(
                 new Error("M_FORBIDDEN: You don't have permission to send to-device events"),
             );
 
             const event: ISendToDeviceFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendToDevice,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     encrypted: false,
                     messages: {
-                        '@foo:bar.com': {
+                        "@foo:bar.com": {
                             DEVICEID: {
-                                example_content_key: 'value',
+                                example_content_key: "value",
                             },
                         },
                     },
@@ -1196,36 +1196,36 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Error sending event' },
+                    error: { message: "Error sending event" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.sendToDevice.mockRejectedValue(
-                new CustomMatrixError('failed to send event', 400, 'M_FORBIDDEN', {
+                new CustomMatrixError("failed to send event", 400, "M_FORBIDDEN", {
                     reason: "You don't have permission to send to-device events",
                 }),
             );
 
             const event: ISendToDeviceFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SendToDevice,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     encrypted: false,
                     messages: {
-                        '@foo:bar.com': {
+                        "@foo:bar.com": {
                             DEVICEID: {
-                                example_content_key: 'value',
+                                example_content_key: "value",
                             },
                         },
                     },
@@ -1234,19 +1234,19 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([`org.matrix.msc3819.send.to_device:${event.data.type}`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Error sending event',
+                        message: "Error sending event",
                         matrix_api_error: {
                             http_status: 400,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_FORBIDDEN',
-                                error: 'failed to send event',
+                                errcode: "M_FORBIDDEN",
+                                error: "failed to send event",
                                 reason: "You don't have permission to send to-device events",
                             },
                         } satisfies IMatrixApiError,
@@ -1256,40 +1256,40 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('get_openid action', () => {
-        it('gets info', async () => {
+    describe("get_openid action", () => {
+        it("gets info", async () => {
             driver.askOpenID.mockImplementation((observable) => {
                 observable.update({
                     state: OpenIDRequestState.Allowed,
                     token: {
-                        access_token: 'access_token',
+                        access_token: "access_token",
                     },
                 });
             });
 
             const event: IGetOpenIDActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.GetOpenIDCredentials,
                 data: {},
             };
 
             await loadIframe([]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     state: OpenIDRequestState.Allowed,
-                    access_token: 'access_token',
+                    access_token: "access_token",
                 });
             });
 
             expect(driver.askOpenID).toHaveBeenCalledWith(expect.any(SimpleObservable));
         });
 
-        it('fails when client provided invalid token', async () => {
+        it("fails when client provided invalid token", async () => {
             driver.askOpenID.mockImplementation((observable) => {
                 observable.update({
                     state: OpenIDRequestState.Allowed,
@@ -1298,19 +1298,19 @@ describe('ClientWidgetApi', () => {
 
             const event: IGetOpenIDActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.GetOpenIDCredentials,
                 data: {},
             };
 
             await loadIframe([]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
-                    error: { message: 'client provided invalid OIDC token for an allowed request' },
+                    error: { message: "client provided invalid OIDC token for an allowed request" },
                 });
             });
 
@@ -1318,10 +1318,10 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('com.beeper.read_room_account_data action', () => {
-        it('reads room account data', async () => {
-            const type = 'net.example.test';
-            const roomId = '!room:example.org';
+    describe("com.beeper.read_room_account_data action", () => {
+        it("reads room account data", async () => {
+            const type = "net.example.test";
+            const roomId = "!room:example.org";
 
             driver.readRoomAccountData.mockResolvedValue([
                 {
@@ -1333,8 +1333,8 @@ describe('ClientWidgetApi', () => {
 
             const event: IReadRoomAccountDataFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.BeeperReadRoomAccountData,
                 data: {
                     room_ids: [roomId],
@@ -1344,7 +1344,7 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([`com.beeper.capabilities.receive.room_account_data:${type}`]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
@@ -1361,9 +1361,9 @@ describe('ClientWidgetApi', () => {
             expect(driver.readRoomAccountData).toHaveBeenCalledWith(event.data.type);
         });
 
-        it('does not read room account data', async () => {
-            const type = 'net.example.test';
-            const roomId = '!room:example.org';
+        it("does not read room account data", async () => {
+            const type = "net.example.test";
+            const roomId = "!room:example.org";
 
             driver.readRoomAccountData.mockResolvedValue([
                 {
@@ -1375,8 +1375,8 @@ describe('ClientWidgetApi', () => {
 
             const event: IReadRoomAccountDataFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.BeeperReadRoomAccountData,
                 data: {
                     room_ids: [roomId],
@@ -1386,11 +1386,11 @@ describe('ClientWidgetApi', () => {
 
             await loadIframe([]); // Without the required capability
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
-                    error: { message: 'Cannot read room account data of this type' },
+                    error: { message: "Cannot read room account data of this type" },
                 });
             });
 
@@ -1398,10 +1398,10 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('org.matrix.msc2876.read_events action', () => {
-        it('reads events from a specific room', async () => {
-            const roomId = '!room:example.org';
-            const event = createRoomEvent({ room_id: roomId, type: 'net.example.test', content: 'test' });
+    describe("org.matrix.msc2876.read_events action", () => {
+        it("reads events from a specific room", async () => {
+            const roomId = "!room:example.org";
+            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
             driver.readRoomTimeline.mockImplementation(async (rId) => {
                 if (rId === roomId) return [event];
                 return [];
@@ -1409,22 +1409,22 @@ describe('ClientWidgetApi', () => {
 
             const request: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     room_ids: [roomId],
                 },
             };
 
             await loadIframe([
                 `org.matrix.msc2762.timeline:${roomId}`,
-                'org.matrix.msc2762.receive.event:net.example.test',
+                "org.matrix.msc2762.receive.event:net.example.test",
             ]);
             clientWidgetApi.setViewedRoomId(roomId);
 
-            emitEvent(new CustomEvent('', { detail: request }));
+            emitEvent(new CustomEvent("", { detail: request }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(request, {
@@ -1434,7 +1434,7 @@ describe('ClientWidgetApi', () => {
 
             expect(driver.readRoomTimeline).toHaveBeenCalledWith(
                 roomId,
-                'net.example.test',
+                "net.example.test",
                 undefined,
                 undefined,
                 0,
@@ -1442,11 +1442,11 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('reads events from all rooms', async () => {
-            const roomId = '!room:example.org';
-            const otherRoomId = '!other-room:example.org';
-            const event = createRoomEvent({ room_id: roomId, type: 'net.example.test', content: 'test' });
-            const otherRoomEvent = createRoomEvent({ room_id: otherRoomId, type: 'net.example.test', content: 'hi' });
+        it("reads events from all rooms", async () => {
+            const roomId = "!room:example.org";
+            const otherRoomId = "!other-room:example.org";
+            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
+            const otherRoomEvent = createRoomEvent({ room_id: otherRoomId, type: "net.example.test", content: "hi" });
             driver.getKnownRooms.mockReturnValue([roomId, otherRoomId]);
             driver.readRoomTimeline.mockImplementation(async (rId) => {
                 if (rId === roomId) return [event];
@@ -1456,22 +1456,22 @@ describe('ClientWidgetApi', () => {
 
             const request: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     room_ids: Symbols.AnyRoom,
                 },
             };
 
             await loadIframe([
                 `org.matrix.msc2762.timeline:${Symbols.AnyRoom}`,
-                'org.matrix.msc2762.receive.event:net.example.test',
+                "org.matrix.msc2762.receive.event:net.example.test",
             ]);
             clientWidgetApi.setViewedRoomId(roomId);
 
-            emitEvent(new CustomEvent('', { detail: request }));
+            emitEvent(new CustomEvent("", { detail: request }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(request, {
@@ -1481,7 +1481,7 @@ describe('ClientWidgetApi', () => {
 
             expect(driver.readRoomTimeline).toHaveBeenCalledWith(
                 roomId,
-                'net.example.test',
+                "net.example.test",
                 undefined,
                 undefined,
                 0,
@@ -1489,7 +1489,7 @@ describe('ClientWidgetApi', () => {
             );
             expect(driver.readRoomTimeline).toHaveBeenCalledWith(
                 otherRoomId,
-                'net.example.test',
+                "net.example.test",
                 undefined,
                 undefined,
                 0,
@@ -1497,40 +1497,40 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('reads state events with any state key', async () => {
+        it("reads state events with any state key", async () => {
             driver.readRoomTimeline.mockResolvedValue([
-                createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
-                createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
+                createRoomEvent({ type: "net.example.test", state_key: "A" }),
+                createRoomEvent({ type: "net.example.test", state_key: "B" }),
             ]);
 
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     state_key: true,
                 },
             };
 
-            await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test']);
-            clientWidgetApi.setViewedRoomId('!room-id');
+            await loadIframe(["org.matrix.msc2762.receive.state_event:net.example.test"]);
+            clientWidgetApi.setViewedRoomId("!room-id");
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     events: [
-                        createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
-                        createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
+                        createRoomEvent({ type: "net.example.test", state_key: "A" }),
+                        createRoomEvent({ type: "net.example.test", state_key: "B" }),
                     ],
                 });
             });
 
             expect(driver.readRoomTimeline).toBeCalledWith(
-                '!room-id',
-                'net.example.test',
+                "!room-id",
+                "net.example.test",
                 undefined,
                 undefined,
                 0,
@@ -1538,21 +1538,21 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('fails to read state events with any state key', async () => {
+        it("fails to read state events with any state key", async () => {
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
                 data: {
-                    type: 'net.example.test',
+                    type: "net.example.test",
                     state_key: true,
                 },
             };
 
             await loadIframe([]); // Without the required capability
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -1563,57 +1563,57 @@ describe('ClientWidgetApi', () => {
             expect(driver.readRoomTimeline).not.toBeCalled();
         });
 
-        it('reads state events with a specific state key', async () => {
-            driver.readRoomTimeline.mockResolvedValue([createRoomEvent({ type: 'net.example.test', state_key: 'B' })]);
+        it("reads state events with a specific state key", async () => {
+            driver.readRoomTimeline.mockResolvedValue([createRoomEvent({ type: "net.example.test", state_key: "B" })]);
 
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
                 data: {
-                    type: 'net.example.test',
-                    state_key: 'B',
+                    type: "net.example.test",
+                    state_key: "B",
                 },
             };
 
-            await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test#B']);
-            clientWidgetApi.setViewedRoomId('!room-id');
+            await loadIframe(["org.matrix.msc2762.receive.state_event:net.example.test#B"]);
+            clientWidgetApi.setViewedRoomId("!room-id");
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    events: [createRoomEvent({ type: 'net.example.test', state_key: 'B' })],
+                    events: [createRoomEvent({ type: "net.example.test", state_key: "B" })],
                 });
             });
 
             expect(driver.readRoomTimeline).toBeCalledWith(
-                '!room-id',
-                'net.example.test',
+                "!room-id",
+                "net.example.test",
                 undefined,
-                'B',
+                "B",
                 0,
                 undefined,
             );
         });
 
-        it('fails to read state events with a specific state key', async () => {
+        it("fails to read state events with a specific state key", async () => {
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
                 data: {
-                    type: 'net.example.test',
-                    state_key: 'B',
+                    type: "net.example.test",
+                    state_key: "B",
                 },
             };
 
             // Request the capability for the wrong state key
-            await loadIframe(['org.matrix.msc2762.receive.state_event:net.example.test#A']);
+            await loadIframe(["org.matrix.msc2762.receive.state_event:net.example.test#A"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -1625,39 +1625,39 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('org.matrix.msc3869.read_relations action', () => {
-        it('should present as supported api version', () => {
+    describe("org.matrix.msc3869.read_relations action", () => {
+        it("should present as supported api version", () => {
             const event: ISupportedVersionsActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SupportedApiVersions,
                 data: {},
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC3869]),
             });
         });
 
-        it('should handle and process the request', async () => {
+        it("should handle and process the request", async () => {
             driver.readEventRelations.mockResolvedValue({
                 chunk: [createRoomEvent()],
             });
 
             const event: IReadRelationsFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
-                data: { event_id: '$event' },
+                data: { event_id: "$event" },
             };
 
-            await loadIframe(['org.matrix.msc2762.receive.event:m.room.message']);
+            await loadIframe(["org.matrix.msc2762.receive.event:m.room.message"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -1666,7 +1666,7 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readEventRelations).toBeCalledWith(
-                '$event',
+                "$event",
                 undefined,
                 undefined,
                 undefined,
@@ -1677,39 +1677,39 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('should only return events that match requested capabilities', async () => {
+        it("should only return events that match requested capabilities", async () => {
             driver.readEventRelations.mockResolvedValue({
                 chunk: [
                     createRoomEvent(),
-                    createRoomEvent({ type: 'm.reaction' }),
-                    createRoomEvent({ type: 'net.example.test', state_key: 'A' }),
-                    createRoomEvent({ type: 'net.example.test', state_key: 'B' }),
+                    createRoomEvent({ type: "m.reaction" }),
+                    createRoomEvent({ type: "net.example.test", state_key: "A" }),
+                    createRoomEvent({ type: "net.example.test", state_key: "B" }),
                 ],
             });
 
             const event: IReadRelationsFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
-                data: { event_id: '$event' },
+                data: { event_id: "$event" },
             };
 
             await loadIframe([
-                'org.matrix.msc2762.receive.event:m.room.message',
-                'org.matrix.msc2762.receive.state_event:net.example.test#A',
+                "org.matrix.msc2762.receive.event:m.room.message",
+                "org.matrix.msc2762.receive.state_event:net.example.test#A",
             ]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    chunk: [createRoomEvent(), createRoomEvent({ type: 'net.example.test', state_key: 'A' })],
+                    chunk: [createRoomEvent(), createRoomEvent({ type: "net.example.test", state_key: "A" })],
                 });
             });
 
             expect(driver.readEventRelations).toBeCalledWith(
-                '$event',
+                "$event",
                 undefined,
                 undefined,
                 undefined,
@@ -1720,31 +1720,31 @@ describe('ClientWidgetApi', () => {
             );
         });
 
-        it('should accept all options and pass it to the driver', async () => {
+        it("should accept all options and pass it to the driver", async () => {
             driver.readEventRelations.mockResolvedValue({
                 chunk: [],
             });
 
             const event: IReadRelationsFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
                 data: {
-                    event_id: '$event',
-                    room_id: '!room-id',
-                    event_type: 'm.room.message',
-                    rel_type: 'm.reference',
+                    event_id: "$event",
+                    room_id: "!room-id",
+                    event_type: "m.room.message",
+                    rel_type: "m.reference",
                     limit: 25,
-                    from: 'from-token',
-                    to: 'to-token',
-                    direction: 'f',
+                    from: "from-token",
+                    to: "to-token",
+                    direction: "f",
                 },
             };
 
-            await loadIframe(['org.matrix.msc2762.timeline:!room-id']);
+            await loadIframe(["org.matrix.msc2762.timeline:!room-id"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -1753,127 +1753,127 @@ describe('ClientWidgetApi', () => {
             });
 
             expect(driver.readEventRelations).toBeCalledWith(
-                '$event',
-                '!room-id',
-                'm.reference',
-                'm.room.message',
-                'from-token',
-                'to-token',
+                "$event",
+                "!room-id",
+                "m.reference",
+                "m.room.message",
+                "from-token",
+                "to-token",
                 25,
-                'f',
+                "f",
             );
         });
 
-        it('should reject requests without event_id', async () => {
+        it("should reject requests without event_id", async () => {
             const event: IWidgetApiRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
                 data: {},
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Invalid request - missing event ID' },
+                error: { message: "Invalid request - missing event ID" },
             });
         });
 
-        it('should reject requests with a negative limit', async () => {
+        it("should reject requests with a negative limit", async () => {
             const event: IReadRelationsFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
                 data: {
-                    event_id: '$event',
+                    event_id: "$event",
                     limit: -1,
                 },
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Invalid request - limit out of range' },
+                error: { message: "Invalid request - limit out of range" },
             });
         });
 
-        it('should reject requests when the room timeline was not requested', async () => {
+        it("should reject requests when the room timeline was not requested", async () => {
             const event: IReadRelationsFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
                 data: {
-                    event_id: '$event',
-                    room_id: '!another-room-id',
+                    event_id: "$event",
+                    room_id: "!another-room-id",
                 },
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Unable to access room timeline: !another-room-id' },
+                error: { message: "Unable to access room timeline: !another-room-id" },
             });
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
+        it("should reject requests when the driver throws an exception", async () => {
             driver.readEventRelations.mockRejectedValue(
                 new Error("M_FORBIDDEN: You don't have permission to access that event"),
             );
 
             const event: IReadRelationsFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
-                data: { event_id: '$event' },
+                data: { event_id: "$event" },
             };
 
             await loadIframe();
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Unexpected error while reading relations' },
+                    error: { message: "Unexpected error while reading relations" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.readEventRelations.mockRejectedValue(
-                new CustomMatrixError('failed to read relations', 403, 'M_FORBIDDEN', {
+                new CustomMatrixError("failed to read relations", 403, "M_FORBIDDEN", {
                     reason: "You don't have permission to access that event",
                 }),
             );
 
             const event: IReadRelationsFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
-                data: { event_id: '$event' },
+                data: { event_id: "$event" },
             };
 
             await loadIframe();
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Unexpected error while reading relations',
+                        message: "Unexpected error while reading relations",
                         matrix_api_error: {
                             http_status: 403,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_FORBIDDEN',
-                                error: 'failed to read relations',
+                                errcode: "M_FORBIDDEN",
+                                error: "failed to read relations",
                                 reason: "You don't have permission to access that event",
                             },
                         } satisfies IMatrixApiError,
@@ -1883,51 +1883,51 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('org.matrix.msc3973.user_directory_search action', () => {
-        it('should present as supported api version', () => {
+    describe("org.matrix.msc3973.user_directory_search action", () => {
+        it("should present as supported api version", () => {
             const event: ISupportedVersionsActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SupportedApiVersions,
                 data: {},
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC3973]),
             });
         });
 
-        it('should handle and process the request', async () => {
+        it("should handle and process the request", async () => {
             driver.searchUserDirectory.mockResolvedValue({
                 limited: true,
                 results: [
                     {
-                        userId: '@foo:bar.com',
+                        userId: "@foo:bar.com",
                     },
                 ],
             });
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
-                data: { search_term: 'foo' },
+                data: { search_term: "foo" },
             };
 
-            await loadIframe(['org.matrix.msc3973.user_directory_search']);
+            await loadIframe(["org.matrix.msc3973.user_directory_search"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     limited: true,
                     results: [
                         {
-                            user_id: '@foo:bar.com',
+                            user_id: "@foo:bar.com",
                             display_name: undefined,
                             avatar_url: undefined,
                         },
@@ -1935,61 +1935,61 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.searchUserDirectory).toBeCalledWith('foo', undefined);
+            expect(driver.searchUserDirectory).toBeCalledWith("foo", undefined);
         });
 
-        it('should accept all options and pass it to the driver', async () => {
+        it("should accept all options and pass it to the driver", async () => {
             driver.searchUserDirectory.mockResolvedValue({
                 limited: false,
                 results: [
                     {
-                        userId: '@foo:bar.com',
+                        userId: "@foo:bar.com",
                     },
                     {
-                        userId: '@bar:foo.com',
-                        displayName: 'Bar',
-                        avatarUrl: 'mxc://...',
+                        userId: "@bar:foo.com",
+                        displayName: "Bar",
+                        avatarUrl: "mxc://...",
                     },
                 ],
             });
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
                 data: {
-                    search_term: 'foo',
+                    search_term: "foo",
                     limit: 5,
                 },
             };
 
-            await loadIframe(['org.matrix.msc3973.user_directory_search']);
+            await loadIframe(["org.matrix.msc3973.user_directory_search"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     limited: false,
                     results: [
                         {
-                            user_id: '@foo:bar.com',
+                            user_id: "@foo:bar.com",
                             display_name: undefined,
                             avatar_url: undefined,
                         },
                         {
-                            user_id: '@bar:foo.com',
-                            display_name: 'Bar',
-                            avatar_url: 'mxc://...',
+                            user_id: "@bar:foo.com",
+                            display_name: "Bar",
+                            avatar_url: "mxc://...",
                         },
                     ],
                 });
             });
 
-            expect(driver.searchUserDirectory).toBeCalledWith('foo', 5);
+            expect(driver.searchUserDirectory).toBeCalledWith("foo", 5);
         });
 
-        it('should accept empty search_term', async () => {
+        it("should accept empty search_term", async () => {
             driver.searchUserDirectory.mockResolvedValue({
                 limited: false,
                 results: [],
@@ -1997,15 +1997,15 @@ describe('ClientWidgetApi', () => {
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
-                data: { search_term: '' },
+                data: { search_term: "" },
             };
 
-            await loadIframe(['org.matrix.msc3973.user_directory_search']);
+            await loadIframe(["org.matrix.msc3973.user_directory_search"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
@@ -2014,126 +2014,126 @@ describe('ClientWidgetApi', () => {
                 });
             });
 
-            expect(driver.searchUserDirectory).toBeCalledWith('', undefined);
+            expect(driver.searchUserDirectory).toBeCalledWith("", undefined);
         });
 
-        it('should reject requests when the capability was not requested', async () => {
+        it("should reject requests when the capability was not requested", async () => {
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
-                data: { search_term: 'foo' },
+                data: { search_term: "foo" },
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Missing capability' },
+                error: { message: "Missing capability" },
             });
 
             expect(driver.searchUserDirectory).not.toBeCalled();
         });
 
-        it('should reject requests without search_term', async () => {
+        it("should reject requests without search_term", async () => {
             const event: IWidgetApiRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
                 data: {},
             };
 
-            await loadIframe(['org.matrix.msc3973.user_directory_search']);
+            await loadIframe(["org.matrix.msc3973.user_directory_search"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Invalid request - missing search term' },
+                error: { message: "Invalid request - missing search term" },
             });
 
             expect(driver.searchUserDirectory).not.toBeCalled();
         });
 
-        it('should reject requests with a negative limit', async () => {
+        it("should reject requests with a negative limit", async () => {
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
                 data: {
-                    search_term: 'foo',
+                    search_term: "foo",
                     limit: -1,
                 },
             };
 
-            await loadIframe(['org.matrix.msc3973.user_directory_search']);
+            await loadIframe(["org.matrix.msc3973.user_directory_search"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Invalid request - limit out of range' },
+                error: { message: "Invalid request - limit out of range" },
             });
 
             expect(driver.searchUserDirectory).not.toBeCalled();
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            driver.searchUserDirectory.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.searchUserDirectory.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
-                data: { search_term: 'foo' },
+                data: { search_term: "foo" },
             };
 
-            await loadIframe(['org.matrix.msc3973.user_directory_search']);
+            await loadIframe(["org.matrix.msc3973.user_directory_search"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Unexpected error while searching in the user directory' },
+                    error: { message: "Unexpected error while searching in the user directory" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.searchUserDirectory.mockRejectedValue(
-                new CustomMatrixError('failed to search the user directory', 429, 'M_LIMIT_EXCEEDED', {
-                    reason: 'Too many requests',
+                new CustomMatrixError("failed to search the user directory", 429, "M_LIMIT_EXCEEDED", {
+                    reason: "Too many requests",
                     retry_after_ms: 2000,
                 }),
             );
 
             const event: IUserDirectorySearchFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
-                data: { search_term: 'foo' },
+                data: { search_term: "foo" },
             };
 
-            await loadIframe(['org.matrix.msc3973.user_directory_search']);
+            await loadIframe(["org.matrix.msc3973.user_directory_search"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Unexpected error while searching in the user directory',
+                        message: "Unexpected error while searching in the user directory",
                         matrix_api_error: {
                             http_status: 429,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_LIMIT_EXCEEDED',
-                                error: 'failed to search the user directory',
-                                reason: 'Too many requests',
+                                errcode: "M_LIMIT_EXCEEDED",
+                                error: "failed to search the user directory",
+                                reason: "Too many requests",
                                 retry_after_ms: 2000,
                             },
                         } satisfies IMatrixApiError,
@@ -2143,123 +2143,123 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('org.matrix.msc4039.get_media_config action', () => {
-        it('should present as supported api version', () => {
+    describe("org.matrix.msc4039.get_media_config action", () => {
+        it("should present as supported api version", () => {
             const event: ISupportedVersionsActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SupportedApiVersions,
                 data: {},
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4039]),
             });
         });
 
-        it('should handle and process the request', async () => {
+        it("should handle and process the request", async () => {
             driver.getMediaConfig.mockResolvedValue({
-                'm.upload.size': 1000,
+                "m.upload.size": 1000,
             });
 
             const event: IGetMediaConfigActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
                 data: {},
             };
 
-            await loadIframe(['org.matrix.msc4039.upload_file']);
+            await loadIframe(["org.matrix.msc4039.upload_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    'm.upload.size': 1000,
+                    "m.upload.size": 1000,
                 });
             });
 
             expect(driver.getMediaConfig).toBeCalled();
         });
 
-        it('should reject requests when the capability was not requested', async () => {
+        it("should reject requests when the capability was not requested", async () => {
             const event: IGetMediaConfigActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
                 data: {},
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Missing capability' },
+                error: { message: "Missing capability" },
             });
 
             expect(driver.getMediaConfig).not.toBeCalled();
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            driver.getMediaConfig.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.getMediaConfig.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
 
             const event: IGetMediaConfigActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
                 data: {},
             };
 
-            await loadIframe(['org.matrix.msc4039.upload_file']);
+            await loadIframe(["org.matrix.msc4039.upload_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Unexpected error while getting the media configuration' },
+                    error: { message: "Unexpected error while getting the media configuration" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.getMediaConfig.mockRejectedValue(
-                new CustomMatrixError('failed to get the media configuration', 429, 'M_LIMIT_EXCEEDED', {
-                    reason: 'Too many requests',
+                new CustomMatrixError("failed to get the media configuration", 429, "M_LIMIT_EXCEEDED", {
+                    reason: "Too many requests",
                     retry_after_ms: 2000,
                 }),
             );
 
             const event: IGetMediaConfigActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction,
                 data: {},
             };
 
-            await loadIframe(['org.matrix.msc4039.upload_file']);
+            await loadIframe(["org.matrix.msc4039.upload_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Unexpected error while getting the media configuration',
+                        message: "Unexpected error while getting the media configuration",
                         matrix_api_error: {
                             http_status: 429,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_LIMIT_EXCEEDED',
-                                error: 'failed to get the media configuration',
-                                reason: 'Too many requests',
+                                errcode: "M_LIMIT_EXCEEDED",
+                                error: "failed to get the media configuration",
+                                reason: "Too many requests",
                                 retry_after_ms: 2000,
                             },
                         } satisfies IMatrixApiError,
@@ -2269,17 +2269,17 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('MSC4039', () => {
-        it('should present as supported api version', () => {
+    describe("MSC4039", () => {
+        it("should present as supported api version", () => {
             const event: ISupportedVersionsActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.SupportedApiVersions,
                 data: {},
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4039]),
@@ -2287,115 +2287,115 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('org.matrix.msc4039.upload_file action', () => {
-        it('should handle and process the request', async () => {
+    describe("org.matrix.msc4039.upload_file action", () => {
+        it("should handle and process the request", async () => {
             driver.uploadFile.mockResolvedValue({
-                contentUri: 'mxc://...',
+                contentUri: "mxc://...",
             });
 
             const event: IUploadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
                 data: {
-                    file: 'data',
+                    file: "data",
                 },
             };
 
-            await loadIframe(['org.matrix.msc4039.upload_file']);
+            await loadIframe(["org.matrix.msc4039.upload_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    content_uri: 'mxc://...',
+                    content_uri: "mxc://...",
                 });
             });
 
             expect(driver.uploadFile).toBeCalled();
         });
 
-        it('should reject requests when the capability was not requested', async () => {
+        it("should reject requests when the capability was not requested", async () => {
             const event: IUploadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
                 data: {
-                    file: 'data',
+                    file: "data",
                 },
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Missing capability' },
+                error: { message: "Missing capability" },
             });
 
             expect(driver.uploadFile).not.toBeCalled();
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            driver.uploadFile.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.uploadFile.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
 
             const event: IUploadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
                 data: {
-                    file: 'data',
+                    file: "data",
                 },
             };
 
-            await loadIframe(['org.matrix.msc4039.upload_file']);
+            await loadIframe(["org.matrix.msc4039.upload_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Unexpected error while uploading a file' },
+                    error: { message: "Unexpected error while uploading a file" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.uploadFile.mockRejectedValue(
-                new CustomMatrixError('failed to upload a file', 429, 'M_LIMIT_EXCEEDED', {
-                    reason: 'Too many requests',
+                new CustomMatrixError("failed to upload a file", 429, "M_LIMIT_EXCEEDED", {
+                    reason: "Too many requests",
                     retry_after_ms: 2000,
                 }),
             );
 
             const event: IUploadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039UploadFileAction,
                 data: {
-                    file: 'data',
+                    file: "data",
                 },
             };
 
-            await loadIframe(['org.matrix.msc4039.upload_file']);
+            await loadIframe(["org.matrix.msc4039.upload_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Unexpected error while uploading a file',
+                        message: "Unexpected error while uploading a file",
                         matrix_api_error: {
                             http_status: 429,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_LIMIT_EXCEEDED',
-                                error: 'failed to upload a file',
-                                reason: 'Too many requests',
+                                errcode: "M_LIMIT_EXCEEDED",
+                                error: "failed to upload a file",
+                                reason: "Too many requests",
                                 retry_after_ms: 2000,
                             },
                         } satisfies IMatrixApiError,
@@ -2405,115 +2405,115 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    describe('org.matrix.msc4039.download_file action', () => {
-        it('should handle and process the request', async () => {
+    describe("org.matrix.msc4039.download_file action", () => {
+        it("should handle and process the request", async () => {
             driver.downloadFile.mockResolvedValue({
-                file: 'test contents',
+                file: "test contents",
             });
 
             const event: IDownloadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
                 data: {
-                    content_uri: 'mxc://example.com/test_file',
+                    content_uri: "mxc://example.com/test_file",
                 },
             };
 
-            await loadIframe(['org.matrix.msc4039.download_file']);
+            await loadIframe(["org.matrix.msc4039.download_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
-                    file: 'test contents',
+                    file: "test contents",
                 });
             });
 
-            expect(driver.downloadFile).toHaveBeenCalledWith('mxc://example.com/test_file');
+            expect(driver.downloadFile).toHaveBeenCalledWith("mxc://example.com/test_file");
         });
 
-        it('should reject requests when the capability was not requested', async () => {
+        it("should reject requests when the capability was not requested", async () => {
             const event: IDownloadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
                 data: {
-                    content_uri: 'mxc://example.com/test_file',
+                    content_uri: "mxc://example.com/test_file",
                 },
             };
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: { message: 'Missing capability' },
+                error: { message: "Missing capability" },
             });
 
             expect(driver.uploadFile).not.toBeCalled();
         });
 
-        it('should reject requests when the driver throws an exception', async () => {
-            driver.downloadFile.mockRejectedValue(new Error('M_LIMIT_EXCEEDED: Too many requests'));
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.downloadFile.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
 
             const event: IDownloadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
                 data: {
-                    content_uri: 'mxc://example.com/test_file',
+                    content_uri: "mxc://example.com/test_file",
                 },
             };
 
-            await loadIframe(['org.matrix.msc4039.download_file']);
+            await loadIframe(["org.matrix.msc4039.download_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: { message: 'Unexpected error while downloading a file' },
+                    error: { message: "Unexpected error while downloading a file" },
                 });
             });
         });
 
-        it('should reject with Matrix API error response thrown by driver', async () => {
+        it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
             driver.downloadFile.mockRejectedValue(
-                new CustomMatrixError('failed to download a file', 429, 'M_LIMIT_EXCEEDED', {
-                    reason: 'Too many requests',
+                new CustomMatrixError("failed to download a file", 429, "M_LIMIT_EXCEEDED", {
+                    reason: "Too many requests",
                     retry_after_ms: 2000,
                 }),
             );
 
             const event: IDownloadFileActionFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
-                widgetId: 'test',
-                requestId: '0',
+                widgetId: "test",
+                requestId: "0",
                 action: WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
                 data: {
-                    content_uri: 'mxc://example.com/test_file',
+                    content_uri: "mxc://example.com/test_file",
                 },
             };
 
-            await loadIframe(['org.matrix.msc4039.download_file']);
+            await loadIframe(["org.matrix.msc4039.download_file"]);
 
-            emitEvent(new CustomEvent('', { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     error: {
-                        message: 'Unexpected error while downloading a file',
+                        message: "Unexpected error while downloading a file",
                         matrix_api_error: {
                             http_status: 429,
                             http_headers: {},
-                            url: '',
+                            url: "",
                             response: {
-                                errcode: 'M_LIMIT_EXCEEDED',
-                                error: 'failed to download a file',
-                                reason: 'Too many requests',
+                                errcode: "M_LIMIT_EXCEEDED",
+                                error: "failed to download a file",
+                                reason: "Too many requests",
                                 retry_after_ms: 2000,
                             },
                         } satisfies IMatrixApiError,
@@ -2523,13 +2523,13 @@ describe('ClientWidgetApi', () => {
         });
     });
 
-    it('updates theme', () => {
-        clientWidgetApi.updateTheme({ name: 'dark' });
-        expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.ThemeChange, { name: 'dark' });
+    it("updates theme", () => {
+        clientWidgetApi.updateTheme({ name: "dark" });
+        expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.ThemeChange, { name: "dark" });
     });
 
-    it('updates language', () => {
-        clientWidgetApi.updateLanguage('tlh');
-        expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.LanguageChange, { lang: 'tlh' });
+    it("updates language", () => {
+        clientWidgetApi.updateLanguage("tlh");
+        expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.LanguageChange, { lang: "tlh" });
     });
 });
