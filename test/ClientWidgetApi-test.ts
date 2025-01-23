@@ -912,6 +912,37 @@ describe('ClientWidgetApi', () => {
         });
     });
 
+    describe('dont receive UpdateState if version not supported', () => {
+        it('syncs initial state and feeds updates', async () => {
+            const roomId = '!room:example.org';
+            clientWidgetApi.setViewedRoomId(roomId);
+            jest.spyOn(transport, "send").mockImplementation((action, data) => {
+                if (action === WidgetApiToWidgetAction.SupportedApiVersions) {
+                    return Promise.resolve({ supported_versions: [] });
+                }
+                return Promise.resolve({});
+            });
+
+            await loadIframe([
+                'org.matrix.msc2762.receive.state_event:m.room.join_rules#',
+            ]);
+
+            const newJoinRulesEvent = createRoomEvent({
+                room_id: roomId,
+                type: 'm.room.join_rules',
+                state_key: '',
+                content: { join_rule: 'invite' },
+            });
+            clientWidgetApi.feedStateUpdate(newJoinRulesEvent);
+
+            await waitFor(() => {
+                
+                // Only the updated join rules should have been delivered
+                expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState);
+            });
+        });
+    });
+
     describe('update_delayed_event action', () => {
         it('fails to update delayed events', async () => {
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
