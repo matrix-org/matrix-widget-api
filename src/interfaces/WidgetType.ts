@@ -20,4 +20,4 @@ export enum MatrixWidgetType {
     Stickerpicker = "m.stickerpicker",
 }
 
-export type WidgetType = MatrixWidgetType | string
+export type WidgetType = MatrixWidgetType | string;

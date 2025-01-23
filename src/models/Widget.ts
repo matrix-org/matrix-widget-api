@@ -14,70 +14,70 @@
  * limitations under the License.
  */
 
-import { IWidget, IWidgetData, WidgetType } from ".."
-import { assertPresent } from "./validation/utils"
-import { ITemplateParams, runTemplate } from ".."
+import { IWidget, IWidgetData, WidgetType } from "..";
+import { assertPresent } from "./validation/utils";
+import { ITemplateParams, runTemplate } from "..";
 
 /**
  * Represents the barest form of widget.
  */
 export class Widget {
     public constructor(private definition: IWidget) {
-        if (!this.definition) throw new Error("Definition is required")
+        if (!this.definition) throw new Error("Definition is required");
 
-        assertPresent(definition, "id")
-        assertPresent(definition, "creatorUserId")
-        assertPresent(definition, "type")
-        assertPresent(definition, "url")
+        assertPresent(definition, "id");
+        assertPresent(definition, "creatorUserId");
+        assertPresent(definition, "type");
+        assertPresent(definition, "url");
     }
 
     /**
      * The user ID who created the widget.
      */
     public get creatorUserId(): string {
-        return this.definition.creatorUserId
+        return this.definition.creatorUserId;
     }
 
     /**
      * The type of widget.
      */
     public get type(): WidgetType {
-        return this.definition.type
+        return this.definition.type;
     }
 
     /**
      * The ID of the widget.
      */
     public get id(): string {
-        return this.definition.id
+        return this.definition.id;
     }
 
     /**
      * The name of the widget, or null if not set.
      */
     public get name(): string | null {
-        return this.definition.name || null
+        return this.definition.name || null;
     }
 
     /**
      * The title for the widget, or null if not set.
      */
     public get title(): string | null {
-        return this.rawData.title || null
+        return this.rawData.title || null;
     }
 
     /**
      * The templated URL for the widget.
      */
     public get templateUrl(): string {
-        return this.definition.url
+        return this.definition.url;
     }
 
     /**
      * The origin for this widget.
      */
     public get origin(): string {
-        return new URL(this.templateUrl).origin
+        return new URL(this.templateUrl).origin;
     }
 
     /**
@@ -85,9 +85,9 @@ export class Widget {
      * to true.
      */
     public get waitForIframeLoad(): boolean {
-        if (this.definition.waitForIframeLoad === false) return false
-        if (this.definition.waitForIframeLoad === true) return true
-        return true // default true
+        if (this.definition.waitForIframeLoad === false) return false;
+        if (this.definition.waitForIframeLoad === true) return true;
+        return true; // default true
     }
 
     /**
@@ -95,7 +95,7 @@ export class Widget {
      * may be empty.
      */
     public get rawData(): IWidgetData {
-        return this.definition.data || {}
+        return this.definition.data || {};
     }
 
     /**
@@ -104,6 +104,6 @@ export class Widget {
      * @returns {string} A templated URL.
      */
     public getCompleteUrl(params: ITemplateParams): string {
-        return runTemplate(this.templateUrl, this.definition, params)
+        return runTemplate(this.templateUrl, this.definition, params);
     }
 }

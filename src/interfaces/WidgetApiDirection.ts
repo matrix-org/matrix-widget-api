@@ -21,10 +21,10 @@ export enum WidgetApiDirection {
 
 export function invertedDirection(dir: WidgetApiDirection): WidgetApiDirection {
     if (dir === WidgetApiDirection.ToWidget) {
-        return WidgetApiDirection.FromWidget
+        return WidgetApiDirection.FromWidget;
     } else if (dir === WidgetApiDirection.FromWidget) {
-        return WidgetApiDirection.ToWidget
+        return WidgetApiDirection.ToWidget;
     } else {
-        throw new Error("Invalid direction")
+        throw new Error("Invalid direction");
     }
 }

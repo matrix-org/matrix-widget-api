@@ -22,7 +22,7 @@ jobs:
 
             - name: Check Linting Rules and Types
               run: yarn lint
-            
+
             - name: Check Formatting
               run: yarn prettier:check
 

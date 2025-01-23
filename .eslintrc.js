@@ -14,7 +14,7 @@ module.exports = {
         "one-var": ["warn"],
         "padded-blocks": ["warn"],
         "no-extend-native": ["warn"],
-        camelcase: ["warn"],
+        "camelcase": ["warn"],
         "no-multi-spaces": ["error", { ignoreEOLComments: true }],
         "space-before-function-paren": [
             "error",
@@ -26,8 +26,8 @@ module.exports = {
         ],
         "arrow-parens": "off",
         "prefer-promise-reject-errors": "off",
-        quotes: "off",
-        indent: "off",
+        "quotes": "off",
+        "indent": "off",
         "no-constant-condition": "off",
         "no-async-promise-executor": "off",
     },
@@ -39,7 +39,7 @@ module.exports = {
                 // TypeScript has its own version of this
                 "babel/no-invalid-this": "off",
 
-                quotes: "off",
+                "quotes": "off",
             },
         },
         {
@@ -49,4 +49,4 @@ module.exports = {
             },
         },
     ],
-}
+};

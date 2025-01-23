@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest"
-import { WidgetApiToWidgetAction } from "./WidgetApiAction"
-import { IWidgetApiAcknowledgeResponseData } from "./IWidgetApiResponse"
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
+import { WidgetApiToWidgetAction } from "./WidgetApiAction";
+import { IWidgetApiAcknowledgeResponseData } from "./IWidgetApiResponse";
 
 export interface IVisibilityActionRequestData extends IWidgetApiRequestData {
-    visible: boolean
+    visible: boolean;
 }
 
 export interface IVisibilityActionRequest extends IWidgetApiRequest {
-    action: WidgetApiToWidgetAction.UpdateVisibility
-    data: IVisibilityActionRequestData
+    action: WidgetApiToWidgetAction.UpdateVisibility;
+    data: IVisibilityActionRequestData;
 }
 
 export interface IVisibilityActionResponse extends IVisibilityActionRequest {
-    response: IWidgetApiAcknowledgeResponseData
+    response: IWidgetApiAcknowledgeResponseData;
 }

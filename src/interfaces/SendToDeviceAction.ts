@@ -14,54 +14,43 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest"
-import {
-    WidgetApiFromWidgetAction,
-    WidgetApiToWidgetAction,
-} from "./WidgetApiAction"
-import { IWidgetApiResponseData } from "./IWidgetApiResponse"
-import { IRoomEvent } from "./IRoomEvent"
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
+import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./WidgetApiAction";
+import { IWidgetApiResponseData } from "./IWidgetApiResponse";
+import { IRoomEvent } from "./IRoomEvent";
 
-export interface ISendToDeviceFromWidgetRequestData
-    extends IWidgetApiRequestData {
-    type: string
-    encrypted: boolean
-    messages: { [userId: string]: { [deviceId: string]: object } }
+export interface ISendToDeviceFromWidgetRequestData extends IWidgetApiRequestData {
+    type: string;
+    encrypted: boolean;
+    messages: { [userId: string]: { [deviceId: string]: object } };
 }
 
-export interface ISendToDeviceFromWidgetActionRequest
-    extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.SendToDevice
-    data: ISendToDeviceFromWidgetRequestData
+export interface ISendToDeviceFromWidgetActionRequest extends IWidgetApiRequest {
+    action: WidgetApiFromWidgetAction.SendToDevice;
+    data: ISendToDeviceFromWidgetRequestData;
 }
 
-export interface ISendToDeviceFromWidgetResponseData
-    extends IWidgetApiResponseData {
+export interface ISendToDeviceFromWidgetResponseData extends IWidgetApiResponseData {
     // nothing
 }
 
-export interface ISendToDeviceFromWidgetActionResponse
-    extends ISendToDeviceFromWidgetActionRequest {
-    response: ISendToDeviceFromWidgetResponseData
+export interface ISendToDeviceFromWidgetActionResponse extends ISendToDeviceFromWidgetActionRequest {
+    response: ISendToDeviceFromWidgetResponseData;
 }
 
-export interface ISendToDeviceToWidgetRequestData
-    extends IWidgetApiRequestData,
-        IRoomEvent {
-    encrypted: boolean
+export interface ISendToDeviceToWidgetRequestData extends IWidgetApiRequestData, IRoomEvent {
+    encrypted: boolean;
 }
 
 export interface ISendToDeviceToWidgetActionRequest extends IWidgetApiRequest {
-    action: WidgetApiToWidgetAction.SendToDevice
-    data: ISendToDeviceToWidgetRequestData
+    action: WidgetApiToWidgetAction.SendToDevice;
+    data: ISendToDeviceToWidgetRequestData;
 }
 
-export interface ISendToDeviceToWidgetResponseData
-    extends IWidgetApiResponseData {
+export interface ISendToDeviceToWidgetResponseData extends IWidgetApiResponseData {
     // nothing
 }
 
-export interface ISendToDeviceToWidgetActionResponse
-    extends ISendToDeviceToWidgetActionRequest {
-    response: ISendToDeviceToWidgetResponseData
+export interface ISendToDeviceToWidgetActionResponse extends ISendToDeviceToWidgetActionRequest {
+    response: ISendToDeviceToWidgetResponseData;
 }

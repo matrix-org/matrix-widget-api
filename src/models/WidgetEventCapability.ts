@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Capability } from ".."
+import { Capability } from "..";
 
 export enum EventKind {
     Event = "event",
@@ -37,63 +37,49 @@ export class WidgetEventCapability {
         public readonly raw: string,
     ) {}
 
-    public matchesAsStateEvent(
-        direction: EventDirection,
-        eventType: string,
-        stateKey: string | null,
-    ): boolean {
-        if (this.kind !== EventKind.State) return false // not a state event
-        if (this.direction !== direction) return false // direction mismatch
-        if (this.eventType !== eventType) return false // event type mismatch
-        if (this.keyStr === null) return true // all state keys are allowed
-        if (this.keyStr === stateKey) return true // this state key is allowed
+    public matchesAsStateEvent(direction: EventDirection, eventType: string, stateKey: string | null): boolean {
+        if (this.kind !== EventKind.State) return false; // not a state event
+        if (this.direction !== direction) return false; // direction mismatch
+        if (this.eventType !== eventType) return false; // event type mismatch
+        if (this.keyStr === null) return true; // all state keys are allowed
+        if (this.keyStr === stateKey) return true; // this state key is allowed
 
         // Default not allowed
-        return false
+        return false;
     }
 
-    public matchesAsToDeviceEvent(
-        direction: EventDirection,
-        eventType: string,
-    ): boolean {
-        if (this.kind !== EventKind.ToDevice) return false // not a to-device event
-        if (this.direction !== direction) return false // direction mismatch
-        if (this.eventType !== eventType) return false // event type mismatch
+    public matchesAsToDeviceEvent(direction: EventDirection, eventType: string): boolean {
+        if (this.kind !== EventKind.ToDevice) return false; // not a to-device event
+        if (this.direction !== direction) return false; // direction mismatch
+        if (this.eventType !== eventType) return false; // event type mismatch
 
         // Checks passed, the event is allowed
-        return true
+        return true;
     }
 
-    public matchesAsRoomEvent(
-        direction: EventDirection,
-        eventType: string,
-        msgtype: string | null = null,
-    ): boolean {
-        if (this.kind !== EventKind.Event) return false // not a room event
-        if (this.direction !== direction) return false // direction mismatch
-        if (this.eventType !== eventType) return false // event type mismatch
+    public matchesAsRoomEvent(direction: EventDirection, eventType: string, msgtype: string | null = null): boolean {
+        if (this.kind !== EventKind.Event) return false; // not a room event
+        if (this.direction !== direction) return false; // direction mismatch
+        if (this.eventType !== eventType) return false; // event type mismatch
 
         if (this.eventType === "m.room.message") {
-            if (this.keyStr === null) return true // all message types are allowed
-            if (this.keyStr === msgtype) return true // this message type is allowed
+            if (this.keyStr === null) return true; // all message types are allowed
+            if (this.keyStr === msgtype) return true; // this message type is allowed
         } else {
-            return true // already passed the check for if the event is allowed
+            return true; // already passed the check for if the event is allowed
         }
 
         // Default not allowed
-        return false
+        return false;
     }
 
-    public matchesAsRoomAccountData(
-        direction: EventDirection,
-        eventType: string,
-    ): boolean {
-        if (this.kind !== EventKind.RoomAccount) return false // not room account data
-        if (this.direction !== direction) return false // direction mismatch
-        if (this.eventType !== eventType) return false // event type mismatch
+    public matchesAsRoomAccountData(direction: EventDirection, eventType: string): boolean {
+        if (this.kind !== EventKind.RoomAccount) return false; // not room account data
+        if (this.direction !== direction) return false; // direction mismatch
+        if (this.eventType !== eventType) return false; // event type mismatch
 
         // Checks passed, the event is allowed
-        return true
+        return true;
     }
 
     public static forStateEvent(
@@ -103,59 +89,46 @@ export class WidgetEventCapability {
     ): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
         // https://github.com/matrix-org/matrix-widget-api/issues/22
-        eventType = eventType.replace(/#/g, "\\#")
-        stateKey =
-            stateKey !== null && stateKey !== undefined ? `#${stateKey}` : ""
-        const str = `org.matrix.msc2762.${direction}.state_event:${eventType}${stateKey}`
+        eventType = eventType.replace(/#/g, "\\#");
+        stateKey = stateKey !== null && stateKey !== undefined ? `#${stateKey}` : "";
+        const str = `org.matrix.msc2762.${direction}.state_event:${eventType}${stateKey}`;
 
         // cheat by sending it through the processor
-        return WidgetEventCapability.findEventCapabilities([str])[0]
+        return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
-    public static forToDeviceEvent(
-        direction: EventDirection,
-        eventType: string,
-    ): WidgetEventCapability {
+    public static forToDeviceEvent(direction: EventDirection, eventType: string): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
         // https://github.com/matrix-org/matrix-widget-api/issues/56
-        const str = `org.matrix.msc3819.${direction}.to_device:${eventType}`
+        const str = `org.matrix.msc3819.${direction}.to_device:${eventType}`;
 
         // cheat by sending it through the processor
-        return WidgetEventCapability.findEventCapabilities([str])[0]
+        return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
-    public static forRoomEvent(
-        direction: EventDirection,
-        eventType: string,
-    ): WidgetEventCapability {
+    public static forRoomEvent(direction: EventDirection, eventType: string): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
         // https://github.com/matrix-org/matrix-widget-api/issues/22
-        const str = `org.matrix.msc2762.${direction}.event:${eventType}`
+        const str = `org.matrix.msc2762.${direction}.event:${eventType}`;
 
         // cheat by sending it through the processor
-        return WidgetEventCapability.findEventCapabilities([str])[0]
+        return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
-    public static forRoomMessageEvent(
-        direction: EventDirection,
-        msgtype?: string,
-    ): WidgetEventCapability {
+    public static forRoomMessageEvent(direction: EventDirection, msgtype?: string): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
         // https://github.com/matrix-org/matrix-widget-api/issues/22
-        msgtype = msgtype === null || msgtype === undefined ? "" : msgtype
-        const str = `org.matrix.msc2762.${direction}.event:m.room.message#${msgtype}`
+        msgtype = msgtype === null || msgtype === undefined ? "" : msgtype;
+        const str = `org.matrix.msc2762.${direction}.event:m.room.message#${msgtype}`;
 
         // cheat by sending it through the processor
-        return WidgetEventCapability.findEventCapabilities([str])[0]
+        return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
-    public static forRoomAccountData(
-        direction: EventDirection,
-        eventType: string,
-    ): WidgetEventCapability {
-        const str = `com.beeper.capabilities.${direction}.room_account_data:${eventType}`
+    public static forRoomAccountData(direction: EventDirection, eventType: string): WidgetEventCapability {
+        const str = `com.beeper.capabilities.${direction}.room_account_data:${eventType}`;
 
-        return WidgetEventCapability.findEventCapabilities([str])[0]
+        return WidgetEventCapability.findEventCapabilities([str])[0];
     }
 
     /**
@@ -163,86 +136,55 @@ export class WidgetEventCapability {
      * @param {Iterable<Capability>} capabilities The capabilities requested/to parse.
      * @returns {WidgetEventCapability[]} An array of event capability requests. May be empty, but never null.
      */
-    public static findEventCapabilities(
-        capabilities: Iterable<Capability>,
-    ): WidgetEventCapability[] {
-        const parsed: WidgetEventCapability[] = []
+    public static findEventCapabilities(capabilities: Iterable<Capability>): WidgetEventCapability[] {
+        const parsed: WidgetEventCapability[] = [];
         for (const cap of capabilities) {
-            let direction: EventDirection | null = null
-            let eventSegment: string | undefined
-            let kind: EventKind | null = null
+            let direction: EventDirection | null = null;
+            let eventSegment: string | undefined;
+            let kind: EventKind | null = null;
 
             // TODO: Enable support for m.* namespace once the MSCs land.
             // https://github.com/matrix-org/matrix-widget-api/issues/22
             // https://github.com/matrix-org/matrix-widget-api/issues/56
 
             if (cap.startsWith("org.matrix.msc2762.send.event:")) {
-                direction = EventDirection.Send
-                kind = EventKind.Event
-                eventSegment = cap.substring(
-                    "org.matrix.msc2762.send.event:".length,
-                )
+                direction = EventDirection.Send;
+                kind = EventKind.Event;
+                eventSegment = cap.substring("org.matrix.msc2762.send.event:".length);
             } else if (cap.startsWith("org.matrix.msc2762.send.state_event:")) {
-                direction = EventDirection.Send
-                kind = EventKind.State
-                eventSegment = cap.substring(
-                    "org.matrix.msc2762.send.state_event:".length,
-                )
+                direction = EventDirection.Send;
+                kind = EventKind.State;
+                eventSegment = cap.substring("org.matrix.msc2762.send.state_event:".length);
             } else if (cap.startsWith("org.matrix.msc3819.send.to_device:")) {
-                direction = EventDirection.Send
-                kind = EventKind.ToDevice
-                eventSegment = cap.substring(
-                    "org.matrix.msc3819.send.to_device:".length,
-                )
+                direction = EventDirection.Send;
+                kind = EventKind.ToDevice;
+                eventSegment = cap.substring("org.matrix.msc3819.send.to_device:".length);
             } else if (cap.startsWith("org.matrix.msc2762.receive.event:")) {
-                direction = EventDirection.Receive
-                kind = EventKind.Event
-                eventSegment = cap.substring(
-                    "org.matrix.msc2762.receive.event:".length,
-                )
-            } else if (
-                cap.startsWith("org.matrix.msc2762.receive.state_event:")
-            ) {
-                direction = EventDirection.Receive
-                kind = EventKind.State
-                eventSegment = cap.substring(
-                    "org.matrix.msc2762.receive.state_event:".length,
-                )
-            } else if (
-                cap.startsWith("org.matrix.msc3819.receive.to_device:")
-            ) {
-                direction = EventDirection.Receive
-                kind = EventKind.ToDevice
-                eventSegment = cap.substring(
-                    "org.matrix.msc3819.receive.to_device:".length,
-                )
-            } else if (
-                cap.startsWith(
-                    "com.beeper.capabilities.receive.room_account_data:",
-                )
-            ) {
-                direction = EventDirection.Receive
-                kind = EventKind.RoomAccount
-                eventSegment = cap.substring(
-                    "com.beeper.capabilities.receive.room_account_data:".length,
-                )
+                direction = EventDirection.Receive;
+                kind = EventKind.Event;
+                eventSegment = cap.substring("org.matrix.msc2762.receive.event:".length);
+            } else if (cap.startsWith("org.matrix.msc2762.receive.state_event:")) {
+                direction = EventDirection.Receive;
+                kind = EventKind.State;
+                eventSegment = cap.substring("org.matrix.msc2762.receive.state_event:".length);
+            } else if (cap.startsWith("org.matrix.msc3819.receive.to_device:")) {
+                direction = EventDirection.Receive;
+                kind = EventKind.ToDevice;
+                eventSegment = cap.substring("org.matrix.msc3819.receive.to_device:".length);
+            } else if (cap.startsWith("com.beeper.capabilities.receive.room_account_data:")) {
+                direction = EventDirection.Receive;
+                kind = EventKind.RoomAccount;
+                eventSegment = cap.substring("com.beeper.capabilities.receive.room_account_data:".length);
             }
 
-            if (
-                direction === null ||
-                kind === null ||
-                eventSegment === undefined
-            )
-                continue
+            if (direction === null || kind === null || eventSegment === undefined) continue;
 
             // The capability uses `#` as a separator between event type and state key/msgtype,
             // so we split on that. However, a # is also valid in either one of those so we
             // join accordingly.
             // Eg: `m.room.message##m.text` is "m.room.message" event with msgtype "#m.text".
-            const expectingKeyStr =
-                eventSegment.startsWith("m.room.message#") ||
-                kind === EventKind.State
-            let keyStr: string | null = null
+            const expectingKeyStr = eventSegment.startsWith("m.room.message#") || kind === EventKind.State;
+            let keyStr: string | null = null;
             if (eventSegment.includes("#") && expectingKeyStr) {
                 // Dev note: regex is difficult to write, so instead the rules are manually written
                 // out. This is probably just as understandable as a boring regex though, so win-win?
@@ -259,34 +201,24 @@ export class WidgetEventCapability {
                 // m.room.message\\###test  m.room.message\#    #test
 
                 // First step: explode the string
-                const parts = eventSegment.split("#")
+                const parts = eventSegment.split("#");
 
                 // To form the eventSegment, we'll keep finding parts of the exploded string until
                 // there's one that doesn't end with the escape character (\). We'll then join those
                 // segments together with the exploding character. We have to remember to consume the
                 // escape character as well.
-                const idx = parts.findIndex((p) => !p.endsWith("\\"))
+                const idx = parts.findIndex((p) => !p.endsWith("\\"));
                 eventSegment = parts
                     .slice(0, idx + 1)
-                    .map((p) =>
-                        p.endsWith("\\") ? p.substring(0, p.length - 1) : p,
-                    )
-                    .join("#")
+                    .map((p) => (p.endsWith("\\") ? p.substring(0, p.length - 1) : p))
+                    .join("#");
 
                 // The keyStr is whatever is left over.
-                keyStr = parts.slice(idx + 1).join("#")
+                keyStr = parts.slice(idx + 1).join("#");
             }
 
-            parsed.push(
-                new WidgetEventCapability(
-                    direction,
-                    eventSegment,
-                    kind,
-                    keyStr,
-                    cap,
-                ),
-            )
+            parsed.push(new WidgetEventCapability(direction, eventSegment, kind, keyStr, cap));
         }
-        return parsed
+        return parsed;
     }
 }

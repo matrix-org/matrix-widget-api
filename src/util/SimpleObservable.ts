@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-export type ObservableFunction<T> = (val: T) => void
+export type ObservableFunction<T> = (val: T) => void;
 
 export class SimpleObservable<T> {
-    private listeners: ObservableFunction<T>[] = []
+    private listeners: ObservableFunction<T>[] = [];
 
     public constructor(initialFn?: ObservableFunction<T>) {
-        if (initialFn) this.listeners.push(initialFn)
+        if (initialFn) this.listeners.push(initialFn);
     }
 
     public onUpdate(fn: ObservableFunction<T>): void {
-        this.listeners.push(fn)
+        this.listeners.push(fn);
     }
 
     public update(val: T): void {
         for (const listener of this.listeners) {
-            listener(val)
+            listener(val);
         }
     }
 
     public close(): void {
-        this.listeners = [] // reset
+        this.listeners = []; // reset
     }
 }

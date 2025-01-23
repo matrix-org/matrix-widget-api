@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IWidgetData } from "./IWidget"
+import { IWidgetData } from "./IWidget";
 
 export interface IStickerpickerWidgetData extends IWidgetData {
     // no additional properties (for now)

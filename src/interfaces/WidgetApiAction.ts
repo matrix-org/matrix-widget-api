@@ -94,7 +94,4 @@ export enum WidgetApiFromWidgetAction {
     MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update_delayed_event",
 }
 
-export type WidgetApiAction =
-    | WidgetApiToWidgetAction
-    | WidgetApiFromWidgetAction
-    | string
+export type WidgetApiAction = WidgetApiToWidgetAction | WidgetApiFromWidgetAction | string;

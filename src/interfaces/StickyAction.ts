@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest"
-import { WidgetApiFromWidgetAction } from "./WidgetApiAction"
-import { IWidgetApiResponseData } from "./IWidgetApiResponse"
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
+import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
+import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 
 export interface IStickyActionRequestData extends IWidgetApiRequestData {
-    value: boolean
+    value: boolean;
 }
 
 export interface IStickyActionRequest extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.UpdateAlwaysOnScreen
-    data: IStickyActionRequestData
+    action: WidgetApiFromWidgetAction.UpdateAlwaysOnScreen;
+    data: IStickyActionRequestData;
 }
 
 export interface IStickyActionResponseData extends IWidgetApiResponseData {
-    success: boolean
+    success: boolean;
 }
 
 export interface IStickyActionResponse extends IStickyActionRequest {
-    response: IStickyActionResponseData
+    response: IStickyActionResponseData;
 }

@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-import { Widget } from "./Widget"
-import { IWidget } from ".."
-import { isValidUrl } from "./validation/url"
+import { Widget } from "./Widget";
+import { IWidget } from "..";
+import { isValidUrl } from "./validation/url";
 
 export interface IStateEvent {
-    event_id: string // eslint-disable-line camelcase
-    room_id: string // eslint-disable-line camelcase
-    type: string
-    sender: string
-    origin_server_ts: number // eslint-disable-line camelcase
-    unsigned?: unknown
-    content: unknown
-    state_key: string // eslint-disable-line camelcase
+    event_id: string; // eslint-disable-line camelcase
+    room_id: string; // eslint-disable-line camelcase
+    type: string;
+    sender: string;
+    origin_server_ts: number; // eslint-disable-line camelcase
+    unsigned?: unknown;
+    content: unknown;
+    state_key: string; // eslint-disable-line camelcase
 }
 
 export interface IAccountDataWidgets {
     [widgetId: string]: {
-        type: "m.widget"
+        type: "m.widget";
         // the state_key is also the widget's ID
-        state_key: string // eslint-disable-line camelcase
-        sender: string // current user's ID
-        content: IWidget
-        id?: string // off-spec, but possible
-    }
+        state_key: string; // eslint-disable-line camelcase
+        sender: string; // current user's ID
+        content: IWidget;
+        id?: string; // off-spec, but possible
+    };
 }
 
 export class WidgetParser {
@@ -52,21 +52,17 @@ export class WidgetParser {
      * @returns {Widget[]} The widgets in account data, or an empty array.
      */
     public static parseAccountData(content: IAccountDataWidgets): Widget[] {
-        if (!content) return []
+        if (!content) return [];
 
-        const result: Widget[] = []
+        const result: Widget[] = [];
         for (const widgetId of Object.keys(content)) {
-            const roughWidget = content[widgetId]
-            if (!roughWidget) continue
-            if (
-                roughWidget.type !== "m.widget" &&
-                roughWidget.type !== "im.vector.modular.widgets"
-            )
-                continue
-            if (!roughWidget.sender) continue
+            const roughWidget = content[widgetId];
+            if (!roughWidget) continue;
+            if (roughWidget.type !== "m.widget" && roughWidget.type !== "im.vector.modular.widgets") continue;
+            if (!roughWidget.sender) continue;
 
-            const probableWidgetId = roughWidget.state_key || roughWidget.id
-            if (probableWidgetId !== widgetId) continue
+            const probableWidgetId = roughWidget.state_key || roughWidget.id;
+            if (probableWidgetId !== widgetId) continue;
 
             const asStateEvent: IStateEvent = {
                 content: roughWidget.content,
@@ -76,13 +72,13 @@ export class WidgetParser {
                 event_id: "$example",
                 room_id: "!example",
                 origin_server_ts: 1,
-            }
+            };
 
-            const widget = WidgetParser.parseRoomWidget(asStateEvent)
-            if (widget) result.push(widget)
+            const widget = WidgetParser.parseRoomWidget(asStateEvent);
+            if (widget) result.push(widget);
         }
 
-        return result
+        return result;
     }
 
     /**
@@ -91,16 +87,14 @@ export class WidgetParser {
      * @param {IStateEvent[]} currentState The room state to parse.
      * @returns {Widget[]} The widgets in the state, or an empty array.
      */
-    public static parseWidgetsFromRoomState(
-        currentState: IStateEvent[],
-    ): Widget[] {
-        if (!currentState) return []
-        const result: Widget[] = []
+    public static parseWidgetsFromRoomState(currentState: IStateEvent[]): Widget[] {
+        if (!currentState) return [];
+        const result: Widget[] = [];
         for (const state of currentState) {
-            const widget = WidgetParser.parseRoomWidget(state)
-            if (widget) result.push(widget)
+            const widget = WidgetParser.parseRoomWidget(state);
+            if (widget) result.push(widget);
         }
-        return result
+        return result;
     }
 
     /**
@@ -110,14 +104,11 @@ export class WidgetParser {
      * @returns {Widget|null} The widget, or null if invalid
      */
     public static parseRoomWidget(stateEvent: IStateEvent): Widget | null {
-        if (!stateEvent) return null
+        if (!stateEvent) return null;
 
         // TODO: [Legacy] Remove legacy support
-        if (
-            stateEvent.type !== "m.widget" &&
-            stateEvent.type !== "im.vector.modular.widgets"
-        ) {
-            return null
+        if (stateEvent.type !== "m.widget" && stateEvent.type !== "im.vector.modular.widgets") {
+            return null;
         }
 
         // Dev note: Throughout this function we have null safety to ensure that
@@ -125,7 +116,7 @@ export class WidgetParser {
         // is done against the requirements of the interface because not everyone
         // will have an interface to validate against.
 
-        const content = (stateEvent.content as IWidget) || {}
+        const content = (stateEvent.content as IWidget) || {};
 
         // Form our best approximation of a widget with the information we have
         const estimatedWidget: IWidget = {
@@ -136,21 +127,21 @@ export class WidgetParser {
             url: content["url"],
             waitForIframeLoad: content["waitForIframeLoad"],
             data: content["data"],
-        }
+        };
 
         // Finally, process that widget
-        return WidgetParser.processEstimatedWidget(estimatedWidget)
+        return WidgetParser.processEstimatedWidget(estimatedWidget);
     }
 
     private static processEstimatedWidget(widget: IWidget): Widget | null {
         // Validate that the widget has the best chance of passing as a widget
         if (!widget.id || !widget.creatorUserId || !widget.type) {
-            return null
+            return null;
         }
         if (!isValidUrl(widget.url)) {
-            return null
+            return null;
         }
         // TODO: Validate data for known widget types
-        return new Widget(widget)
+        return new Widget(widget);
     }
 }

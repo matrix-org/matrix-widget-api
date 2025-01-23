@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest } from "./IWidgetApiRequest"
+import { IWidgetApiRequest } from "./IWidgetApiRequest";
 
 export interface IWidgetApiResponseData {
-    [key: string]: unknown
+    [key: string]: unknown;
 }
 
-export interface IWidgetApiAcknowledgeResponseData
-    extends IWidgetApiResponseData {
+export interface IWidgetApiAcknowledgeResponseData extends IWidgetApiResponseData {
     // nothing
 }
 
 export interface IWidgetApiResponse extends IWidgetApiRequest {
-    response: IWidgetApiResponseData
+    response: IWidgetApiResponseData;
 }

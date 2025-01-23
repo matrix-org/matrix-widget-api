@@ -15,18 +15,18 @@
  */
 
 export function isValidUrl(val: string): boolean {
-    if (!val) return false // easy: not valid if not present
+    if (!val) return false; // easy: not valid if not present
 
     try {
-        const parsed = new URL(val)
+        const parsed = new URL(val);
         if (parsed.protocol !== "http" && parsed.protocol !== "https") {
-            return false
+            return false;
         }
-        return true
+        return true;
     } catch (e) {
         if (e instanceof TypeError) {
-            return false
+            return false;
         }
-        throw e
+        throw e;
     }
 }

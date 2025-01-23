@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { WidgetApiDirection } from "./WidgetApiDirection"
-import { WidgetApiAction } from "./WidgetApiAction"
+import { WidgetApiDirection } from "./WidgetApiDirection";
+import { WidgetApiAction } from "./WidgetApiAction";
 
 export interface IWidgetApiRequestData {
-    [key: string]: unknown
+    [key: string]: unknown;
 }
 
 export interface IWidgetApiRequestEmptyData extends IWidgetApiRequestData {
@@ -26,13 +26,13 @@ export interface IWidgetApiRequestEmptyData extends IWidgetApiRequestData {
 }
 
 export interface IWidgetApiRequest {
-    api: WidgetApiDirection
-    requestId: string
-    action: WidgetApiAction
-    widgetId: string
-    data: IWidgetApiRequestData
+    api: WidgetApiDirection;
+    requestId: string;
+    action: WidgetApiAction;
+    widgetId: string;
+    data: IWidgetApiRequestData;
     // XXX: This is for Scalar support
     // TODO: Fix scalar
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    visible?: any
+    visible?: any;
 }

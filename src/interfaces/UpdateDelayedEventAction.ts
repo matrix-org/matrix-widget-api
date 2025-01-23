@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest"
-import { WidgetApiFromWidgetAction } from "./WidgetApiAction"
-import { IWidgetApiResponseData } from "./IWidgetApiResponse"
+import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
+import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
+import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 
 export enum UpdateDelayedEventAction {
     Cancel = "cancel",
@@ -24,24 +24,20 @@ export enum UpdateDelayedEventAction {
     Send = "send",
 }
 
-export interface IUpdateDelayedEventFromWidgetRequestData
-    extends IWidgetApiRequestData {
-    delay_id: string // eslint-disable-line camelcase
-    action: UpdateDelayedEventAction
+export interface IUpdateDelayedEventFromWidgetRequestData extends IWidgetApiRequestData {
+    delay_id: string; // eslint-disable-line camelcase
+    action: UpdateDelayedEventAction;
 }
 
-export interface IUpdateDelayedEventFromWidgetActionRequest
-    extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent
-    data: IUpdateDelayedEventFromWidgetRequestData
+export interface IUpdateDelayedEventFromWidgetActionRequest extends IWidgetApiRequest {
+    action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent;
+    data: IUpdateDelayedEventFromWidgetRequestData;
 }
 
-export interface IUpdateDelayedEventFromWidgetResponseData
-    extends IWidgetApiResponseData {
+export interface IUpdateDelayedEventFromWidgetResponseData extends IWidgetApiResponseData {
     // nothing
 }
 
-export interface IUpdateDelayedEventFromWidgetActionResponse
-    extends IUpdateDelayedEventFromWidgetActionRequest {
-    response: IUpdateDelayedEventFromWidgetResponseData
+export interface IUpdateDelayedEventFromWidgetActionResponse extends IUpdateDelayedEventFromWidgetActionRequest {
+    response: IUpdateDelayedEventFromWidgetResponseData;
 }
