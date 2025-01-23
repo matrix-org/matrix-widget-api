@@ -34,7 +34,7 @@ module.exports = {
     overrides: [
         {
             files: ["src/**/*.ts", "test/**/*.ts"],
-            extends: ["plugin:matrix-org/typescript", "prettier"],
+            extends: ["plugin:matrix-org/typescript"],
             rules: {
                 // TypeScript has its own version of this
                 "babel/no-invalid-this": "off",
