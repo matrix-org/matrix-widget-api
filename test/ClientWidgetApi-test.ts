@@ -19,7 +19,7 @@ import { waitFor } from "@testing-library/dom";
 
 import { ClientWidgetApi } from "../src/ClientWidgetApi";
 import { WidgetDriver } from "../src/driver/WidgetDriver";
-import { UnstableApiVersion } from "../src/interfaces/ApiVersion";
+import { CurrentApiVersions, UnstableApiVersion } from "../src/interfaces/ApiVersion";
 import { Capability } from "../src/interfaces/Capabilities";
 import { IRoomEvent } from "../src/interfaces/IRoomEvent";
 import { IWidgetApiRequest } from "../src/interfaces/IWidgetApiRequest";
@@ -759,6 +759,14 @@ describe("ClientWidgetApi", () => {
             const roomId = "!room:example.org";
             const otherRoomId = "!other-room:example.org";
             clientWidgetApi.setViewedRoomId(roomId);
+
+            jest.spyOn(transport, "send").mockImplementation((action, data) => {
+                if (action === WidgetApiToWidgetAction.SupportedApiVersions) {
+                    return Promise.resolve({ supported_versions: CurrentApiVersions });
+                }
+                return Promise.resolve({});
+            });
+
             const topicEvent = createRoomEvent({
                 room_id: roomId,
                 type: "m.room.topic",
