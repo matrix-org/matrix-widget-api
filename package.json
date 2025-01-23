@@ -32,7 +32,9 @@
       {
         "files": [
           "src/**/*.ts",
-          "test/**/*.ts"
+          "*.js",
+          "test/**/*.ts",
+          "*.yml"
         ],
         "options": {
           "tabWidth": 4
