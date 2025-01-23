@@ -17,23 +17,23 @@
 export type ObservableFunction<T> = (val: T) => void;
 
 export class SimpleObservable<T> {
-    private listeners: ObservableFunction<T>[] = [];
+  private listeners: ObservableFunction<T>[] = [];
 
-    public constructor(initialFn?: ObservableFunction<T>) {
-        if (initialFn) this.listeners.push(initialFn);
-    }
+  public constructor(initialFn?: ObservableFunction<T>) {
+    if (initialFn) this.listeners.push(initialFn);
+  }
 
-    public onUpdate(fn: ObservableFunction<T>): void {
-        this.listeners.push(fn);
-    }
+  public onUpdate(fn: ObservableFunction<T>): void {
+    this.listeners.push(fn);
+  }
 
-    public update(val: T): void {
-        for (const listener of this.listeners) {
-            listener(val);
-        }
+  public update(val: T): void {
+    for (const listener of this.listeners) {
+      listener(val);
     }
+  }
 
-    public close(): void {
-        this.listeners = []; // reset
-    }
+  public close(): void {
+    this.listeners = []; // reset
+  }
 }

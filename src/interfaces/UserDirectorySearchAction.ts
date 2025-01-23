@@ -18,25 +18,29 @@ import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 
-export interface IUserDirectorySearchFromWidgetRequestData extends IWidgetApiRequestData {
-    search_term: string; // eslint-disable-line camelcase
-    limit?: number;
+export interface IUserDirectorySearchFromWidgetRequestData
+  extends IWidgetApiRequestData {
+  search_term: string; // eslint-disable-line camelcase
+  limit?: number;
 }
 
-export interface IUserDirectorySearchFromWidgetActionRequest extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch;
-    data: IUserDirectorySearchFromWidgetRequestData;
+export interface IUserDirectorySearchFromWidgetActionRequest
+  extends IWidgetApiRequest {
+  action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch;
+  data: IUserDirectorySearchFromWidgetRequestData;
 }
 
-export interface IUserDirectorySearchFromWidgetResponseData extends IWidgetApiResponseData {
-    limited: boolean;
-    results: Array<{
-        user_id: string; // eslint-disable-line camelcase
-        display_name?: string; // eslint-disable-line camelcase
-        avatar_url?: string; // eslint-disable-line camelcase
-    }>;
+export interface IUserDirectorySearchFromWidgetResponseData
+  extends IWidgetApiResponseData {
+  limited: boolean;
+  results: Array<{
+    user_id: string; // eslint-disable-line camelcase
+    display_name?: string; // eslint-disable-line camelcase
+    avatar_url?: string; // eslint-disable-line camelcase
+  }>;
 }
 
-export interface IUserDirectorySearchFromWidgetActionResponse extends IUserDirectorySearchFromWidgetActionRequest {
-    response: IUserDirectorySearchFromWidgetResponseData;
+export interface IUserDirectorySearchFromWidgetActionResponse
+  extends IUserDirectorySearchFromWidgetActionRequest {
+  response: IUserDirectorySearchFromWidgetResponseData;
 }

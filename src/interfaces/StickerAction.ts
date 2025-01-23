@@ -19,31 +19,31 @@ import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiAcknowledgeResponseData } from "./IWidgetApiResponse";
 
 export interface IStickerActionRequestData extends IWidgetApiRequestData {
-    name: string;
-    description?: string;
-    content: {
-        url: string;
-        info?: {
-            h?: number;
-            w?: number;
-            mimetype?: string;
-            size?: number;
-            thumbnail_info?: {
-                // eslint-disable-line camelcase
-                h?: number;
-                w?: number;
-                mimetype?: string;
-                size?: number;
-            };
-        };
+  name: string;
+  description?: string;
+  content: {
+    url: string;
+    info?: {
+      h?: number;
+      w?: number;
+      mimetype?: string;
+      size?: number;
+      thumbnail_info?: {
+        // eslint-disable-line camelcase
+        h?: number;
+        w?: number;
+        mimetype?: string;
+        size?: number;
+      };
     };
+  };
 }
 
 export interface IStickerActionRequest extends IWidgetApiRequest {
-    action: WidgetApiFromWidgetAction.SendSticker;
-    data: IStickerActionRequestData;
+  action: WidgetApiFromWidgetAction.SendSticker;
+  data: IStickerActionRequestData;
 }
 
 export interface IStickerActionResponse extends IStickerActionRequest {
-    response: IWidgetApiAcknowledgeResponseData;
+  response: IWidgetApiAcknowledgeResponseData;
 }

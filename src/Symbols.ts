@@ -15,5 +15,5 @@
  */
 
 export enum Symbols {
-    AnyRoom = "*",
+  AnyRoom = "*",
 }
