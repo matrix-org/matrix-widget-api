@@ -355,7 +355,7 @@ export class WidgetApi extends EventEmitter {
      * the capabilities request has gone through, not when the capabilities are approved/denied.
      * Use the WidgetApiToWidgetAction.NotifyCapabilities action to detect changes.
      */
-    public updateRequestedCapabilities(): Promise<void> {
+    public async updateRequestedCapabilities(): Promise<void> {
         return this.transport
             .send(WidgetApiFromWidgetAction.MSC2974RenegotiateCapabilities, <IRenegotiateCapabilitiesRequestData>{
                 capabilities: this.requestedCapabilities,
@@ -367,7 +367,7 @@ export class WidgetApi extends EventEmitter {
      * Tell the client that the content has been loaded.
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
-    public sendContentLoaded(): Promise<void> {
+    public async sendContentLoaded(): Promise<void> {
         return this.transport.send(WidgetApiFromWidgetAction.ContentLoaded, <IWidgetApiRequestEmptyData>{}).then();
     }
 
@@ -376,7 +376,7 @@ export class WidgetApi extends EventEmitter {
      * @param {IStickerActionRequestData} sticker The sticker to send.
      * @returns {Promise} Resolves when the client acknowledges the request.
      */
-    public sendSticker(sticker: IStickerActionRequestData): Promise<void> {
+    public async sendSticker(sticker: IStickerActionRequestData): Promise<void> {
         return this.transport.send(WidgetApiFromWidgetAction.SendSticker, sticker).then();
     }
 
@@ -386,12 +386,11 @@ export class WidgetApi extends EventEmitter {
      * @returns {Promise<boolean>} Resolve with true if the client was able to fulfill
      * the request, resolves to false otherwise. Rejects if an error occurred.
      */
-    public setAlwaysOnScreen(value: boolean): Promise<boolean> {
+    public async setAlwaysOnScreen(value: boolean): Promise<boolean> {
         return this.transport
-            .send<
-                IStickyActionRequestData,
-                IStickyActionResponseData
-            >(WidgetApiFromWidgetAction.UpdateAlwaysOnScreen, { value })
+            .send<IStickyActionRequestData, IStickyActionResponseData>(WidgetApiFromWidgetAction.UpdateAlwaysOnScreen, {
+                value,
+            })
             .then((res) => res.success);
     }
 
@@ -404,7 +403,7 @@ export class WidgetApi extends EventEmitter {
      * @param {WidgetType} type The type of modal widget.
      * @returns {Promise<void>} Resolves when the modal widget has been opened.
      */
-    public openModalWidget(
+    public async openModalWidget(
         url: string,
         name: string,
         buttons: IModalWidgetOpenRequestDataButton[] = [],
@@ -427,7 +426,7 @@ export class WidgetApi extends EventEmitter {
      * @param {IModalWidgetReturnData} data Optional data to close the modal widget with.
      * @returns {Promise<void>} Resolves when complete.
      */
-    public closeModalWidget(data: IModalWidgetReturnData = {}): Promise<void> {
+    public async closeModalWidget(data: IModalWidgetReturnData = {}): Promise<void> {
         return this.transport.send<IModalWidgetReturnData>(WidgetApiFromWidgetAction.CloseModalWidget, data).then();
     }
 
@@ -503,11 +502,18 @@ export class WidgetApi extends EventEmitter {
     ): Promise<ISendToDeviceFromWidgetResponseData> {
         return this.transport.send<ISendToDeviceFromWidgetRequestData, ISendToDeviceFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendToDevice,
-            { type: eventType, encrypted, messages: contentMap },
+            {
+                type: eventType,
+                encrypted,
+                messages: contentMap,
+            },
         );
     }
 
-    public readRoomAccountData(eventType: string, roomIds?: (string | Symbols.AnyRoom)[]): Promise<IRoomAccountData[]> {
+    public async readRoomAccountData(
+        eventType: string,
+        roomIds?: (string | Symbols.AnyRoom)[],
+    ): Promise<IRoomAccountData[]> {
         const data: IReadEventFromWidgetRequestData = { type: eventType };
 
         if (roomIds) {
@@ -517,15 +523,14 @@ export class WidgetApi extends EventEmitter {
                 data.room_ids = roomIds;
             }
         }
-        return this.transport
-            .send<
-                IReadRoomAccountDataFromWidgetRequestData,
-                IReadRoomAccountDataFromWidgetResponseData
-            >(WidgetApiFromWidgetAction.BeeperReadRoomAccountData, data)
-            .then((r) => r.events);
+        const r = await this.transport.send<
+            IReadRoomAccountDataFromWidgetRequestData,
+            IReadRoomAccountDataFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.BeeperReadRoomAccountData, data);
+        return r.events;
     }
 
-    public readRoomEvents(
+    public async readRoomEvents(
         eventType: string,
         limit?: number,
         msgtype?: string,
@@ -546,12 +551,11 @@ export class WidgetApi extends EventEmitter {
         if (since) {
             data.since = since;
         }
-        return this.transport
-            .send<
-                IReadEventFromWidgetRequestData,
-                IReadEventFromWidgetResponseData
-            >(WidgetApiFromWidgetAction.MSC2876ReadEvents, data)
-            .then((r) => r.events);
+        const r = await this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC2876ReadEvents,
+            data,
+        );
+        return r.events;
     }
 
     /**
@@ -605,7 +609,7 @@ export class WidgetApi extends EventEmitter {
         );
     }
 
-    public readStateEvents(
+    public async readStateEvents(
         eventType: string,
         limit?: number,
         stateKey?: string,
@@ -625,12 +629,11 @@ export class WidgetApi extends EventEmitter {
                 data.room_ids = roomIds;
             }
         }
-        return this.transport
-            .send<
-                IReadEventFromWidgetRequestData,
-                IReadEventFromWidgetResponseData
-            >(WidgetApiFromWidgetAction.MSC2876ReadEvents, data)
-            .then((r) => r.events);
+        const r = await this.transport.send<IReadEventFromWidgetRequestData, IReadEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC2876ReadEvents,
+            data,
+        );
+        return r.events;
     }
 
     /**
@@ -640,16 +643,17 @@ export class WidgetApi extends EventEmitter {
      * @returns {Promise<void>} Resolves when complete.
      * @throws Throws if the button cannot be disabled, or the client refuses to disable the button.
      */
-    public setModalButtonEnabled(buttonId: ModalButtonID, isEnabled: boolean): Promise<void> {
+    public async setModalButtonEnabled(buttonId: ModalButtonID, isEnabled: boolean): Promise<void> {
         if (buttonId === BuiltInModalButtonID.Close) {
             throw new Error("The close button cannot be disabled");
         }
-        return this.transport
-            .send<ISetModalButtonEnabledActionRequestData>(WidgetApiFromWidgetAction.SetModalButtonEnabled, {
+        await this.transport.send<ISetModalButtonEnabledActionRequestData>(
+            WidgetApiFromWidgetAction.SetModalButtonEnabled,
+            {
                 button: buttonId,
                 enabled: isEnabled,
-            })
-            .then();
+            },
+        );
     }
 
     /**
@@ -660,14 +664,12 @@ export class WidgetApi extends EventEmitter {
      * @throws Throws if the URI is invalid or cannot be processed.
      * @deprecated This currently relies on an unstable MSC (MSC2931).
      */
-    public navigateTo(uri: string): Promise<void> {
+    public async navigateTo(uri: string): Promise<void> {
         if (!uri || !uri.startsWith("https://matrix.to/#")) {
             throw new Error("Invalid matrix.to URI");
         }
 
-        return this.transport
-            .send<INavigateActionRequestData>(WidgetApiFromWidgetAction.MSC2931Navigate, { uri })
-            .then();
+        await this.transport.send<INavigateActionRequestData>(WidgetApiFromWidgetAction.MSC2931Navigate, { uri });
     }
 
     /**
@@ -681,7 +683,7 @@ export class WidgetApi extends EventEmitter {
         const onUpdateTurnServers = async (ev: CustomEvent<IUpdateTurnServersRequest>): Promise<void> => {
             ev.preventDefault();
             setTurnServer(ev.detail.data);
-            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
+            this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
         };
 
         // Start listening for updates before we even start watching, to catch
@@ -849,24 +851,22 @@ export class WidgetApi extends EventEmitter {
         });
     }
 
-    public getClientVersions(): Promise<ApiVersion[]> {
+    public async getClientVersions(): Promise<ApiVersion[]> {
         if (Array.isArray(this.cachedClientVersions)) {
             return Promise.resolve(this.cachedClientVersions);
         }
 
-        return this.transport
-            .send<IWidgetApiRequestEmptyData, ISupportedVersionsActionResponseData>(
+        try {
+            const r = await this.transport.send<IWidgetApiRequestEmptyData, ISupportedVersionsActionResponseData>(
                 WidgetApiFromWidgetAction.SupportedApiVersions,
                 {},
-            )
-            .then((r) => {
-                this.cachedClientVersions = r.supported_versions;
-                return r.supported_versions;
-            })
-            .catch((e) => {
-                console.warn("non-fatal error getting supported client versions: ", e);
-                return [];
-            });
+            );
+            this.cachedClientVersions = r.supported_versions;
+            return r.supported_versions;
+        } catch (e) {
+            console.warn("non-fatal error getting supported client versions: ", e);
+            return [];
+        }
     }
 
     private handleCapabilities(request: ICapabilitiesActionRequest): void | Promise<void> {

@@ -985,18 +985,16 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
-    public sendWidgetConfig(data: IModalWidgetOpenRequestData): Promise<void> {
-        return this.transport.send<IModalWidgetOpenRequestData>(WidgetApiToWidgetAction.WidgetConfig, data).then();
+    public async sendWidgetConfig(data: IModalWidgetOpenRequestData): Promise<void> {
+        await this.transport.send<IModalWidgetOpenRequestData>(WidgetApiToWidgetAction.WidgetConfig, data);
     }
 
-    public notifyModalWidgetButtonClicked(id: IModalWidgetOpenRequestDataButton["id"]): Promise<void> {
-        return this.transport
-            .send<IModalWidgetButtonClickedRequestData>(WidgetApiToWidgetAction.ButtonClicked, { id })
-            .then();
+    public async notifyModalWidgetButtonClicked(id: IModalWidgetOpenRequestDataButton["id"]): Promise<void> {
+        await this.transport.send<IModalWidgetButtonClickedRequestData>(WidgetApiToWidgetAction.ButtonClicked, { id });
     }
 
-    public notifyModalWidgetClose(data: IModalWidgetReturnData): Promise<void> {
-        return this.transport.send<IModalWidgetReturnData>(WidgetApiToWidgetAction.CloseModalWidget, data).then();
+    public async notifyModalWidgetClose(data: IModalWidgetReturnData): Promise<void> {
+        await this.transport.send<IModalWidgetReturnData>(WidgetApiToWidgetAction.CloseModalWidget, data);
     }
 
     /**
