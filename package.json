@@ -23,25 +23,6 @@
     "lint:workflows": "find .github/workflows -type f \\( -iname '*.yaml' -o -iname '*.yml' \\) | xargs -I {} sh -c 'echo \"Linting {}\"; action-validator \"{}\"'",
     "test": "jest"
   },
-  "prettier": {
-    "printWidth": 120,
-    "tabWidth": 2,
-    "quoteProps": "consistent",
-    "trailingComma": "all",
-    "overrides": [
-      {
-        "files": [
-          "src/**/*.ts",
-          "*.js",
-          "test/**/*.ts",
-          "*.yml"
-        ],
-        "options": {
-          "tabWidth": 4
-        }
-      }
-    ]
-  },
   "files": [
     "src",
     "lib",

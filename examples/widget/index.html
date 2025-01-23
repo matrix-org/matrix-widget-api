@@ -65,7 +65,9 @@
 
         // Set up the widget API as soon as possible to avoid problems with the client
         const widgetApi = new mxwidgets.WidgetApi(widgetId, targetOrigin);
-        widgetApi.requestCapability(mxwidgets.MatrixCapabilities.AlwaysOnScreen);
+        widgetApi.requestCapability(
+          mxwidgets.MatrixCapabilities.AlwaysOnScreen,
+        );
 
         widgetApi.on("ready", function () {
           // Fill in the basic widget details now that we're allowed to operate.
@@ -91,7 +93,8 @@
         }
 
         function updateStickyState() {
-          document.getElementById("stickyState").innerText = isSticky.toString();
+          document.getElementById("stickyState").innerText =
+            isSticky.toString();
         }
 
         function sendStickyState() {

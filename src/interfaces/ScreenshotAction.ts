@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./IWidgetApiRequest";
+import {
+  IWidgetApiRequest,
+  IWidgetApiRequestEmptyData,
+} from "./IWidgetApiRequest";
 import { WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 
 export interface IScreenshotActionRequest extends IWidgetApiRequest {
-    action: WidgetApiToWidgetAction.TakeScreenshot;
-    data: IWidgetApiRequestEmptyData;
+  action: WidgetApiToWidgetAction.TakeScreenshot;
+  data: IWidgetApiRequestEmptyData;
 }
 
 export interface IScreenshotActionResponseData extends IWidgetApiResponseData {
-    screenshot: Blob;
+  screenshot: Blob;
 }
 
 export interface IScreenshotActionResponse extends IScreenshotActionRequest {
-    response: IScreenshotActionResponseData;
+  response: IScreenshotActionResponseData;
 }

@@ -14,43 +14,53 @@
  * limitations under the License.
  */
 
-import { IWidgetApiResponse, IWidgetApiResponseData } from "./IWidgetApiResponse";
+import {
+  IWidgetApiResponse,
+  IWidgetApiResponseData,
+} from "./IWidgetApiResponse";
 
 /**
  * The format of errors returned by Matrix API requests
  * made by a WidgetDriver.
  */
 export interface IMatrixApiError {
-    /** The HTTP status code of the associated request. */
-    http_status: number; // eslint-disable-line camelcase
-    /** Any HTTP response headers that are relevant to the error. */
-    http_headers: { [name: string]: string }; // eslint-disable-line camelcase
-    /** The URL of the failed request. */
-    url: string;
-    /** @see {@link https://spec.matrix.org/latest/client-server-api/#standard-error-response} */
-    response: {
-        errcode: string;
-        error: string;
-    } & IWidgetApiResponseData; // extensible
+  /** The HTTP status code of the associated request. */
+  http_status: number; // eslint-disable-line camelcase
+  /** Any HTTP response headers that are relevant to the error. */
+  http_headers: { [name: string]: string }; // eslint-disable-line camelcase
+  /** The URL of the failed request. */
+  url: string;
+  /** @see {@link https://spec.matrix.org/latest/client-server-api/#standard-error-response} */
+  response: {
+    errcode: string;
+    error: string;
+  } & IWidgetApiResponseData; // extensible
 }
 
 export interface IWidgetApiErrorResponseDataDetails {
-    /** Set if the error came from a Matrix API request made by a widget driver */
-    matrix_api_error?: IMatrixApiError; // eslint-disable-line camelcase
+  /** Set if the error came from a Matrix API request made by a widget driver */
+  matrix_api_error?: IMatrixApiError; // eslint-disable-line camelcase
 }
 
 export interface IWidgetApiErrorResponseData extends IWidgetApiResponseData {
-    error: {
-        /** A user-friendly string describing the error */
-        message: string;
-    } & IWidgetApiErrorResponseDataDetails;
+  error: {
+    /** A user-friendly string describing the error */
+    message: string;
+  } & IWidgetApiErrorResponseDataDetails;
 }
 
 export interface IWidgetApiErrorResponse extends IWidgetApiResponse {
-    response: IWidgetApiErrorResponseData;
+  response: IWidgetApiErrorResponseData;
 }
 
-export function isErrorResponse(responseData: IWidgetApiResponseData): responseData is IWidgetApiErrorResponseData {
-    const error = responseData.error;
-    return typeof error === "object" && error !== null && "message" in error && typeof error.message === "string";
+export function isErrorResponse(
+  responseData: IWidgetApiResponseData,
+): responseData is IWidgetApiErrorResponseData {
+  const error = responseData.error;
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  );
 }
