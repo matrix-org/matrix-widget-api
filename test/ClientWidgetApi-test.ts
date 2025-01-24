@@ -1437,6 +1437,7 @@ describe("ClientWidgetApi", () => {
     describe("org.matrix.msc2876.read_events action", () => {
         it("reads events from a specific room", async () => {
             const roomId = "!room:example.org";
+            jest.spyOn(clientWidgetApi, "getWidgetVersions").mockReturnValue(new Promise((r) => r([])));
             const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
             driver.readRoomTimeline.mockImplementation(async (rId) => {
                 if (rId === roomId) return [event];
@@ -1481,6 +1482,7 @@ describe("ClientWidgetApi", () => {
         it("reads events from all rooms", async () => {
             const roomId = "!room:example.org";
             const otherRoomId = "!other-room:example.org";
+            jest.spyOn(clientWidgetApi, "getWidgetVersions").mockReturnValue(new Promise((r) => r([])));
             const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
             const otherRoomEvent = createRoomEvent({ room_id: otherRoomId, type: "net.example.test", content: "hi" });
             driver.getKnownRooms.mockReturnValue([roomId, otherRoomId]);
@@ -1534,6 +1536,7 @@ describe("ClientWidgetApi", () => {
         });
 
         it("reads state events with any state key", async () => {
+            jest.spyOn(clientWidgetApi, "getWidgetVersions").mockReturnValue(new Promise((r) => r([])));
             driver.readRoomState.mockResolvedValue([
                 createRoomEvent({ type: "net.example.test", state_key: "A" }),
                 createRoomEvent({ type: "net.example.test", state_key: "B" }),
@@ -1593,6 +1596,7 @@ describe("ClientWidgetApi", () => {
         });
 
         it("reads state events with a specific state key", async () => {
+            jest.spyOn(clientWidgetApi, "getWidgetVersions").mockReturnValue(new Promise((r) => r([])));
             driver.readRoomState.mockResolvedValue([createRoomEvent({ type: "net.example.test", state_key: "B" })]);
 
             const event: IReadEventFromWidgetActionRequest = {
@@ -1618,6 +1622,51 @@ describe("ClientWidgetApi", () => {
             });
 
             expect(driver.readRoomState).toHaveBeenLastCalledWith("!room-id", "net.example.test", "B");
+        });
+
+        it("reads state events with a specific state key from the timeline when using UnstableApiVersion.MSC2762_UPDATE_STATE", async () => {
+            jest.spyOn(clientWidgetApi, "getWidgetVersions").mockReturnValue(new Promise((r) => r(CurrentApiVersions)));
+            // with version MSC2762_UPDATE_STATE we wan the read Events action to read state events from the timeline.
+            driver.readRoomTimeline.mockResolvedValue([createRoomEvent({ type: "net.example.test", state_key: "B" })]);
+
+            const event: IReadEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC2876ReadEvents,
+                data: {
+                    type: "net.example.test",
+                    state_key: "B",
+                },
+            };
+
+            await loadIframe(["org.matrix.msc2762.receive.state_event:net.example.test#B"]);
+
+            clientWidgetApi.setViewedRoomId("!room-id");
+
+            // we clear the mock here because setViewedRoomId will push the room state and therefore read it
+            // from the driver.
+            driver.readRoomState.mockClear();
+            // clearing this as well so it gets the same treatment as readRoomState for reference
+            driver.readRoomTimeline.mockClear();
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    events: [createRoomEvent({ type: "net.example.test", state_key: "B" })],
+                });
+            });
+
+            expect(driver.readRoomTimeline).toHaveBeenLastCalledWith(
+                "!room-id",
+                "net.example.test",
+                undefined,
+                "B",
+                0,
+                undefined,
+            );
+            expect(driver.readRoomState).not.toHaveBeenCalled();
         });
 
         it("fails to read state events with a specific state key", async () => {
