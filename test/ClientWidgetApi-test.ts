@@ -1534,7 +1534,7 @@ describe("ClientWidgetApi", () => {
         });
 
         it("reads state events with any state key", async () => {
-            driver.readRoomTimeline.mockResolvedValue([
+            driver.readRoomState.mockResolvedValue([
                 createRoomEvent({ type: "net.example.test", state_key: "A" }),
                 createRoomEvent({ type: "net.example.test", state_key: "B" }),
             ]);
@@ -1556,7 +1556,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     events: [
                         createRoomEvent({ type: "net.example.test", state_key: "A" }),
                         createRoomEvent({ type: "net.example.test", state_key: "B" }),
@@ -1564,14 +1564,7 @@ describe("ClientWidgetApi", () => {
                 });
             });
 
-            expect(driver.readRoomTimeline).toBeCalledWith(
-                "!room-id",
-                "net.example.test",
-                undefined,
-                undefined,
-                0,
-                undefined,
-            );
+            expect(driver.readRoomState).toHaveBeenLastCalledWith("!room-id", "net.example.test", undefined);
         });
 
         it("fails to read state events with any state key", async () => {
@@ -1600,7 +1593,7 @@ describe("ClientWidgetApi", () => {
         });
 
         it("reads state events with a specific state key", async () => {
-            driver.readRoomTimeline.mockResolvedValue([createRoomEvent({ type: "net.example.test", state_key: "B" })]);
+            driver.readRoomState.mockResolvedValue([createRoomEvent({ type: "net.example.test", state_key: "B" })]);
 
             const event: IReadEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1619,19 +1612,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     events: [createRoomEvent({ type: "net.example.test", state_key: "B" })],
                 });
             });
 
-            expect(driver.readRoomTimeline).toBeCalledWith(
-                "!room-id",
-                "net.example.test",
-                undefined,
-                "B",
-                0,
-                undefined,
-            );
+            expect(driver.readRoomState).toHaveBeenLastCalledWith("!room-id", "net.example.test", "B");
         });
 
         it("fails to read state events with a specific state key", async () => {
