@@ -19,17 +19,17 @@ import { waitFor } from '@testing-library/dom';
 
 import { ClientWidgetApi } from "../src/ClientWidgetApi";
 import { WidgetDriver } from "../src/driver/WidgetDriver";
-import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
-import { Capability } from '../src/interfaces/Capabilities';
-import { IRoomEvent } from '../src/interfaces/IRoomEvent';
-import { IWidgetApiRequest } from '../src/interfaces/IWidgetApiRequest';
-import { IReadRelationsFromWidgetActionRequest } from '../src/interfaces/ReadRelationsAction';
-import { ISupportedVersionsActionRequest } from '../src/interfaces/SupportedVersionsAction';
-import { IUserDirectorySearchFromWidgetActionRequest } from '../src/interfaces/UserDirectorySearchAction';
-import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from '../src/interfaces/WidgetApiAction';
-import { WidgetApiDirection } from '../src/interfaces/WidgetApiDirection';
-import { Widget } from '../src/models/Widget';
-import { PostmessageTransport } from '../src/transport/PostmessageTransport';
+import { CurrentApiVersions, UnstableApiVersion } from "../src/interfaces/ApiVersion";
+import { Capability } from "../src/interfaces/Capabilities";
+import { IRoomEvent } from "../src/interfaces/IRoomEvent";
+import { IWidgetApiRequest } from "../src/interfaces/IWidgetApiRequest";
+import { IReadRelationsFromWidgetActionRequest } from "../src/interfaces/ReadRelationsAction";
+import { ISupportedVersionsActionRequest } from "../src/interfaces/SupportedVersionsAction";
+import { IUserDirectorySearchFromWidgetActionRequest } from "../src/interfaces/UserDirectorySearchAction";
+import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "../src/interfaces/WidgetApiAction";
+import { WidgetApiDirection } from "../src/interfaces/WidgetApiDirection";
+import { Widget } from "../src/models/Widget";
+import { PostmessageTransport } from "../src/transport/PostmessageTransport";
 import {
     IDownloadFileActionFromWidgetActionRequest,
     IGetOpenIDActionRequest,
@@ -792,6 +792,14 @@ describe('ClientWidgetApi', () => {
             const roomId = '!room:example.org';
             const otherRoomId = '!other-room:example.org';
             clientWidgetApi.setViewedRoomId(roomId);
+
+            jest.spyOn(transport, "send").mockImplementation((action, data) => {
+                if (action === WidgetApiToWidgetAction.SupportedApiVersions) {
+                    return Promise.resolve({ supported_versions: CurrentApiVersions });
+                }
+                return Promise.resolve({});
+            });
+
             const topicEvent = createRoomEvent({
                 room_id: roomId,
                 type: 'm.room.topic',
@@ -900,6 +908,37 @@ describe('ClientWidgetApi', () => {
                     WidgetApiToWidgetAction.UpdateState,
                     { state: expect.arrayContaining([otherRoomNameEvent]) },
                 );
+            });
+        });
+    });
+
+    describe('dont receive UpdateState if version not supported', () => {
+        it('syncs initial state and feeds updates', async () => {
+            const roomId = '!room:example.org';
+            clientWidgetApi.setViewedRoomId(roomId);
+            jest.spyOn(transport, "send").mockImplementation((action, data) => {
+                if (action === WidgetApiToWidgetAction.SupportedApiVersions) {
+                    return Promise.resolve({ supported_versions: [] });
+                }
+                return Promise.resolve({});
+            });
+
+            await loadIframe([
+                'org.matrix.msc2762.receive.state_event:m.room.join_rules#',
+            ]);
+
+            const newJoinRulesEvent = createRoomEvent({
+                room_id: roomId,
+                type: 'm.room.join_rules',
+                state_key: '',
+                content: { join_rule: 'invite' },
+            });
+            clientWidgetApi.feedStateUpdate(newJoinRulesEvent);
+
+            await waitFor(() => {
+                
+                // Only the updated join rules should have been delivered
+                expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState);
             });
         });
     });

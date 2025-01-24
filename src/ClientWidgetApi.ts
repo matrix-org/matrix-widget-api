@@ -40,7 +40,7 @@ import {
     ISupportedVersionsActionRequest,
     ISupportedVersionsActionResponseData,
 } from "./interfaces/SupportedVersionsAction";
-import { CurrentApiVersions } from "./interfaces/ApiVersion";
+import { ApiVersion, CurrentApiVersions, UnstableApiVersion } from "./interfaces/ApiVersion";
 import { IScreenshotActionResponseData } from "./interfaces/ScreenshotAction";
 import { IVisibilityActionRequestData } from "./interfaces/VisibilityAction";
 import { IWidgetApiAcknowledgeResponseData, IWidgetApiResponseData } from "./interfaces/IWidgetApiResponse";
@@ -138,6 +138,7 @@ import { IUpdateStateToWidgetRequestData } from "./interfaces/UpdateStateAction"
 export class ClientWidgetApi extends EventEmitter {
     public readonly transport: ITransport;
 
+    private cachedWidgetVersions: ApiVersion[] | null = null;
     // contentLoadedActionSent is used to check that only one ContentLoaded request is send.
     private contentLoadedActionSent = false;
     private allowedCapabilities = new Set<Capability>();
@@ -230,6 +231,24 @@ export class ClientWidgetApi extends EventEmitter {
         this.transport.stop();
     }
 
+    public async getWidgetVersions(): Promise<ApiVersion[]> {
+        if (Array.isArray(this.cachedWidgetVersions)) {
+            return Promise.resolve(this.cachedWidgetVersions);
+        }
+
+        try {
+            const r = await this.transport.send<IWidgetApiRequestEmptyData, ISupportedVersionsActionResponseData>(
+                WidgetApiToWidgetAction.SupportedApiVersions,
+                {},
+            );
+            this.cachedWidgetVersions = r.supported_versions;
+            return r.supported_versions;
+        } catch (e) {
+            console.warn("non-fatal error getting supported widget versions: ", e);
+            return [];
+        }
+    }
+
     private beginCapabilities(): void {
         // widget has loaded - tell all the listeners that
         this.emit("preparing");
@@ -285,7 +304,7 @@ export class ClientWidgetApi extends EventEmitter {
 
     private onIframeLoad(ev: Event): void {
         if (this.widget.waitForIframeLoad) {
-            // If the widget is set to waitForIframeLoad the capabilities immediatly get setup after load.
+            // If the widget is set to waitForIframeLoad the capabilities immediately get setup after load.
             // The client does not wait for the ContentLoaded action.
             this.beginCapabilities();
         } else {
@@ -1007,7 +1026,7 @@ export class ClientWidgetApi extends EventEmitter {
     public async feedEvent(rawEvent: IRoomEvent, currentViewedRoomId: string): Promise<void>;
     /**
      * Feeds an event to the widget. As a client you are expected to call this
-     * for every new event in every room to which you are joined or invited.
+     * for every new event (including state events) in every room to which you are joined or invited.
      * @param {IRoomEvent} rawEvent The event to (try to) send to the widget.
      * @returns {Promise<void>} Resolves when delivered or if the widget is not
      *   able to read the event due to permissions, rejects if the widget failed
@@ -1087,10 +1106,12 @@ export class ClientWidgetApi extends EventEmitter {
                     events.push(...stateKeyMap.values());
                 }
             }
-            await this.transport.send<IUpdateStateToWidgetRequestData>(
-                WidgetApiToWidgetAction.UpdateState,
-                { state: events },
-            );
+            if ((await this.getWidgetVersions()).includes(UnstableApiVersion.MSC2762_UPDATE_STATE)) {
+                // Only send state updates when using UpdateState. Otherwise the SendEvent action will be responsible for state updates.
+                await this.transport.send<IUpdateStateToWidgetRequestData>(WidgetApiToWidgetAction.UpdateState, {
+                    state: events,
+                });
+            }
         } finally {
             this.flushRoomStateTask = null;
         }
@@ -1149,10 +1170,10 @@ export class ClientWidgetApi extends EventEmitter {
      *   room state entry.
      * @returns {Promise<void>} Resolves when delivered or if the widget is not
      *   able to receive the room state due to permissions, rejects if the
-         widget failed to handle the update.
+     *   widget failed to handle the update.
      */
     public async feedStateUpdate(rawEvent: IRoomEvent): Promise<void> {
-        if (rawEvent.state_key === undefined) throw new Error('Not a state event');
+        if (rawEvent.state_key === undefined) throw new Error("Not a state event");
         if (
             (rawEvent.room_id === this.viewedRoomId || this.canUseRoomTimeline(rawEvent.room_id))
             && this.canReceiveStateEvent(rawEvent.type, rawEvent.state_key)
@@ -1160,10 +1181,12 @@ export class ClientWidgetApi extends EventEmitter {
             // Updates could race with the initial push of the room's state
             if (this.pushRoomStateTasks.size === 0) {
                 // No initial push tasks are pending; safe to send immediately
-                await this.transport.send<IUpdateStateToWidgetRequestData>(
-                    WidgetApiToWidgetAction.UpdateState,
-                    { state: [rawEvent] },
-                );
+                if ((await this.getWidgetVersions()).includes(UnstableApiVersion.MSC2762_UPDATE_STATE)) {
+                    // Only send state updates when using UpdateState. Otherwise the SendEvent action will be responsible for state updates.
+                    await this.transport.send<IUpdateStateToWidgetRequestData>(WidgetApiToWidgetAction.UpdateState, {
+                        state: [rawEvent],
+                    });
+                }
             } else {
                 // Lump the update in with whatever data will be sent in the
                 // initial push later. Even if we set it to an "outdated" entry
