@@ -304,7 +304,7 @@ export class ClientWidgetApi extends EventEmitter {
 
     private onIframeLoad(ev: Event): void {
         if (this.widget.waitForIframeLoad) {
-            // If the widget is set to waitForIframeLoad the capabilities immediatly get setup after load.
+            // If the widget is set to waitForIframeLoad the capabilities immediately get setup after load.
             // The client does not wait for the ContentLoaded action.
             this.beginCapabilities();
         } else {
@@ -1095,7 +1095,6 @@ export class ClientWidgetApi extends EventEmitter {
     }
 
     private async flushRoomState(): Promise<void> {
-        const useUpdateState = (await this.getWidgetVersions()).includes(UnstableApiVersion.MSC2762_UPDATE_STATE);
         try {
             // Only send a single action once all concurrent tasks have completed
             do await Promise.all([...this.pushRoomStateTasks]);
@@ -1107,7 +1106,8 @@ export class ClientWidgetApi extends EventEmitter {
                     events.push(...stateKeyMap.values());
                 }
             }
-            if (useUpdateState) {
+            if ((await this.getWidgetVersions()).includes(UnstableApiVersion.MSC2762_UPDATE_STATE)) {
+                // Only send state updates when using UpdateState. Otherwise the SendEvent action will be responsible for state updates.
                 await this.transport.send<IUpdateStateToWidgetRequestData>(WidgetApiToWidgetAction.UpdateState, {
                     state: events,
                 });
@@ -1170,11 +1170,9 @@ export class ClientWidgetApi extends EventEmitter {
      *   room state entry.
      * @returns {Promise<void>} Resolves when delivered or if the widget is not
      *   able to receive the room state due to permissions, rejects if the
-         widget failed to handle the update.
+     *   widget failed to handle the update.
      */
     public async feedStateUpdate(rawEvent: IRoomEvent): Promise<void> {
-        const useUpdateState = (await this.getWidgetVersions()).includes(UnstableApiVersion.MSC2762_UPDATE_STATE);
-
         if (rawEvent.state_key === undefined) throw new Error("Not a state event");
         if (
             (rawEvent.room_id === this.viewedRoomId || this.canUseRoomTimeline(rawEvent.room_id))
@@ -1183,8 +1181,8 @@ export class ClientWidgetApi extends EventEmitter {
             // Updates could race with the initial push of the room's state
             if (this.pushRoomStateTasks.size === 0) {
                 // No initial push tasks are pending; safe to send immediately
-                if (useUpdateState) {
-                    // Only send state updates when using UpdateState. Otherwise we will use SendEvent.
+                if ((await this.getWidgetVersions()).includes(UnstableApiVersion.MSC2762_UPDATE_STATE)) {
+                    // Only send state updates when using UpdateState. Otherwise the SendEvent action will be responsible for state updates.
                     await this.transport.send<IUpdateStateToWidgetRequestData>(WidgetApiToWidgetAction.UpdateState, {
                         state: [rawEvent],
                     });
