@@ -537,6 +537,9 @@ export class ClientWidgetApi extends EventEmitter {
             // For backwards compatibility we still call the deprecated
             // readRoomEvents and readStateEvents methods in case the client isn't
             // letting us know the currently viewed room via setViewedRoomId
+            console.warn(
+                "The widgetDriver uses deprecated behaviour:\n It does not set the viewedRoomId using `setViewedRoomId`",
+            );
             events = await // This returns [] with the current driver of Element Web.
             // Add default implementations of the `readRoomEvents` and `readStateEvents`
             // methods to use `readRoomTimeline` and `readRoomState` if they are not overwritten.
