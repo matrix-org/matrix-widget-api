@@ -1482,7 +1482,7 @@ describe("ClientWidgetApi", () => {
         it("reads events from all rooms", async () => {
             const roomId = "!room:example.org";
             const otherRoomId = "!other-room:example.org";
-            jest.spyOn(clientWidgetApi, "getWidgetVersions").mockReturnValue(new Promise((r) => r([])));
+            jest.spyOn(clientWidgetApi, "getWidgetVersions").mockResolvedValue([]);
             const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
             const otherRoomEvent = createRoomEvent({ room_id: otherRoomId, type: "net.example.test", content: "hi" });
             driver.getKnownRooms.mockReturnValue([roomId, otherRoomId]);
