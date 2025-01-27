@@ -138,11 +138,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
                 this.stopController.signal.removeEventListener("abort", onStop);
             };
 
-            this.outboundRequests.set(request.requestId, {
-                request,
-                resolve,
-                reject,
-            });
+            this.outboundRequests.set(request.requestId, { request, resolve, reject });
             this.sendInternal(request);
         });
     }

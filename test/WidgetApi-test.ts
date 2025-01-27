@@ -46,9 +46,7 @@ class TransportChannels {
     public readonly requestQueue: Array<SendRequestArgs> = [];
     /** Responses to send as if from a client. Initialized with the response to {@link WidgetApi.start}*/
     public readonly responseQueue: IWidgetApiResponseData[] = [
-        {
-            supported_versions: [],
-        } satisfies ISupportedVersionsActionResponseData,
+        { supported_versions: [] } satisfies ISupportedVersionsActionResponseData,
     ];
 }
 
@@ -162,9 +160,7 @@ describe("WidgetApi", () => {
         });
 
         it("should reject the request if the api is not supported", async () => {
-            widgetTransportHelper.queueResponse({
-                supported_versions: [],
-            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(
                 widgetApi.readEventRelations(
@@ -485,9 +481,7 @@ describe("WidgetApi", () => {
         });
 
         it("should reject the request if the api is not supported", async () => {
-            widgetTransportHelper.queueResponse({
-                supported_versions: [],
-            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(widgetApi.searchUserDirectory("foo", 10)).rejects.toThrow(
                 "The user_directory_search action is not supported by the client.",
@@ -505,9 +499,7 @@ describe("WidgetApi", () => {
             widgetTransportHelper.queueResponse({
                 supported_versions: [UnstableApiVersion.MSC3973],
             } as ISupportedVersionsActionResponseData);
-            widgetTransportHelper.queueResponse({
-                error: { message: "An error occurred" },
-            });
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
             await expect(widgetApi.searchUserDirectory("foo", 10)).rejects.toThrow("An error occurred");
         });
@@ -563,9 +555,7 @@ describe("WidgetApi", () => {
         });
 
         it("should reject the request if the api is not supported", async () => {
-            widgetTransportHelper.queueResponse({
-                supported_versions: [],
-            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(widgetApi.getMediaConfig()).rejects.toThrow(
                 "The get_media_config action is not supported by the client.",
@@ -583,9 +573,7 @@ describe("WidgetApi", () => {
             widgetTransportHelper.queueResponse({
                 supported_versions: [UnstableApiVersion.MSC4039],
             } as ISupportedVersionsActionResponseData);
-            widgetTransportHelper.queueResponse({
-                error: { message: "An error occurred" },
-            });
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
             await expect(widgetApi.getMediaConfig()).rejects.toThrow("An error occurred");
         });
@@ -641,9 +629,7 @@ describe("WidgetApi", () => {
         });
 
         it("should reject the request if the api is not supported", async () => {
-            widgetTransportHelper.queueResponse({
-                supported_versions: [],
-            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(widgetApi.uploadFile("data")).rejects.toThrow(
                 "The upload_file action is not supported by the client.",
@@ -661,9 +647,7 @@ describe("WidgetApi", () => {
             widgetTransportHelper.queueResponse({
                 supported_versions: [UnstableApiVersion.MSC4039],
             } as ISupportedVersionsActionResponseData);
-            widgetTransportHelper.queueResponse({
-                error: { message: "An error occurred" },
-            });
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
             await expect(widgetApi.uploadFile("data")).rejects.toThrow("An error occurred");
         });
@@ -703,9 +687,7 @@ describe("WidgetApi", () => {
             widgetTransportHelper.queueResponse({
                 supported_versions: [UnstableApiVersion.MSC4039],
             } as ISupportedVersionsActionResponseData);
-            widgetTransportHelper.queueResponse({
-                file: "test contents",
-            } as IDownloadFileActionFromWidgetResponseData);
+            widgetTransportHelper.queueResponse({ file: "test contents" } as IDownloadFileActionFromWidgetResponseData);
 
             await expect(widgetApi.downloadFile("mxc://example.com/test_file")).resolves.toEqual({
                 file: "test contents",
@@ -719,9 +701,7 @@ describe("WidgetApi", () => {
         });
 
         it("should reject the request if the api is not supported", async () => {
-            widgetTransportHelper.queueResponse({
-                supported_versions: [],
-            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow(
                 "The download_file action is not supported by the client.",
@@ -739,9 +719,7 @@ describe("WidgetApi", () => {
             widgetTransportHelper.queueResponse({
                 supported_versions: [UnstableApiVersion.MSC4039],
             } as ISupportedVersionsActionResponseData);
-            widgetTransportHelper.queueResponse({
-                error: { message: "An error occurred" },
-            });
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
             await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow("An error occurred");
         });

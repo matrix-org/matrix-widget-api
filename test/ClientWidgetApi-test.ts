@@ -151,6 +151,7 @@ describe("ClientWidgetApi", () => {
             iframe,
             driver,
         );
+
         [transport] = jest.mocked(PostmessageTransport).mock.instances;
         emitEvent = jest.mocked(transport.on).mock.calls[0][1];
 
@@ -692,11 +693,7 @@ describe("ClientWidgetApi", () => {
     describe("receiving events", () => {
         const roomId = "!room:example.org";
         const otherRoomId = "!other-room:example.org";
-        const event = createRoomEvent({
-            room_id: roomId,
-            type: "m.room.message",
-            content: "hello",
-        });
+        const event = createRoomEvent({ room_id: roomId, type: "m.room.message", content: "hello" });
         const eventFromOtherRoom = createRoomEvent({
             room_id: otherRoomId,
             type: "m.room.message",
@@ -1140,9 +1137,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Invalid request - missing event contents",
-                    },
+                    error: { message: "Invalid request - missing event contents" },
                 });
             });
 
@@ -1173,9 +1168,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Invalid request - missing encryption flag",
-                    },
+                    error: { message: "Invalid request - missing encryption flag" },
                 });
             });
 
@@ -1207,9 +1200,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Cannot send to-device events of this type",
-                    },
+                    error: { message: "Cannot send to-device events of this type" },
                 });
             });
 
@@ -1355,9 +1346,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
-                    error: {
-                        message: "client provided invalid OIDC token for an allowed request",
-                    },
+                    error: { message: "client provided invalid OIDC token for an allowed request" },
                 });
             });
 
@@ -1437,9 +1426,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
-                    error: {
-                        message: "Cannot read room account data of this type",
-                    },
+                    error: { message: "Cannot read room account data of this type" },
                 });
             });
 
@@ -1450,11 +1437,7 @@ describe("ClientWidgetApi", () => {
     describe("org.matrix.msc2876.read_events action", () => {
         it("reads events from a specific room", async () => {
             const roomId = "!room:example.org";
-            const event = createRoomEvent({
-                room_id: roomId,
-                type: "net.example.test",
-                content: "test",
-            });
+            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
             driver.readRoomTimeline.mockImplementation(async (rId) => {
                 if (rId === roomId) return [event];
                 return [];
@@ -1498,16 +1481,8 @@ describe("ClientWidgetApi", () => {
         it("reads events from all rooms", async () => {
             const roomId = "!room:example.org";
             const otherRoomId = "!other-room:example.org";
-            const event = createRoomEvent({
-                room_id: roomId,
-                type: "net.example.test",
-                content: "test",
-            });
-            const otherRoomEvent = createRoomEvent({
-                room_id: otherRoomId,
-                type: "net.example.test",
-                content: "hi",
-            });
+            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
+            const otherRoomEvent = createRoomEvent({ room_id: otherRoomId, type: "net.example.test", content: "hi" });
             driver.getKnownRooms.mockReturnValue([roomId, otherRoomId]);
             driver.readRoomTimeline.mockImplementation(async (rId) => {
                 if (rId === roomId) return [event];
@@ -1583,14 +1558,8 @@ describe("ClientWidgetApi", () => {
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
                     events: [
-                        createRoomEvent({
-                            type: "net.example.test",
-                            state_key: "A",
-                        }),
-                        createRoomEvent({
-                            type: "net.example.test",
-                            state_key: "B",
-                        }),
+                        createRoomEvent({ type: "net.example.test", state_key: "A" }),
+                        createRoomEvent({ type: "net.example.test", state_key: "B" }),
                     ],
                 });
             });
@@ -1651,12 +1620,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    events: [
-                        createRoomEvent({
-                            type: "net.example.test",
-                            state_key: "B",
-                        }),
-                    ],
+                    events: [createRoomEvent({ type: "net.example.test", state_key: "B" })],
                 });
             });
 
@@ -1754,14 +1718,8 @@ describe("ClientWidgetApi", () => {
                 chunk: [
                     createRoomEvent(),
                     createRoomEvent({ type: "m.reaction" }),
-                    createRoomEvent({
-                        type: "net.example.test",
-                        state_key: "A",
-                    }),
-                    createRoomEvent({
-                        type: "net.example.test",
-                        state_key: "B",
-                    }),
+                    createRoomEvent({ type: "net.example.test", state_key: "A" }),
+                    createRoomEvent({ type: "net.example.test", state_key: "B" }),
                 ],
             });
 
@@ -1782,13 +1740,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    chunk: [
-                        createRoomEvent(),
-                        createRoomEvent({
-                            type: "net.example.test",
-                            state_key: "A",
-                        }),
-                    ],
+                    chunk: [createRoomEvent(), createRoomEvent({ type: "net.example.test", state_key: "A" })],
                 });
             });
 
@@ -1898,9 +1850,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toBeCalledWith(event, {
-                error: {
-                    message: "Unable to access room timeline: !another-room-id",
-                },
+                error: { message: "Unable to access room timeline: !another-room-id" },
             });
         });
 
@@ -1923,9 +1873,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Unexpected error while reading relations",
-                    },
+                    error: { message: "Unexpected error while reading relations" },
                 });
             });
         });
@@ -2183,9 +2131,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Unexpected error while searching in the user directory",
-                    },
+                    error: { message: "Unexpected error while searching in the user directory" },
                 });
             });
         });
@@ -2311,9 +2257,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Unexpected error while getting the media configuration",
-                    },
+                    error: { message: "Unexpected error while getting the media configuration" },
                 });
             });
         });
@@ -2447,9 +2391,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Unexpected error while uploading a file",
-                    },
+                    error: { message: "Unexpected error while uploading a file" },
                 });
             });
         });
@@ -2567,9 +2509,7 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.reply).toBeCalledWith(event, {
-                    error: {
-                        message: "Unexpected error while downloading a file",
-                    },
+                    error: { message: "Unexpected error while downloading a file" },
                 });
             });
         });

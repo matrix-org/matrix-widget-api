@@ -468,9 +468,7 @@ export class WidgetApi extends EventEmitter {
                 ...(stateKey !== undefined && { state_key: stateKey }),
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(delay !== undefined && { delay }),
-                ...(parentDelayId !== undefined && {
-                    parent_delay_id: parentDelayId,
-                }),
+                ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
             },
         );
     }
@@ -505,11 +503,7 @@ export class WidgetApi extends EventEmitter {
     ): Promise<ISendToDeviceFromWidgetResponseData> {
         return this.transport.send<ISendToDeviceFromWidgetRequestData, ISendToDeviceFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendToDevice,
-            {
-                type: eventType,
-                encrypted,
-                messages: contentMap,
-            },
+            { type: eventType, encrypted, messages: contentMap },
         );
     }
 
@@ -538,10 +532,7 @@ export class WidgetApi extends EventEmitter {
         roomIds?: (string | Symbols.AnyRoom)[],
         since?: string | undefined,
     ): Promise<IRoomEvent[]> {
-        const data: IReadEventFromWidgetRequestData = {
-            type: eventType,
-            msgtype: msgtype,
-        };
+        const data: IReadEventFromWidgetRequestData = { type: eventType, msgtype: msgtype };
         if (limit !== undefined) {
             data.limit = limit;
         }

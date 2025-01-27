@@ -469,9 +469,7 @@ export class ClientWidgetApi extends EventEmitter {
 
         if (!this.canReceiveRoomAccountData(request.data.type)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {
-                    message: "Cannot read room account data of this type",
-                },
+                error: { message: "Cannot read room account data of this type" },
             });
         }
 
@@ -502,9 +500,7 @@ export class ClientWidgetApi extends EventEmitter {
             for (const roomId of askRoomIds) {
                 if (!this.canUseRoomTimeline(roomId)) {
                     return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                        error: {
-                            message: `Unable to access room timeline: ${roomId}`,
-                        },
+                        error: { message: `Unable to access room timeline: ${roomId}` },
                     });
                 }
             }
@@ -519,18 +515,14 @@ export class ClientWidgetApi extends EventEmitter {
             stateKey = request.data.state_key === true ? undefined : request.data.state_key.toString();
             if (!this.canReceiveStateEvent(request.data.type, stateKey ?? null)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {
-                        message: "Cannot read state events of this type",
-                    },
+                    error: { message: "Cannot read state events of this type" },
                 });
             }
         } else {
             msgtype = request.data.msgtype;
             if (!this.canReceiveRoomEvent(request.data.type, msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {
-                        message: "Cannot read room events of this type",
-                    },
+                    error: { message: "Cannot read room events of this type" },
                 });
             }
         }
@@ -550,9 +542,7 @@ export class ClientWidgetApi extends EventEmitter {
                           ),
                       )
                   ).flat(1);
-        this.transport.reply<IReadEventFromWidgetResponseData>(request, {
-            events,
-        });
+        this.transport.reply<IReadEventFromWidgetResponseData>(request, { events });
     }
 
     private handleSendEvent(request: ISendEventFromWidgetActionRequest): void {
@@ -564,9 +554,7 @@ export class ClientWidgetApi extends EventEmitter {
 
         if (!!request.data.room_id && !this.canUseRoomTimeline(request.data.room_id)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {
-                    message: `Unable to access room timeline: ${request.data.room_id}`,
-                },
+                error: { message: `Unable to access room timeline: ${request.data.room_id}` },
             });
         }
 
@@ -581,9 +569,7 @@ export class ClientWidgetApi extends EventEmitter {
         if (request.data.state_key !== undefined) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {
-                        message: "Cannot send state events of this type",
-                    },
+                    error: { message: "Cannot send state events of this type" },
                 });
             }
 
@@ -609,9 +595,7 @@ export class ClientWidgetApi extends EventEmitter {
             const msgtype = content["msgtype"];
             if (!this.canSendRoomEvent(request.data.type, msgtype)) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {
-                        message: "Cannot send room events of this type",
-                    },
+                    error: { message: "Cannot send room events of this type" },
                 });
             }
 
@@ -682,9 +666,7 @@ export class ClientWidgetApi extends EventEmitter {
                 break;
             default:
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                    error: {
-                        message: "Invalid request - unsupported action",
-                    },
+                    error: { message: "Invalid request - unsupported action" },
                 });
         }
     }
@@ -797,9 +779,7 @@ export class ClientWidgetApi extends EventEmitter {
 
         if (request.data.room_id !== undefined && !this.canUseRoomTimeline(request.data.room_id)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: {
-                    message: `Unable to access room timeline: ${request.data.room_id}`,
-                },
+                error: { message: `Unable to access room timeline: ${request.data.room_id}` },
             });
         }
 
@@ -1001,9 +981,7 @@ export class ClientWidgetApi extends EventEmitter {
      * @param lang The BCP 47 identifier representing the client's current language.
      */
     public updateLanguage(lang: string): Promise<IWidgetApiResponseData> {
-        return this.transport.send(WidgetApiToWidgetAction.LanguageChange, {
-            lang,
-        });
+        return this.transport.send(WidgetApiToWidgetAction.LanguageChange, { lang });
     }
 
     /**
