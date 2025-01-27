@@ -3,6 +3,7 @@ lib/
 dist/
 .npmrc
 .idea
+.vscode
 
 # Logs
 logs
