@@ -36,7 +36,7 @@
     ],
     "devDependencies": {
         "@action-validator/cli": "^0.6.0",
-        "@action-validator/core": "^0.5.3",
+        "@action-validator/core": "^0.6.0",
         "@babel/cli": "^7.11.6",
         "@babel/core": "^7.11.6",
         "@babel/eslint-parser": "^7.25.9",
