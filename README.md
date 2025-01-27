@@ -77,7 +77,7 @@ SDK to provide an interface for other platforms.
 TODO: Improve this
 
 ```typescript
-const driver = new CustomDriver(); // an implementation of WidgetDriver
+const driver = new CustomDriver(); // an implementation of IWidgetDriver
 const api = new ClientWidgetApi(widget, iframe, driver);
 
 // The API is automatically started, so we just have to wait for a ready before doing something
