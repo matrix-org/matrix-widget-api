@@ -63,14 +63,11 @@ export interface IGetMediaConfigResult {
 
 /**
  * Represents the functions and behaviour the widget-api is unable to
- * do, such as prompting the user for information or interacting with
- * the UI. Clients are expected to implement this class and override
- * any functions they need/want to support.
+ * do such as prompting the user for information or interacting with
+ * the UI. It must be implemented by the client that is embedding widgets.
  *
- * This class assumes the client will have a context of a Widget
- * instance already.
  */
-export abstract class WidgetDriver {
+export interface IWidgetDriver {
     /**
      * Verifies the widget's requested capabilities, returning the ones
      * it is approved to use. Mutating the requested capabilities will
@@ -83,9 +80,7 @@ export abstract class WidgetDriver {
      * @param {Set<Capability>} requested The set of requested capabilities.
      * @returns {Promise<Set<Capability>>} Resolves to the allowed capabilities.
      */
-    public validateCapabilities(requested: Set<Capability>): Promise<Set<Capability>> {
-        return Promise.resolve(new Set());
-    }
+    validateCapabilities(requested: Set<Capability>): Promise<Set<Capability>>;
 
     /**
      * Sends an event into a room. If `roomId` is falsy, the client should send the event
@@ -101,14 +96,12 @@ export abstract class WidgetDriver {
      * details of that event.
      * @throws Rejected when the event could not be sent.
      */
-    public sendEvent(
+    sendEvent(
         eventType: string,
         content: unknown,
-        stateKey: string | null = null,
-        roomId: string | null = null,
-    ): Promise<ISendEventDetails> {
-        return Promise.reject(new Error("Failed to override function"));
-    }
+        stateKey?: string | null,
+        roomId?: string | null,
+    ): Promise<ISendEventDetails>;
 
     /**
      * @experimental Part of MSC4140 & MSC4157
@@ -129,25 +122,21 @@ export abstract class WidgetDriver {
      * prepared with details of how to refer to it for updating/sending/canceling it later.
      * @throws Rejected when the delayed event could not be sent.
      */
-    public sendDelayedEvent(
+    sendDelayedEvent(
         delay: number | null,
         parentDelayId: string | null,
         eventType: string,
         content: unknown,
-        stateKey: string | null = null,
-        roomId: string | null = null,
-    ): Promise<ISendDelayedEventDetails> {
-        return Promise.reject(new Error("Failed to override function"));
-    }
+        stateKey?: string | null,
+        roomId?: string | null,
+    ): Promise<ISendDelayedEventDetails>;
 
     /**
      * @experimental Part of MSC4140 & MSC4157
      * Run the specified {@link action} for the delayed event matching the provided {@link delayId}.
      * @throws Rejected when there is no matching delayed event, or when the action failed to run.
      */
-    public updateDelayedEvent(delayId: string, action: UpdateDelayedEventAction): Promise<void> {
-        return Promise.reject(new Error("Failed to override function"));
-    }
+    updateDelayedEvent(delayId: string, action: UpdateDelayedEventAction): Promise<void>;
 
     /**
      * Sends a to-device event. The widget API will have already verified that the widget
@@ -158,13 +147,12 @@ export abstract class WidgetDriver {
      * @returns {Promise<void>} Resolves when the event has been sent.
      * @throws Rejected when the event could not be sent.
      */
-    public sendToDevice(
+    sendToDevice(
         eventType: string,
         encrypted: boolean,
         contentMap: { [userId: string]: { [deviceId: string]: object } },
-    ): Promise<void> {
-        return Promise.reject(new Error("Failed to override function"));
-    }
+    ): Promise<void>;
+
     /**
      * Reads an element of room account data. The widget API will have already verified that the widget is
      * capable of receiving the `eventType` of the requested information. If `roomIds` is supplied, it may
@@ -175,9 +163,7 @@ export abstract class WidgetDriver {
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<IRoomAccountData[]>} Resolves to the element of room account data, or an empty array.
      */
-    public readRoomAccountData(eventType: string, roomIds: string[] | null = null): Promise<IRoomAccountData[]> {
-        return Promise.resolve([]);
-    }
+    readRoomAccountData(eventType: string, roomIds?: string[] | null): Promise<IRoomAccountData[]>;
 
     /**
      * Reads all events of the given type, and optionally `msgtype` (if applicable/defined),
@@ -201,15 +187,13 @@ export abstract class WidgetDriver {
      * @returns {Promise<IRoomEvent[]>} Resolves to the room events, or an empty array.
      * @deprecated Clients are advised to implement {@link WidgetDriver.readRoomTimeline} instead.
      */
-    public readRoomEvents(
+    readRoomEvents(
         eventType: string,
         msgtype: string | undefined,
         limit: number,
-        roomIds: string[] | null = null,
+        roomIds?: string[] | null,
         since?: string,
-    ): Promise<IRoomEvent[]> {
-        return Promise.resolve([]);
-    }
+    ): Promise<IRoomEvent[]>;
 
     /**
      * Reads all events of the given type, and optionally state key (if applicable/defined),
@@ -227,14 +211,12 @@ export abstract class WidgetDriver {
      * @returns {Promise<IRoomEvent[]>} Resolves to the state events, or an empty array.
      * @deprecated Clients are advised to implement {@link WidgetDriver.readRoomTimeline} instead.
      */
-    public readStateEvents(
+    readStateEvents(
         eventType: string,
         stateKey: string | undefined,
         limit: number,
-        roomIds: string[] | null = null,
-    ): Promise<IRoomEvent[]> {
-        return Promise.resolve([]);
-    }
+        roomIds?: string[] | null,
+    ): Promise<IRoomEvent[]>;
 
     /**
      * Reads all events of the given type, and optionally `msgtype` (if applicable/defined),
@@ -252,19 +234,14 @@ export abstract class WidgetDriver {
      * in "limit".
      * @returns {Promise<IRoomEvent[]>} Resolves to the room events, or an empty array.
      */
-    public readRoomTimeline(
+    readRoomTimeline(
         roomId: string,
         eventType: string,
         msgtype: string | undefined,
         stateKey: string | undefined,
         limit: number,
         since: string | undefined,
-    ): Promise<IRoomEvent[]> {
-        // For backward compatibility we try the deprecated methods, in case
-        // they're implemented
-        if (stateKey === undefined) return this.readRoomEvents(eventType, msgtype, limit, [roomId], since);
-        else return this.readStateEvents(eventType, stateKey, limit, [roomId]);
-    }
+    ): Promise<IRoomEvent[]>;
 
     /**
      * Reads the current values of all matching room state entries.
@@ -275,9 +252,7 @@ export abstract class WidgetDriver {
      * @returns {Promise<IRoomEvent[]>} Resolves to the events representing the
      * current values of the room state entries.
      */
-    public readRoomState(roomId: string, eventType: string, stateKey: string | undefined): Promise<IRoomEvent[]> {
-        return this.readStateEvents(eventType, stateKey, Number.MAX_SAFE_INTEGER, [roomId]);
-    }
+    readRoomState(roomId: string, eventType: string, stateKey: string | undefined): Promise<IRoomEvent[]>;
 
     /**
      * Reads all events that are related to a given event. The widget API will
@@ -303,7 +278,7 @@ export abstract class WidgetDriver {
      * @param direction The direction to search for according to MSC3715
      * @returns Resolves to the room relations.
      */
-    public readEventRelations(
+    readEventRelations(
         eventId: string,
         roomId?: string,
         relationType?: string,
@@ -312,9 +287,7 @@ export abstract class WidgetDriver {
         to?: string,
         limit?: number,
         direction?: "f" | "b",
-    ): Promise<IReadEventRelationsResult> {
-        return Promise.resolve({ chunk: [] });
-    }
+    ): Promise<IReadEventRelationsResult>;
 
     /**
      * Asks the user for permission to validate their identity through OpenID Connect. The
@@ -329,9 +302,7 @@ export abstract class WidgetDriver {
      * met properly. By default, the widget driver will block all OIDC requests.
      * @param {SimpleObservable<IOpenIDUpdate>} observer The observable to feed updates into.
      */
-    public askOpenID(observer: SimpleObservable<IOpenIDUpdate>): void {
-        observer.update({ state: OpenIDRequestState.Blocked });
-    }
+    askOpenID(observer: SimpleObservable<IOpenIDUpdate>): void;
 
     /**
      * Navigates the client with a matrix.to URI. In future this function will also be provided
@@ -342,9 +313,7 @@ export abstract class WidgetDriver {
      * @returns {Promise<void>} Resolves when complete.
      * @throws Throws if there's a problem with the navigation, such as invalid format.
      */
-    public navigate(uri: string): Promise<void> {
-        throw new Error("Navigation is not implemented");
-    }
+    navigate(uri: string): Promise<void>;
 
     /**
      * Polls for TURN server data, yielding an initial set of credentials as soon as possible, and
@@ -352,9 +321,7 @@ export abstract class WidgetDriver {
      * have already verified that the widget has permission to access TURN servers.
      * @yields {ITurnServer} The TURN server URIs and credentials currently available to the client.
      */
-    public getTurnServers(): AsyncGenerator<ITurnServer> {
-        throw new Error("TURN server support is not implemented");
-    }
+    getTurnServers(): AsyncGenerator<ITurnServer>;
 
     /**
      * Search for users in the user directory.
@@ -362,17 +329,13 @@ export abstract class WidgetDriver {
      * @param limit The maximum number of results to return. If not supplied, the
      * @returns Resolves to the search results.
      */
-    public searchUserDirectory(searchTerm: string, limit?: number): Promise<ISearchUserDirectoryResult> {
-        return Promise.resolve({ limited: false, results: [] });
-    }
+    searchUserDirectory(searchTerm: string, limit?: number): Promise<ISearchUserDirectoryResult>;
 
     /**
      * Get the config for the media repository.
      * @returns Promise which resolves with an object containing the config.
      */
-    public getMediaConfig(): Promise<IGetMediaConfigResult> {
-        throw new Error("Get media config is not implemented");
-    }
+    getMediaConfig(): Promise<IGetMediaConfigResult>;
 
     /**
      * Upload a file to the media repository on the homeserver.
@@ -380,27 +343,21 @@ export abstract class WidgetDriver {
      *               XMLHttpRequest.send (typically a File).
      * @returns Resolves to the location of the uploaded file.
      */
-    public uploadFile(file: XMLHttpRequestBodyInit): Promise<{ contentUri: string }> {
-        throw new Error("Upload file is not implemented");
-    }
+    uploadFile(file: XMLHttpRequestBodyInit): Promise<{ contentUri: string }>;
 
     /**
      * Download a file from the media repository on the homeserver.
      * @param contentUri - MXC URI of the file to download.
      * @returns Resolves to the contents of the file.
      */
-    public downloadFile(contentUri: string): Promise<{ file: XMLHttpRequestBodyInit }> {
-        throw new Error("Download file is not implemented");
-    }
+    downloadFile(contentUri: string): Promise<{ file: XMLHttpRequestBodyInit }>;
 
     /**
      * Gets the IDs of all joined or invited rooms currently known to the
      * client.
      * @returns The room IDs.
      */
-    public getKnownRooms(): string[] {
-        throw new Error("Querying known rooms is not implemented");
-    }
+    getKnownRooms(): string[];
 
     /**
      * Expresses an error thrown by this driver in a format compatible with the Widget API.
@@ -408,7 +365,146 @@ export abstract class WidgetDriver {
      * @returns The error expressed as a {@link IWidgetApiErrorResponseDataDetails},
      * or undefined if it cannot be expressed as one.
      */
+    processError(error: unknown): IWidgetApiErrorResponseDataDetails | undefined;
+}
+
+/**
+ * Provides a convenience base class to implement the IWidgetDriver interface
+ * Clients can extend and override this class for any functions they need/want
+ * to support.
+ *
+ * This class assumes the client will have a context of a Widget
+ * instance already.
+ */
+export abstract class BaseWidgetDriver implements IWidgetDriver {
+    public validateCapabilities(requested: Set<Capability>): Promise<Set<Capability>> {
+        return Promise.resolve(new Set());
+    }
+
+    public sendEvent(
+        eventType: string,
+        content: unknown,
+        stateKey: string | null = null,
+        roomId: string | null = null,
+    ): Promise<ISendEventDetails> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    public sendDelayedEvent(
+        delay: number | null,
+        parentDelayId: string | null,
+        eventType: string,
+        content: unknown,
+        stateKey: string | null = null,
+        roomId: string | null = null,
+    ): Promise<ISendDelayedEventDetails> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    public updateDelayedEvent(delayId: string, action: UpdateDelayedEventAction): Promise<void> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    public sendToDevice(
+        eventType: string,
+        encrypted: boolean,
+        contentMap: { [userId: string]: { [deviceId: string]: object } },
+    ): Promise<void> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    public readRoomAccountData(eventType: string, roomIds: string[] | null = null): Promise<IRoomAccountData[]> {
+        return Promise.resolve([]);
+    }
+
+    public readRoomEvents(
+        eventType: string,
+        msgtype: string | undefined,
+        limit: number,
+        roomIds: string[] | null = null,
+        since?: string,
+    ): Promise<IRoomEvent[]> {
+        return Promise.resolve([]);
+    }
+
+    public readStateEvents(
+        eventType: string,
+        stateKey: string | undefined,
+        limit: number,
+        roomIds: string[] | null = null,
+    ): Promise<IRoomEvent[]> {
+        return Promise.resolve([]);
+    }
+
+    public readRoomTimeline(
+        roomId: string,
+        eventType: string,
+        msgtype: string | undefined,
+        stateKey: string | undefined,
+        limit: number,
+        since: string | undefined,
+    ): Promise<IRoomEvent[]> {
+        // For backward compatibility we try the deprecated methods, in case
+        // they're implemented
+        if (stateKey === undefined) return this.readRoomEvents(eventType, msgtype, limit, [roomId], since);
+        else return this.readStateEvents(eventType, stateKey, limit, [roomId]);
+    }
+
+    public readRoomState(roomId: string, eventType: string, stateKey: string | undefined): Promise<IRoomEvent[]> {
+        return this.readStateEvents(eventType, stateKey, Number.MAX_SAFE_INTEGER, [roomId]);
+    }
+
+    public readEventRelations(
+        eventId: string,
+        roomId?: string,
+        relationType?: string,
+        eventType?: string,
+        from?: string,
+        to?: string,
+        limit?: number,
+        direction?: "f" | "b",
+    ): Promise<IReadEventRelationsResult> {
+        return Promise.resolve({ chunk: [] });
+    }
+
+    public askOpenID(observer: SimpleObservable<IOpenIDUpdate>): void {
+        observer.update({ state: OpenIDRequestState.Blocked });
+    }
+
+    public navigate(uri: string): Promise<void> {
+        throw new Error("Navigation is not implemented");
+    }
+
+    public getTurnServers(): AsyncGenerator<ITurnServer> {
+        throw new Error("TURN server support is not implemented");
+    }
+
+    public searchUserDirectory(searchTerm: string, limit?: number): Promise<ISearchUserDirectoryResult> {
+        return Promise.resolve({ limited: false, results: [] });
+    }
+
+    public getMediaConfig(): Promise<IGetMediaConfigResult> {
+        throw new Error("Get media config is not implemented");
+    }
+
+    public uploadFile(file: XMLHttpRequestBodyInit): Promise<{ contentUri: string }> {
+        throw new Error("Upload file is not implemented");
+    }
+
+    public downloadFile(contentUri: string): Promise<{ file: XMLHttpRequestBodyInit }> {
+        throw new Error("Download file is not implemented");
+    }
+
+    public getKnownRooms(): string[] {
+        throw new Error("Querying known rooms is not implemented");
+    }
+
     public processError(error: unknown): IWidgetApiErrorResponseDataDetails | undefined {
         return undefined;
     }
 }
+
+/**
+ * @deprecated Use {@link BaseWidgetDriver} instead.
+ */
+export type WidgetDriver = BaseWidgetDriver;
