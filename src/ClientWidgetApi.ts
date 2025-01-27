@@ -354,6 +354,10 @@ export class ClientWidgetApi extends EventEmitter {
         });
     }
 
+    private async supportsUpdateState(): Promise<boolean> {
+        return (await this.getWidgetVersions()).includes(UnstableApiVersion.MSC2762_UPDATE_STATE);
+    }
+
     private handleCapabilitiesRenegotiate(request: IRenegotiateCapabilitiesActionRequest): void {
         // acknowledge first
         this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
@@ -527,21 +531,53 @@ export class ClientWidgetApi extends EventEmitter {
             }
         }
 
-        // For backwards compatibility we still call the deprecated
-        // readRoomEvents and readStateEvents methods in case the client isn't
-        // letting us know the currently viewed room via setViewedRoomId
-        const events =
-            request.data.room_ids === undefined && askRoomIds.length === 0
-                ? await (request.data.state_key === undefined
-                      ? this.driver.readRoomEvents(request.data.type, msgtype, limit, null, since)
-                      : this.driver.readStateEvents(request.data.type, stateKey, limit, null))
-                : (
-                      await Promise.all(
+        let events: IRoomEvent[];
+
+        if (request.data.room_ids === undefined && askRoomIds.length === 0) {
+            // For backwards compatibility we still call the deprecated
+            // readRoomEvents and readStateEvents methods in case the client isn't
+            // letting us know the currently viewed room via setViewedRoomId
+            //
+            // This can be considered as a deprecated implementation.
+            // A driver should call `setViewedRoomId` on the widget messaging and implement the new readRoomState and readRoomTimeline
+            // Methods.
+            // This block makes sure that it is also possible to not use setViewedRoomId.
+            // readRoomTimeline and readRoomState are required however! Otherwise widget requests that include
+            // `room_ids` will fail.
+            console.warn(
+                "The widgetDriver uses deprecated behaviour:\n It does not set the viewedRoomId using `setViewedRoomId`",
+            );
+            events = await // This returns [] with the current driver of Element Web.
+            // Add default implementations of the `readRoomEvents` and `readStateEvents`
+            // methods to use `readRoomTimeline` and `readRoomState` if they are not overwritten.
+            (request.data.state_key === undefined
+                ? this.driver.readRoomEvents(request.data.type, msgtype, limit, null, since)
+                : this.driver.readStateEvents(request.data.type, stateKey, limit, null));
+        } else if (await this.supportsUpdateState()) {
+            // Calling read_events with a stateKey still reads from the rooms timeline (not the room state).
+            events = (
+                await Promise.all(
+                    askRoomIds.map((roomId) =>
+                        this.driver.readRoomTimeline(roomId, request.data.type, msgtype, stateKey, limit, since),
+                    ),
+                )
+            ).flat(1);
+        } else {
+            // TODO: remove this once `UnstableApiVersion.MSC2762_UPDATE_STATE` becomes stable.
+            // Before version `MSC2762_UPDATE_STATE` we used readRoomState for read_events actions.
+            events = (
+                request.data.state_key === undefined
+                    ? await Promise.all(
                           askRoomIds.map((roomId) =>
                               this.driver.readRoomTimeline(roomId, request.data.type, msgtype, stateKey, limit, since),
                           ),
                       )
-                  ).flat(1);
+                    : await Promise.all(
+                          askRoomIds.map((roomId) => this.driver.readRoomState(roomId, request.data.type, stateKey)),
+                      )
+            ).flat(1);
+        }
+
         this.transport.reply<IReadEventFromWidgetResponseData>(request, { events });
     }
 

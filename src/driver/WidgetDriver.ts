@@ -276,7 +276,7 @@ export abstract class WidgetDriver {
      * current values of the room state entries.
      */
     public readRoomState(roomId: string, eventType: string, stateKey: string | undefined): Promise<IRoomEvent[]> {
-        return Promise.resolve([]);
+        return this.readStateEvents(eventType, stateKey, Number.MAX_SAFE_INTEGER, [roomId]);
     }
 
     /**
