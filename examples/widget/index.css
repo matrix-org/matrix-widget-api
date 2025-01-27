@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-html, body {
+html,
+body {
     background-color: #ffffff;
     color: #000000;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {

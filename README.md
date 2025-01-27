@@ -6,7 +6,7 @@ JavaScript/TypeScript SDK for widgets & clients to communicate.
 
 For help and support, visit [#matrix-widgets:matrix.org](https://matrix.to/#/#matrix-widgets:matrix.org) on Matrix.
 
-*Disclaimer: Widgets are not yet in the Matrix spec, so this library may not work with other implementations.*
+_Disclaimer: Widgets are not yet in the Matrix spec, so this library may not work with other implementations._
 
 ## Building
 
@@ -52,7 +52,7 @@ api.on(`action:${WidgetApiToWidgetAction.UpdateVisibility}`, (ev: CustomEvent<IV
 api.on("action:com.example.my_action", (ev: CustomEvent<ICustomActionRequest>) => {
     ev.preventDefault(); // we're handling it, so stop the widget API from doing something.
     console.log(ev.detail); // custom handling here
-    api.transport.reply(ev.detail, {custom: "reply"});
+    api.transport.reply(ev.detail, { custom: "reply" });
 });
 
 // Start the messaging
@@ -63,7 +63,7 @@ api.sendContentLoaded();
 
 // Later, do something else (if needed)
 api.setAlwaysOnScreen(true);
-api.transport.send("com.example.my_action", {isExample: true});
+api.transport.send("com.example.my_action", { isExample: true });
 ```
 
 For a more complete example, see the `examples` directory of this repo.
@@ -83,7 +83,7 @@ const api = new ClientWidgetApi(widget, iframe, driver);
 // The API is automatically started, so we just have to wait for a ready before doing something
 api.on("ready", () => {
     api.updateVisibility(true).then(() => console.log("Widget knows it is visible now"));
-    api.transport.send("com.example.my_action", {isExample: true});
+    api.transport.send("com.example.my_action", { isExample: true });
 });
 
 // Eventually, stop the API handling

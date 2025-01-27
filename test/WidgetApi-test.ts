@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import { UnstableApiVersion } from '../src/interfaces/ApiVersion';
-import { IGetMediaConfigActionFromWidgetResponseData } from '../src/interfaces/GetMediaConfigAction';
-import { IReadRelationsFromWidgetResponseData } from '../src/interfaces/ReadRelationsAction';
-import { ISendEventFromWidgetResponseData } from '../src/interfaces/SendEventAction';
-import { ISupportedVersionsActionResponseData } from '../src/interfaces/SupportedVersionsAction';
-import { IUploadFileActionFromWidgetResponseData } from '../src/interfaces/UploadFileAction';
-import { IDownloadFileActionFromWidgetResponseData } from '../src/interfaces/DownloadFileAction';
-import { IUserDirectorySearchFromWidgetResponseData } from '../src/interfaces/UserDirectorySearchAction';
-import { WidgetApiFromWidgetAction } from '../src/interfaces/WidgetApiAction';
-import { WidgetApi, WidgetApiResponseError } from '../src/WidgetApi';
+import { UnstableApiVersion } from "../src/interfaces/ApiVersion";
+import { IGetMediaConfigActionFromWidgetResponseData } from "../src/interfaces/GetMediaConfigAction";
+import { IReadRelationsFromWidgetResponseData } from "../src/interfaces/ReadRelationsAction";
+import { ISendEventFromWidgetResponseData } from "../src/interfaces/SendEventAction";
+import { ISupportedVersionsActionResponseData } from "../src/interfaces/SupportedVersionsAction";
+import { IUploadFileActionFromWidgetResponseData } from "../src/interfaces/UploadFileAction";
+import { IDownloadFileActionFromWidgetResponseData } from "../src/interfaces/DownloadFileAction";
+import { IUserDirectorySearchFromWidgetResponseData } from "../src/interfaces/UserDirectorySearchAction";
+import { WidgetApiFromWidgetAction } from "../src/interfaces/WidgetApiAction";
+import { WidgetApi, WidgetApiResponseError } from "../src/WidgetApi";
 import {
     IWidgetApiErrorResponseData,
     IWidgetApiErrorResponseDataDetails,
@@ -34,7 +34,7 @@ import {
     IWidgetApiResponseData,
     UpdateDelayedEventAction,
     WidgetApiDirection,
-} from '../src';
+} from "../src";
 
 type SendRequestArgs = {
     action: WidgetApiFromWidgetAction;
@@ -73,7 +73,7 @@ class ClientTransportHelper {
     public constructor(private channels: TransportChannels) {}
 
     public trackRequest(action: WidgetApiFromWidgetAction, data: IWidgetApiRequestData): void {
-        this.channels.requestQueue.push({action, data});
+        this.channels.requestQueue.push({ action, data });
     }
 
     public nextQueuedResponse(): IWidgetApiRequestData | undefined {
@@ -81,7 +81,7 @@ class ClientTransportHelper {
     }
 }
 
-describe('WidgetApi', () => {
+describe("WidgetApi", () => {
     let widgetApi: WidgetApi;
     let widgetTransportHelper: WidgetTransportHelper;
     let clientListener: (e: MessageEvent) => void;
@@ -96,10 +96,7 @@ describe('WidgetApi', () => {
             if ("response" in e.data || e.data.api !== WidgetApiDirection.FromWidget) return; // not a request
             const request = <IWidgetApiRequest>e.data;
 
-            clientTrafficHelper.trackRequest(
-                request.action as WidgetApiFromWidgetAction,
-                request.data,
-            );
+            clientTrafficHelper.trackRequest(request.action as WidgetApiFromWidgetAction, request.data);
 
             const response = clientTrafficHelper.nextQueuedResponse();
             if (response) {
@@ -122,21 +119,27 @@ describe('WidgetApi', () => {
         window.removeEventListener("message", clientListener);
     });
 
-    describe('readEventRelations', () => {
-        it('should forward the request to the ClientWidgetApi', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC3869] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                {
-                    chunk: [],
-                } as IReadRelationsFromWidgetResponseData,
-            );
+    describe("readEventRelations", () => {
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC3869],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({
+                chunk: [],
+            } as IReadRelationsFromWidgetResponseData);
 
-            await expect(widgetApi.readEventRelations(
-                '$event', '!room-id', 'm.reference', 'm.room.message', 25,
-                'from-token', 'to-token', 'f',
-            )).resolves.toEqual({
+            await expect(
+                widgetApi.readEventRelations(
+                    "$event",
+                    "!room-id",
+                    "m.reference",
+                    "m.room.message",
+                    25,
+                    "from-token",
+                    "to-token",
+                    "f",
+                ),
+            ).resolves.toEqual({
                 chunk: [],
             });
 
@@ -144,27 +147,33 @@ describe('WidgetApi', () => {
             expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
                 action: WidgetApiFromWidgetAction.MSC3869ReadRelations,
                 data: {
-                    event_id: '$event',
-                    room_id: '!room-id',
-                    rel_type: 'm.reference',
-                    event_type: 'm.room.message',
+                    event_id: "$event",
+                    room_id: "!room-id",
+                    rel_type: "m.reference",
+                    event_type: "m.room.message",
                     limit: 25,
-                    from: 'from-token',
-                    to: 'to-token',
-                    direction: 'f',
+                    from: "from-token",
+                    to: "to-token",
+                    direction: "f",
                 },
             } satisfies SendRequestArgs);
         });
 
-        it('should reject the request if the api is not supported', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [] } as ISupportedVersionsActionResponseData,
-            );
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
-            await expect(widgetApi.readEventRelations(
-                '$event', '!room-id', 'm.reference', 'm.room.message', 25,
-                'from-token', 'to-token', 'f',
-            )).rejects.toThrow("The read_relations action is not supported by the client.");
+            await expect(
+                widgetApi.readEventRelations(
+                    "$event",
+                    "!room-id",
+                    "m.reference",
+                    "m.room.message",
+                    25,
+                    "from-token",
+                    "to-token",
+                    "f",
+                ),
+            ).rejects.toThrow("The read_relations action is not supported by the client.");
 
             const request = widgetTransportHelper.nextTrackedRequest();
             expect(request).not.toBeUndefined();
@@ -174,24 +183,32 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC3869] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } } as IWidgetApiErrorResponseData,
-            );
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC3869],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({
+                error: { message: "An error occurred" },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.readEventRelations(
-                '$event', '!room-id', 'm.reference', 'm.room.message', 25,
-                'from-token', 'to-token', 'f',
-            )).rejects.toThrow('An error occurred');
+            await expect(
+                widgetApi.readEventRelations(
+                    "$event",
+                    "!room-id",
+                    "m.reference",
+                    "m.room.message",
+                    25,
+                    "from-token",
+                    "to-token",
+                    "f",
+                ),
+            ).rejects.toThrow("An error occurred");
         });
 
-        it('should handle an error with details', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC3869] } as ISupportedVersionsActionResponseData,
-            );
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC3869],
+            } as ISupportedVersionsActionResponseData);
 
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
@@ -200,78 +217,69 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.readEventRelations(
-                '$event', '!room-id', 'm.reference', 'm.room.message', 25,
-                'from-token', 'to-token', 'f',
-            )).rejects.toThrow(new WidgetApiResponseError('An error occurred', errorDetails));
+            await expect(
+                widgetApi.readEventRelations(
+                    "$event",
+                    "!room-id",
+                    "m.reference",
+                    "m.room.message",
+                    25,
+                    "from-token",
+                    "to-token",
+                    "f",
+                ),
+            ).rejects.toThrow(new WidgetApiResponseError("An error occurred", errorDetails));
         });
     });
 
-    describe('sendEvent', () => {
-        it('sends message events', async () => {
-            widgetTransportHelper.queueResponse(
-                {
-                    room_id: '!room-id',
-                    event_id: '$event',
-                } as ISendEventFromWidgetResponseData,
-            );
+    describe("sendEvent", () => {
+        it("sends message events", async () => {
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                event_id: "$event",
+            } as ISendEventFromWidgetResponseData);
 
-            await expect(widgetApi.sendRoomEvent(
-                'm.room.message',
-                {},
-                '!room-id',
-            )).resolves.toEqual({
-                room_id: '!room-id',
-                event_id: '$event',
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id")).resolves.toEqual({
+                room_id: "!room-id",
+                event_id: "$event",
             });
         });
 
-        it('sends state events', async () => {
-            widgetTransportHelper.queueResponse(
-                {
-                    room_id: '!room-id',
-                    event_id: '$event',
-                } as ISendEventFromWidgetResponseData,
-            );
+        it("sends state events", async () => {
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                event_id: "$event",
+            } as ISendEventFromWidgetResponseData);
 
-            await expect(widgetApi.sendStateEvent(
-                'm.room.topic',
-                "",
-                {},
-                '!room-id',
-            )).resolves.toEqual({
-                room_id: '!room-id',
-                event_id: '$event',
+            await expect(widgetApi.sendStateEvent("m.room.topic", "", {}, "!room-id")).resolves.toEqual({
+                room_id: "!room-id",
+                event_id: "$event",
             });
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } } as IWidgetApiErrorResponseData,
-            );
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                error: { message: "An error occurred" },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.sendRoomEvent(
-                'm.room.message',
-                {},
-                '!room-id',
-            )).rejects.toThrow('An error occurred');
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id")).rejects.toThrow(
+                "An error occurred",
+            );
         });
 
-        it('should handle an error with details', async () => {
+        it("should handle an error with details", async () => {
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
                     http_status: 400,
@@ -279,124 +287,86 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.sendRoomEvent(
-                'm.room.message',
-                {},
-                '!room-id',
-            )).rejects.toThrow(new WidgetApiResponseError('An error occurred', errorDetails));
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id")).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
         });
     });
 
-    describe('delayed sendEvent', () => {
-        it('sends delayed message events', async () => {
-            widgetTransportHelper.queueResponse(
-                {
-                    room_id: '!room-id',
-                    delay_id: 'id',
-                } as ISendEventFromWidgetResponseData,
-            );
+    describe("delayed sendEvent", () => {
+        it("sends delayed message events", async () => {
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                delay_id: "id",
+            } as ISendEventFromWidgetResponseData);
 
-            await expect(widgetApi.sendRoomEvent(
-                'm.room.message',
-                {},
-                '!room-id',
-                2000,
-            )).resolves.toEqual({
-                room_id: '!room-id',
-                delay_id: 'id',
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 2000)).resolves.toEqual({
+                room_id: "!room-id",
+                delay_id: "id",
             });
         });
 
-        it('sends delayed state events', async () => {
-            widgetTransportHelper.queueResponse(
-                {
-                    room_id: '!room-id',
-                    delay_id: 'id',
-                } as ISendEventFromWidgetResponseData,
-            );
+        it("sends delayed state events", async () => {
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                delay_id: "id",
+            } as ISendEventFromWidgetResponseData);
 
-            await expect(widgetApi.sendStateEvent(
-                'm.room.topic',
-                "",
-                {},
-                '!room-id',
-                2000,
-            )).resolves.toEqual({
-                room_id: '!room-id',
-                delay_id: 'id',
+            await expect(widgetApi.sendStateEvent("m.room.topic", "", {}, "!room-id", 2000)).resolves.toEqual({
+                room_id: "!room-id",
+                delay_id: "id",
             });
         });
 
-        it('sends delayed child action message events', async () => {
-            widgetTransportHelper.queueResponse(
-                {
-                    room_id: '!room-id',
-                    delay_id: 'id',
-                } as ISendEventFromWidgetResponseData,
-            );
+        it("sends delayed child action message events", async () => {
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                delay_id: "id",
+            } as ISendEventFromWidgetResponseData);
 
-            await expect(widgetApi.sendRoomEvent(
-                'm.room.message',
-                {},
-                '!room-id',
-                1000,
-                undefined,
-            )).resolves.toEqual({
-                room_id: '!room-id',
-                delay_id: 'id',
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, undefined)).resolves.toEqual({
+                room_id: "!room-id",
+                delay_id: "id",
             });
         });
 
-        it('sends delayed child action state events', async () => {
-            widgetTransportHelper.queueResponse(
-                {
-                    room_id: '!room-id',
-                    delay_id: 'id',
-                } as ISendEventFromWidgetResponseData,
-            );
+        it("sends delayed child action state events", async () => {
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                delay_id: "id",
+            } as ISendEventFromWidgetResponseData);
 
-            await expect(widgetApi.sendStateEvent(
-                'm.room.topic',
-                "",
-                {},
-                '!room-id',
-                1000,
-                undefined,
-            )).resolves.toEqual({
-                room_id: '!room-id',
-                delay_id: 'id',
+            await expect(
+                widgetApi.sendStateEvent("m.room.topic", "", {}, "!room-id", 1000, undefined),
+            ).resolves.toEqual({
+                room_id: "!room-id",
+                delay_id: "id",
             });
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } } as IWidgetApiErrorResponseData,
-            );
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                error: { message: "An error occurred" },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.sendRoomEvent(
-                'm.room.message',
-                {},
-                '!room-id',
-                1000,
-                undefined,
-            )).rejects.toThrow('An error occurred');
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, undefined)).rejects.toThrow(
+                "An error occurred",
+            );
         });
 
-        it('should handle an error with details', async () => {
+        it("should handle an error with details", async () => {
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
                     http_status: 400,
@@ -404,51 +374,41 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.sendRoomEvent(
-                'm.room.message',
-                {},
-                '!room-id',
-                1000,
-                undefined,
-            )).rejects.toThrow(new WidgetApiResponseError('An error occurred', errorDetails));
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, undefined)).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
         });
     });
 
-    describe('updateDelayedEvent', () => {
-        it('updates delayed events', async () => {
+    describe("updateDelayedEvent", () => {
+        it("updates delayed events", async () => {
             widgetTransportHelper.queueResponse({});
-            await expect(widgetApi.updateDelayedEvent(
-                'id',
-                UpdateDelayedEventAction.Send,
-            )).resolves.toEqual({});
+            await expect(widgetApi.updateDelayedEvent("id", UpdateDelayedEventAction.Send)).resolves.toEqual({});
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } } as IWidgetApiErrorResponseData,
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                error: { message: "An error occurred" },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(widgetApi.updateDelayedEvent("id", UpdateDelayedEventAction.Send)).rejects.toThrow(
+                "An error occurred",
             );
-
-            await expect(widgetApi.updateDelayedEvent(
-                'id',
-                UpdateDelayedEventAction.Send,
-            )).rejects.toThrow('An error occurred');
         });
 
-        it('should handle an error with details', async () => {
+        it("should handle an error with details", async () => {
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
                     http_status: 400,
@@ -456,73 +416,56 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.updateDelayedEvent(
-                'id',
-                UpdateDelayedEventAction.Send,
-            )).rejects.toThrow(new WidgetApiResponseError('An error occurred', errorDetails));
+            await expect(widgetApi.updateDelayedEvent("id", UpdateDelayedEventAction.Send)).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
         });
     });
 
-    describe('getClientVersions', () => {
+    describe("getClientVersions", () => {
         beforeEach(() => {
-            widgetTransportHelper.queueResponse(
-                {
-                    supported_versions: [
-                        UnstableApiVersion.MSC3869, UnstableApiVersion.MSC2762,
-                    ],
-                } as ISupportedVersionsActionResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC3869, UnstableApiVersion.MSC2762],
+            } as ISupportedVersionsActionResponseData);
         });
 
-        it('should request supported client versions', async () => {
-            await expect(widgetApi.getClientVersions()).resolves.toEqual([
-                'org.matrix.msc3869', 'org.matrix.msc2762',
-            ]);
+        it("should request supported client versions", async () => {
+            await expect(widgetApi.getClientVersions()).resolves.toEqual(["org.matrix.msc3869", "org.matrix.msc2762"]);
         });
 
-        it('should cache supported client versions on successive calls', async () => {
-            await expect(widgetApi.getClientVersions()).resolves.toEqual([
-                'org.matrix.msc3869', 'org.matrix.msc2762',
-            ]);
+        it("should cache supported client versions on successive calls", async () => {
+            await expect(widgetApi.getClientVersions()).resolves.toEqual(["org.matrix.msc3869", "org.matrix.msc2762"]);
 
-            await expect(widgetApi.getClientVersions()).resolves.toEqual([
-                'org.matrix.msc3869', 'org.matrix.msc2762',
-            ]);
+            await expect(widgetApi.getClientVersions()).resolves.toEqual(["org.matrix.msc3869", "org.matrix.msc2762"]);
 
             expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
             expect(widgetTransportHelper.nextTrackedRequest()).toBeUndefined();
         });
     });
 
-    describe('searchUserDirectory', () => {
-        it('should forward the request to the ClientWidgetApi', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC3973] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                {
-                    limited: false,
-                    results: [],
-                } as IUserDirectorySearchFromWidgetResponseData,
-            );
+    describe("searchUserDirectory", () => {
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC3973],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({
+                limited: false,
+                results: [],
+            } as IUserDirectorySearchFromWidgetResponseData);
 
-            await expect(widgetApi.searchUserDirectory(
-                'foo', 10,
-            )).resolves.toEqual({
+            await expect(widgetApi.searchUserDirectory("foo", 10)).resolves.toEqual({
                 limited: false,
                 results: [],
             });
@@ -531,20 +474,18 @@ describe('WidgetApi', () => {
             expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
                 action: WidgetApiFromWidgetAction.MSC3973UserDirectorySearch,
                 data: {
-                    search_term: 'foo',
+                    search_term: "foo",
                     limit: 10,
                 },
             } satisfies SendRequestArgs);
         });
 
-        it('should reject the request if the api is not supported', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [] } as ISupportedVersionsActionResponseData,
-            );
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
-            await expect(widgetApi.searchUserDirectory(
-                'foo', 10,
-            )).rejects.toThrow("The user_directory_search action is not supported by the client.");
+            await expect(widgetApi.searchUserDirectory("foo", 10)).rejects.toThrow(
+                "The user_directory_search action is not supported by the client.",
+            );
 
             const request = widgetTransportHelper.nextTrackedRequest();
             expect(request).not.toBeUndefined();
@@ -554,23 +495,19 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC3973] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } },
-            );
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC3973],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
-            await expect(widgetApi.searchUserDirectory(
-                'foo', 10,
-            )).rejects.toThrow('An error occurred');
+            await expect(widgetApi.searchUserDirectory("foo", 10)).rejects.toThrow("An error occurred");
         });
 
-        it('should handle an error with details', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC3973] } as ISupportedVersionsActionResponseData,
-            );
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC3973],
+            } as ISupportedVersionsActionResponseData);
 
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
@@ -579,37 +516,35 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.searchUserDirectory(
-                'foo', 10,
-            )).rejects.toThrow(new WidgetApiResponseError('An error occurred', errorDetails));
+            await expect(widgetApi.searchUserDirectory("foo", 10)).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
         });
     });
 
-    describe('getMediaConfig', () => {
-        it('should forward the request to the ClientWidgetApi', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { 'm.upload.size': 1000 } as IGetMediaConfigActionFromWidgetResponseData,
-            );
+    describe("getMediaConfig", () => {
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({
+                "m.upload.size": 1000,
+            } as IGetMediaConfigActionFromWidgetResponseData);
 
             await expect(widgetApi.getMediaConfig()).resolves.toEqual({
-                'm.upload.size': 1000,
+                "m.upload.size": 1000,
             });
 
             expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
@@ -619,10 +554,8 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should reject the request if the api is not supported', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [] } as ISupportedVersionsActionResponseData,
-            );
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(widgetApi.getMediaConfig()).rejects.toThrow(
                 "The get_media_config action is not supported by the client.",
@@ -636,23 +569,19 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } },
-            );
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
-            await expect(widgetApi.getMediaConfig()).rejects.toThrow(
-                'An error occurred',
-            );
+            await expect(widgetApi.getMediaConfig()).rejects.toThrow("An error occurred");
         });
 
-        it('should handle an error with details', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
 
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
@@ -661,37 +590,35 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
             await expect(widgetApi.getMediaConfig()).rejects.toThrow(
-                new WidgetApiResponseError('An error occurred', errorDetails),
+                new WidgetApiResponseError("An error occurred", errorDetails),
             );
         });
     });
 
-    describe('uploadFile', () => {
-        it('should forward the request to the ClientWidgetApi', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { content_uri: 'mxc://...' } as IUploadFileActionFromWidgetResponseData,
-            );
+    describe("uploadFile", () => {
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({
+                content_uri: "mxc://...",
+            } as IUploadFileActionFromWidgetResponseData);
 
             await expect(widgetApi.uploadFile("data")).resolves.toEqual({
-                content_uri: 'mxc://...',
+                content_uri: "mxc://...",
             });
 
             expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
@@ -701,10 +628,8 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should reject the request if the api is not supported', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [] } as ISupportedVersionsActionResponseData,
-            );
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(widgetApi.uploadFile("data")).rejects.toThrow(
                 "The upload_file action is not supported by the client.",
@@ -718,23 +643,19 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } },
-            );
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
-            await expect(widgetApi.uploadFile("data")).rejects.toThrow(
-                'An error occurred',
-            );
+            await expect(widgetApi.uploadFile("data")).rejects.toThrow("An error occurred");
         });
 
-        it('should handle an error with details', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
 
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
@@ -743,37 +664,33 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
             await expect(widgetApi.uploadFile("data")).rejects.toThrow(
-                new WidgetApiResponseError('An error occurred', errorDetails),
+                new WidgetApiResponseError("An error occurred", errorDetails),
             );
         });
     });
 
-    describe('downloadFile', () => {
-        it('should forward the request to the ClientWidgetApi', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { file: 'test contents' } as IDownloadFileActionFromWidgetResponseData,
-            );
+    describe("downloadFile", () => {
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ file: "test contents" } as IDownloadFileActionFromWidgetResponseData);
 
             await expect(widgetApi.downloadFile("mxc://example.com/test_file")).resolves.toEqual({
-                file: 'test contents',
+                file: "test contents",
             });
 
             expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
@@ -783,10 +700,8 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should reject the request if the api is not supported', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [] } as ISupportedVersionsActionResponseData,
-            );
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
 
             await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow(
                 "The download_file action is not supported by the client.",
@@ -800,23 +715,19 @@ describe('WidgetApi', () => {
             } satisfies SendRequestArgs);
         });
 
-        it('should handle an error', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
-            widgetTransportHelper.queueResponse(
-                { error: { message: 'An error occurred' } },
-            );
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
 
-            await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow(
-                'An error occurred',
-            );
+            await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow("An error occurred");
         });
 
-        it('should handle an error with details', async () => {
-            widgetTransportHelper.queueResponse(
-                { supported_versions: [UnstableApiVersion.MSC4039] } as ISupportedVersionsActionResponseData,
-            );
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4039],
+            } as ISupportedVersionsActionResponseData);
 
             const errorDetails: IWidgetApiErrorResponseDataDetails = {
                 matrix_api_error: {
@@ -825,22 +736,20 @@ describe('WidgetApi', () => {
                     url: "",
                     response: {
                         errcode: "M_UNKNOWN",
-                        error: 'Unknown error',
+                        error: "Unknown error",
                     },
                 },
             };
 
-            widgetTransportHelper.queueResponse(
-                {
-                    error: {
-                        message: 'An error occurred',
-                        ...errorDetails,
-                    },
-                } as IWidgetApiErrorResponseData,
-            );
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
 
             await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow(
-                new WidgetApiResponseError('An error occurred', errorDetails),
+                new WidgetApiResponseError("An error occurred", errorDetails),
             );
         });
     });

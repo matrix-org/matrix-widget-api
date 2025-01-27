@@ -1,10 +1,6 @@
 module.exports = {
-    plugins: [
-        "matrix-org",
-    ],
-    extends: [
-        "plugin:matrix-org/babel",
-    ],
+    plugins: ["matrix-org"],
+    extends: ["plugin:matrix-org/babel"],
     parserOptions: {
         project: ["./tsconfig-dev.json"],
     },
@@ -19,12 +15,15 @@ module.exports = {
         "padded-blocks": ["warn"],
         "no-extend-native": ["warn"],
         "camelcase": ["warn"],
-        "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
-        "space-before-function-paren": ["error", {
-            "anonymous": "never",
-            "named": "never",
-            "asyncArrow": "always",
-        }],
+        "no-multi-spaces": ["error", { ignoreEOLComments: true }],
+        "space-before-function-paren": [
+            "error",
+            {
+                anonymous: "never",
+                named: "never",
+                asyncArrow: "always",
+            },
+        ],
         "arrow-parens": "off",
         "prefer-promise-reject-errors": "off",
         "quotes": "off",
@@ -32,19 +31,22 @@ module.exports = {
         "no-constant-condition": "off",
         "no-async-promise-executor": "off",
     },
-    overrides: [{
-        "files": ["src/**/*.ts", "test/**/*.ts"],
-        "extends": ["plugin:matrix-org/typescript"],
-        "rules": {
-            // TypeScript has its own version of this
-            "babel/no-invalid-this": "off",
+    overrides: [
+        {
+            files: ["src/**/*.ts", "test/**/*.ts"],
+            extends: ["plugin:matrix-org/typescript"],
+            rules: {
+                // TypeScript has its own version of this
+                "babel/no-invalid-this": "off",
 
-            "quotes": "off",
+                "quotes": "off",
+            },
         },
-    }, {
-        "files": ["src/interfaces/**/*.ts"],
-        "rules": {
-            "@typescript-eslint/no-empty-object-type": "off",
+        {
+            files: ["src/interfaces/**/*.ts"],
+            rules: {
+                "@typescript-eslint/no-empty-object-type": "off",
+            },
         },
-    }],
+    ],
 };

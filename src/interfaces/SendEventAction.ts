@@ -47,8 +47,7 @@ export interface ISendEventFromWidgetActionResponse extends ISendEventFromWidget
     response: ISendEventFromWidgetResponseData;
 }
 
-export interface ISendEventToWidgetRequestData extends IWidgetApiRequestData, IRoomEvent {
-}
+export interface ISendEventToWidgetRequestData extends IWidgetApiRequestData, IRoomEvent {}
 
 export interface ISendEventToWidgetActionRequest extends IWidgetApiRequest {
     action: WidgetApiToWidgetAction.SendEvent;

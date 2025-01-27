@@ -94,13 +94,15 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     }
 
     public send<T extends IWidgetApiRequestData, R extends IWidgetApiResponseData>(
-        action: WidgetApiAction, data: T,
+        action: WidgetApiAction,
+        data: T,
     ): Promise<R> {
-        return this.sendComplete(action, data).then(r => <R>r.response);
+        return this.sendComplete(action, data).then((r) => <R>r.response);
     }
 
     public sendComplete<T extends IWidgetApiRequestData, R extends IWidgetApiResponse>(
-        action: WidgetApiAction, data: T,
+        action: WidgetApiAction,
+        data: T,
     ): Promise<R> {
         if (!this.ready || !this.widgetId) {
             return Promise.reject(new Error("Not ready or unknown widget ID"));
@@ -113,7 +115,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
             data: data,
         };
         if (action === WidgetApiToWidgetAction.UpdateVisibility) {
-            request['visible'] = data['visible'];
+            request["visible"] = data["visible"];
         }
         return new Promise<R>((prResolve, prReject) => {
             const resolve = (response: IWidgetApiResponse): void => {
@@ -125,10 +127,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
                 prReject(err);
             };
 
-            const timerId = setTimeout(
-                () => reject(new Error("Request timed out")),
-                (this.timeoutSeconds || 1) * 1000,
-            );
+            const timerId = setTimeout(() => reject(new Error("Request timed out")), (this.timeoutSeconds || 1) * 1000);
 
             const onStop = (): void => reject(new Error("Transport stopped"));
             this.stopController.signal.addEventListener("abort", onStop);
@@ -185,7 +184,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
             this._widgetId = request.widgetId;
         }
 
-        this.emit("message", new CustomEvent("message", {detail: request}));
+        this.emit("message", new CustomEvent("message", { detail: request }));
     }
 
     private handleResponse(response: IWidgetApiResponse): void {
@@ -195,7 +194,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         if (!req) return; // response to an unknown request
 
         if (isErrorResponse(response.response)) {
-            const {message, ...data} = response.response.error;
+            const { message, ...data } = response.response.error;
             req.reject(new WidgetApiResponseError(message, data));
         } else {
             req.resolve(response);

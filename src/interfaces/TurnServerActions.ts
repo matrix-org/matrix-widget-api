@@ -42,8 +42,7 @@ export interface IUnwatchTurnServersResponse extends IWidgetApiResponse {
     response: IWidgetApiAcknowledgeResponseData;
 }
 
-export interface IUpdateTurnServersRequestData extends IWidgetApiRequestData, ITurnServer {
-}
+export interface IUpdateTurnServersRequestData extends IWidgetApiRequestData, ITurnServer {}
 
 export interface IUpdateTurnServersRequest extends IWidgetApiRequest {
     action: WidgetApiToWidgetAction.UpdateTurnServers;

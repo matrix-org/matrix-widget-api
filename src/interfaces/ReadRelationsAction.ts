@@ -28,7 +28,7 @@ export interface IReadRelationsFromWidgetRequestData extends IWidgetApiRequestDa
     limit?: number;
     from?: string;
     to?: string;
-    direction?: 'f' | 'b';
+    direction?: "f" | "b";
 }
 
 export interface IReadRelationsFromWidgetActionRequest extends IWidgetApiRequest {

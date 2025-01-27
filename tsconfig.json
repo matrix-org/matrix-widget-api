@@ -1,22 +1,17 @@
 {
-  "compilerOptions": {
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "target": "es2016",
-    "sourceMap": true,
-    "outDir": "./lib",
-    "declaration": true,
-    "types": ["jest"],
-    "lib": [
-      "es2020",
-      "dom"
-    ],
-    "strict": true
-  },
-  "include": [
-    "./src/**/*.ts"
-  ]
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "esModuleInterop": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es2016",
+        "sourceMap": true,
+        "outDir": "./lib",
+        "declaration": true,
+        "types": ["jest"],
+        "lib": ["es2020", "dom"],
+        "strict": true
+    },
+    "include": ["./src/**/*.ts"]
 }

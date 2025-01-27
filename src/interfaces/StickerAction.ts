@@ -28,7 +28,8 @@ export interface IStickerActionRequestData extends IWidgetApiRequestData {
             w?: number;
             mimetype?: string;
             size?: number;
-            thumbnail_info?: { // eslint-disable-line camelcase
+            thumbnail_info?: {
+                // eslint-disable-line camelcase
                 h?: number;
                 w?: number;
                 mimetype?: string;

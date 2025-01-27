@@ -23,13 +23,13 @@ describe("runTemplate", () => {
             url,
             {
                 id: "widget-id",
-                creatorUserId: '@user-id',
-                type: 'type',
+                creatorUserId: "@user-id",
+                type: "type",
                 url,
             },
             {
                 deviceId: "my-device-id",
-                currentUserId: '@user-id',
+                currentUserId: "@user-id",
             },
         );
 
@@ -42,13 +42,13 @@ describe("runTemplate", () => {
             url,
             {
                 id: "widget-id",
-                creatorUserId: '@user-id',
-                type: 'type',
+                creatorUserId: "@user-id",
+                type: "type",
                 url,
             },
             {
-                currentUserId: '@user-id',
-                baseUrl: 'https://localhost/api',
+                currentUserId: "@user-id",
+                baseUrl: "https://localhost/api",
             },
         );
 

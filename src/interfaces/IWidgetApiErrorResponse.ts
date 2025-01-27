@@ -22,9 +22,9 @@ import { IWidgetApiResponse, IWidgetApiResponseData } from "./IWidgetApiResponse
  */
 export interface IMatrixApiError {
     /** The HTTP status code of the associated request. */
-    http_status: number;  // eslint-disable-line camelcase
+    http_status: number; // eslint-disable-line camelcase
     /** Any HTTP response headers that are relevant to the error. */
-    http_headers: {[name: string]: string};  // eslint-disable-line camelcase
+    http_headers: { [name: string]: string }; // eslint-disable-line camelcase
     /** The URL of the failed request. */
     url: string;
     /** @see {@link https://spec.matrix.org/latest/client-server-api/#standard-error-response} */
@@ -36,7 +36,7 @@ export interface IMatrixApiError {
 
 export interface IWidgetApiErrorResponseDataDetails {
     /** Set if the error came from a Matrix API request made by a widget driver */
-    matrix_api_error?: IMatrixApiError;  // eslint-disable-line camelcase
+    matrix_api_error?: IMatrixApiError; // eslint-disable-line camelcase
 }
 
 export interface IWidgetApiErrorResponseData extends IWidgetApiResponseData {
@@ -52,6 +52,5 @@ export interface IWidgetApiErrorResponse extends IWidgetApiResponse {
 
 export function isErrorResponse(responseData: IWidgetApiResponseData): responseData is IWidgetApiErrorResponseData {
     const error = responseData.error;
-    return typeof error === "object" && error !== null &&
-        "message" in error && typeof error.message === "string";
+    return typeof error === "object" && error !== null && "message" in error && typeof error.message === "string";
 }

@@ -116,17 +116,17 @@ export class WidgetParser {
         // is done against the requirements of the interface because not everyone
         // will have an interface to validate against.
 
-        const content = stateEvent.content as IWidget || {};
+        const content = (stateEvent.content as IWidget) || {};
 
         // Form our best approximation of a widget with the information we have
         const estimatedWidget: IWidget = {
             id: stateEvent.state_key,
-            creatorUserId: content['creatorUserId'] || stateEvent.sender,
-            name: content['name'],
-            type: content['type'],
-            url: content['url'],
-            waitForIframeLoad: content['waitForIframeLoad'],
-            data: content['data'],
+            creatorUserId: content["creatorUserId"] || stateEvent.sender,
+            name: content["name"],
+            type: content["type"],
+            url: content["url"],
+            waitForIframeLoad: content["waitForIframeLoad"],
+            data: content["data"],
         };
 
         // Finally, process that widget

@@ -145,10 +145,7 @@ export abstract class WidgetDriver {
      * Run the specified {@link action} for the delayed event matching the provided {@link delayId}.
      * @throws Rejected when there is no matching delayed event, or when the action failed to run.
      */
-    public updateDelayedEvent(
-        delayId: string,
-        action: UpdateDelayedEventAction,
-    ): Promise<void> {
+    public updateDelayedEvent(delayId: string, action: UpdateDelayedEventAction): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
     }
 
@@ -178,10 +175,7 @@ export abstract class WidgetDriver {
      * to look within, possibly containing Symbols.AnyRoom to denote all known rooms.
      * @returns {Promise<IRoomAccountData[]>} Resolves to the element of room account data, or an empty array.
      */
-    public readRoomAccountData(
-        eventType: string,
-        roomIds: string[] | null = null,
-    ): Promise<IRoomAccountData[]> {
+    public readRoomAccountData(eventType: string, roomIds: string[] | null = null): Promise<IRoomAccountData[]> {
         return Promise.resolve([]);
     }
 
@@ -281,11 +275,7 @@ export abstract class WidgetDriver {
      * @returns {Promise<IRoomEvent[]>} Resolves to the events representing the
      * current values of the room state entries.
      */
-    public readRoomState(
-        roomId: string,
-        eventType: string,
-        stateKey: string | undefined,
-    ): Promise<IRoomEvent[]> {
+    public readRoomState(roomId: string, eventType: string, stateKey: string | undefined): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
     }
 
@@ -321,7 +311,7 @@ export abstract class WidgetDriver {
         from?: string,
         to?: string,
         limit?: number,
-        direction?: 'f' | 'b',
+        direction?: "f" | "b",
     ): Promise<IReadEventRelationsResult> {
         return Promise.resolve({ chunk: [] });
     }
@@ -340,7 +330,7 @@ export abstract class WidgetDriver {
      * @param {SimpleObservable<IOpenIDUpdate>} observer The observable to feed updates into.
      */
     public askOpenID(observer: SimpleObservable<IOpenIDUpdate>): void {
-        observer.update({state: OpenIDRequestState.Blocked});
+        observer.update({ state: OpenIDRequestState.Blocked });
     }
 
     /**
@@ -372,10 +362,7 @@ export abstract class WidgetDriver {
      * @param limit The maximum number of results to return. If not supplied, the
      * @returns Resolves to the search results.
      */
-    public searchUserDirectory(
-        searchTerm: string,
-        limit?: number,
-    ): Promise<ISearchUserDirectoryResult> {
+    public searchUserDirectory(searchTerm: string, limit?: number): Promise<ISearchUserDirectoryResult> {
         return Promise.resolve({ limited: false, results: [] });
     }
 
@@ -393,9 +380,7 @@ export abstract class WidgetDriver {
      *               XMLHttpRequest.send (typically a File).
      * @returns Resolves to the location of the uploaded file.
      */
-    public uploadFile(
-        file: XMLHttpRequestBodyInit,
-    ): Promise<{ contentUri: string }> {
+    public uploadFile(file: XMLHttpRequestBodyInit): Promise<{ contentUri: string }> {
         throw new Error("Upload file is not implemented");
     }
 
@@ -404,9 +389,7 @@ export abstract class WidgetDriver {
      * @param contentUri - MXC URI of the file to download.
      * @returns Resolves to the contents of the file.
      */
-    public downloadFile(
-        contentUri: string,
-    ): Promise<{ file: XMLHttpRequestBodyInit }> {
+    public downloadFile(contentUri: string): Promise<{ file: XMLHttpRequestBodyInit }> {
         throw new Error("Download file is not implemented");
     }
 

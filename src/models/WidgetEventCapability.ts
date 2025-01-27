@@ -35,8 +35,7 @@ export class WidgetEventCapability {
         public readonly kind: EventKind,
         public readonly keyStr: string | null,
         public readonly raw: string,
-    ) {
-    }
+    ) {}
 
     public matchesAsStateEvent(direction: EventDirection, eventType: string, stateKey: string | null): boolean {
         if (this.kind !== EventKind.State) return false; // not a state event
@@ -90,8 +89,8 @@ export class WidgetEventCapability {
     ): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
         // https://github.com/matrix-org/matrix-widget-api/issues/22
-        eventType = eventType.replace(/#/g, '\\#');
-        stateKey = stateKey !== null && stateKey !== undefined ? `#${stateKey}` : '';
+        eventType = eventType.replace(/#/g, "\\#");
+        stateKey = stateKey !== null && stateKey !== undefined ? `#${stateKey}` : "";
         const str = `org.matrix.msc2762.${direction}.state_event:${eventType}${stateKey}`;
 
         // cheat by sending it through the processor
@@ -119,7 +118,7 @@ export class WidgetEventCapability {
     public static forRoomMessageEvent(direction: EventDirection, msgtype?: string): WidgetEventCapability {
         // TODO: Enable support for m.* namespace once the MSC lands.
         // https://github.com/matrix-org/matrix-widget-api/issues/22
-        msgtype = msgtype === null || msgtype === undefined ? '' : msgtype;
+        msgtype = msgtype === null || msgtype === undefined ? "" : msgtype;
         const str = `org.matrix.msc2762.${direction}.event:m.room.message#${msgtype}`;
 
         // cheat by sending it through the processor
@@ -186,7 +185,7 @@ export class WidgetEventCapability {
             // Eg: `m.room.message##m.text` is "m.room.message" event with msgtype "#m.text".
             const expectingKeyStr = eventSegment.startsWith("m.room.message#") || kind === EventKind.State;
             let keyStr: string | null = null;
-            if (eventSegment.includes('#') && expectingKeyStr) {
+            if (eventSegment.includes("#") && expectingKeyStr) {
                 // Dev note: regex is difficult to write, so instead the rules are manually written
                 // out. This is probably just as understandable as a boring regex though, so win-win?
 
@@ -202,19 +201,20 @@ export class WidgetEventCapability {
                 // m.room.message\\###test  m.room.message\#    #test
 
                 // First step: explode the string
-                const parts = eventSegment.split('#');
+                const parts = eventSegment.split("#");
 
                 // To form the eventSegment, we'll keep finding parts of the exploded string until
                 // there's one that doesn't end with the escape character (\). We'll then join those
                 // segments together with the exploding character. We have to remember to consume the
                 // escape character as well.
-                const idx = parts.findIndex(p => !p.endsWith("\\"));
-                eventSegment = parts.slice(0, idx + 1)
-                    .map(p => p.endsWith('\\') ? p.substring(0, p.length - 1) : p)
-                    .join('#');
+                const idx = parts.findIndex((p) => !p.endsWith("\\"));
+                eventSegment = parts
+                    .slice(0, idx + 1)
+                    .map((p) => (p.endsWith("\\") ? p.substring(0, p.length - 1) : p))
+                    .join("#");
 
                 // The keyStr is whatever is left over.
-                keyStr = parts.slice(idx + 1).join('#');
+                keyStr = parts.slice(idx + 1).join("#");
             }
 
             parsed.push(new WidgetEventCapability(direction, eventSegment, kind, keyStr, cap));
