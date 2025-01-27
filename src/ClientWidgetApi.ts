@@ -537,6 +537,13 @@ export class ClientWidgetApi extends EventEmitter {
             // For backwards compatibility we still call the deprecated
             // readRoomEvents and readStateEvents methods in case the client isn't
             // letting us know the currently viewed room via setViewedRoomId
+            //
+            // This can be considered as a deprecated implementation.
+            // A driver should call `setViewedRoomId` on the widget messaging and implement the new readRoomState and readRoomTimeline
+            // Methods.
+            // This block makes sure that it is also possible to not use setViewedRoomId.
+            // readRoomTimeline and readRoomState are required however! Otherwise widget requests that include
+            // `room_ids` will fail.
             console.warn(
                 "The widgetDriver uses deprecated behaviour:\n It does not set the viewedRoomId using `setViewedRoomId`",
             );
