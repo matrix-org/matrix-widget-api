@@ -30,7 +30,7 @@ import {
     getTimelineRoomIDFromCapability,
     isTimelineCapability,
 } from "./interfaces/Capabilities";
-import { IOpenIDUpdate, ISendEventDetails, ISendDelayedEventDetails, WidgetDriver } from "./driver/WidgetDriver";
+import { IOpenIDUpdate, ISendEventDetails, ISendDelayedEventDetails, IWidgetDriver } from "./driver/WidgetDriver";
 import {
     ICapabilitiesActionResponseData,
     INotifyCapabilitiesActionRequestData,
@@ -158,12 +158,12 @@ export class ClientWidgetApi extends EventEmitter {
      * conditions, a "ready" event will be raised.
      * @param {Widget} widget The widget to communicate with.
      * @param {HTMLIFrameElement} iframe The iframe the widget is in.
-     * @param {WidgetDriver} driver The driver for this widget/client.
+     * @param {IWidgetDriver} driver The driver for this widget/client.
      */
     public constructor(
         public readonly widget: Widget,
         private iframe: HTMLIFrameElement,
-        private driver: WidgetDriver,
+        private driver: IWidgetDriver,
     ) {
         super();
         if (!iframe?.contentWindow) {
