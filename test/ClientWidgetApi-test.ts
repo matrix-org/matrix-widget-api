@@ -18,7 +18,7 @@
 import { waitFor } from "@testing-library/dom";
 
 import { ClientWidgetApi } from "../src/ClientWidgetApi";
-import { WidgetDriver } from "../src/driver/WidgetDriver";
+import { IWidgetDriver } from "../src/driver/WidgetDriver";
 import { CurrentApiVersions, UnstableApiVersion } from "../src/interfaces/ApiVersion";
 import { Capability } from "../src/interfaces/Capabilities";
 import { IRoomEvent } from "../src/interfaces/IRoomEvent";
@@ -99,7 +99,7 @@ function processCustomMatrixError(e: unknown): IWidgetApiErrorResponseDataDetail
 describe("ClientWidgetApi", () => {
     let capabilities: Capability[];
     let iframe: HTMLIFrameElement;
-    let driver: jest.Mocked<WidgetDriver>;
+    let driver: jest.Mocked<IWidgetDriver>;
     let clientWidgetApi: ClientWidgetApi;
     let transport: PostmessageTransport;
     let emitEvent: Parameters<PostmessageTransport["on"]>["1"];
@@ -139,7 +139,7 @@ describe("ClientWidgetApi", () => {
             downloadFile: jest.fn(),
             getKnownRooms: jest.fn(() => []),
             processError: jest.fn(),
-        } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
+        } as Partial<IWidgetDriver> as jest.Mocked<IWidgetDriver>;
 
         clientWidgetApi = new ClientWidgetApi(
             new Widget({
