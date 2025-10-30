@@ -191,7 +191,9 @@ export class WidgetApi extends EventEmitter {
      * @throws Throws if the capabilities negotiation has already started.
      */
     public requestCapabilities(capabilities: Capability[]): void {
-        capabilities.forEach((cap) => this.requestCapability(cap));
+        for (const cap of capabilities) {
+            this.requestCapability(cap);
+        }
     }
 
     /**

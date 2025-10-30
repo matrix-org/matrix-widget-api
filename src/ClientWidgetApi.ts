@@ -230,7 +230,7 @@ export class ClientWidgetApi extends EventEmitter {
 
     public async getWidgetVersions(): Promise<ApiVersion[]> {
         if (Array.isArray(this.cachedWidgetVersions)) {
-            return Promise.resolve(this.cachedWidgetVersions);
+            return this.cachedWidgetVersions;
         }
 
         try {
@@ -1141,7 +1141,7 @@ export class ClientWidgetApi extends EventEmitter {
     private async flushRoomState(): Promise<void> {
         try {
             // Only send a single action once all concurrent tasks have completed
-            do await Promise.all([...this.pushRoomStateTasks]);
+            do await Promise.all(this.pushRoomStateTasks);
             while (this.pushRoomStateTasks.size > 0);
 
             const events: IRoomEvent[] = [];
@@ -1251,7 +1251,7 @@ export class ClientWidgetApi extends EventEmitter {
                     eventTypeMap.set(rawEvent.type, stateKeyMap);
                 }
                 if (!stateKeyMap.has(rawEvent.type)) stateKeyMap.set(rawEvent.state_key, rawEvent);
-                do await Promise.all([...this.pushRoomStateTasks]);
+                do await Promise.all(this.pushRoomStateTasks);
                 while (this.pushRoomStateTasks.size > 0);
                 await this.flushRoomStateTask;
             }
