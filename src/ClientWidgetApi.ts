@@ -702,14 +702,15 @@ export class ClientWidgetApi extends EventEmitter {
                     error: { message: "Invalid request - unsupported action" },
                 });
         }
-        updateDelayedEvent.call(this.driver, request.data.delay_id)
-        .then(() => {
-            return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
-        })
-        .catch((e: unknown) => {
-            console.error("error updating delayed event: ", e);
-            this.handleDriverError(e, request, "Error updating delayed event");
-        });
+        updateDelayedEvent
+            .call(this.driver, request.data.delay_id)
+            .then(() => {
+                return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+            })
+            .catch((e: unknown) => {
+                console.error("error updating delayed event: ", e);
+                this.handleDriverError(e, request, "Error updating delayed event");
+            });
     }
 
     private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {

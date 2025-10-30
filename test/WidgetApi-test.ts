@@ -413,9 +413,7 @@ describe("WidgetApi", () => {
                     error: { message: "An error occurred" },
                 } as IWidgetApiErrorResponseData);
 
-                await expect(updateDelayedEvent.call(widgetApi, "id")).rejects.toThrow(
-                    "An error occurred",
-                );
+                await expect(updateDelayedEvent.call(widgetApi, "id")).rejects.toThrow("An error occurred");
             }
         });
 
