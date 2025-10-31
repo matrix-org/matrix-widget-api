@@ -22,7 +22,7 @@ import { ITemplateParams, runTemplate } from "..";
  * Represents the barest form of widget.
  */
 export class Widget {
-    public constructor(private definition: IWidget) {
+    public constructor(private readonly definition: IWidget) {
         if (!this.definition) throw new Error("Definition is required");
 
         assertPresent(definition, "id");

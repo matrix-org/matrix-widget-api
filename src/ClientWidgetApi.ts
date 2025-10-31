@@ -141,15 +141,15 @@ export class ClientWidgetApi extends EventEmitter {
     private cachedWidgetVersions: ApiVersion[] | null = null;
     // contentLoadedActionSent is used to check that only one ContentLoaded request is send.
     private contentLoadedActionSent = false;
-    private allowedCapabilities = new Set<Capability>();
-    private allowedEvents: WidgetEventCapability[] = [];
+    private readonly allowedCapabilities = new Set<Capability>();
+    private readonly allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
     private turnServers: AsyncGenerator<ITurnServer> | null = null;
     private contentLoadedWaitTimer?: ReturnType<typeof setTimeout>;
     // Stores pending requests to push a room's state to the widget
-    private pushRoomStateTasks = new Set<Promise<void>>();
+    private readonly pushRoomStateTasks = new Set<Promise<void>>();
     // Room ID → event type → state key → events to be pushed
-    private pushRoomStateResult = new Map<string, Map<string, Map<string, IRoomEvent>>>();
+    private readonly pushRoomStateResult = new Map<string, Map<string, Map<string, IRoomEvent>>>();
     private flushRoomStateTask: Promise<void> | null = null;
 
     /**
@@ -162,8 +162,8 @@ export class ClientWidgetApi extends EventEmitter {
      */
     public constructor(
         public readonly widget: Widget,
-        private iframe: HTMLIFrameElement,
-        private driver: WidgetDriver,
+        private readonly iframe: HTMLIFrameElement,
+        private readonly driver: WidgetDriver,
     ) {
         super();
         if (!iframe?.contentWindow) {

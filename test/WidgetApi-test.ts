@@ -54,7 +54,7 @@ class WidgetTransportHelper {
     /** For ignoring the request sent by {@link WidgetApi.start} */
     private skippedFirstRequest = false;
 
-    public constructor(private channels: TransportChannels) {}
+    public constructor(private readonly channels: TransportChannels) {}
 
     public nextTrackedRequest(): SendRequestArgs | undefined {
         if (!this.skippedFirstRequest) {
@@ -70,7 +70,7 @@ class WidgetTransportHelper {
 }
 
 class ClientTransportHelper {
-    public constructor(private channels: TransportChannels) {}
+    public constructor(private readonly channels: TransportChannels) {}
 
     public trackRequest(action: WidgetApiFromWidgetAction, data: IWidgetApiRequestData): void {
         this.channels.requestQueue.push({ action, data });

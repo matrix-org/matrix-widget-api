@@ -131,7 +131,7 @@ export class WidgetApi extends EventEmitter {
 
     private capabilitiesFinished = false;
     private supportsMSC2974Renegotiate = false;
-    private requestedCapabilities: Capability[] = [];
+    private readonly requestedCapabilities: Capability[] = [];
     private approvedCapabilities?: Capability[];
     private cachedClientVersions?: ApiVersion[];
     private turnServerWatchers = 0;
@@ -144,7 +144,7 @@ export class WidgetApi extends EventEmitter {
      */
     public constructor(
         widgetId: string | null = null,
-        private clientOrigin: string | null = null,
+        private readonly clientOrigin: string | null = null,
     ) {
         super();
         if (!globalThis.parent) {

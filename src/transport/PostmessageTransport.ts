@@ -46,8 +46,8 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
 
     private _ready = false;
     private _widgetId: string | null = null;
-    private outboundRequests = new Map<string, IOutboundRequest | null>();
-    private stopController = new AbortController();
+    private readonly outboundRequests = new Map<string, IOutboundRequest | null>();
+    private readonly stopController = new AbortController();
 
     public get ready(): boolean {
         return this._ready;
@@ -58,10 +58,10 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     }
 
     public constructor(
-        private sendDirection: WidgetApiDirection,
-        private initialWidgetId: string | null,
-        private transportWindow: Window | typeof globalThis,
-        private inboundWindow: Window | typeof globalThis,
+        private readonly sendDirection: WidgetApiDirection,
+        private readonly initialWidgetId: string | null,
+        private readonly transportWindow: Window | typeof globalThis,
+        private readonly inboundWindow: Window | typeof globalThis,
     ) {
         super();
         this._widgetId = initialWidgetId;

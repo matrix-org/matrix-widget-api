@@ -24,6 +24,7 @@ module.exports = {
                 asyncArrow: "always",
             },
         ],
+        "@typescript-eslint/prefer-readonly": ["error"],
         "arrow-parens": "off",
         "prefer-promise-reject-errors": "off",
         "quotes": "off",
