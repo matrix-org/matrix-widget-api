@@ -175,7 +175,7 @@ export class ClientWidgetApi extends EventEmitter {
         if (!driver) {
             throw new Error("Invalid driver");
         }
-        this.transport = new PostmessageTransport(WidgetApiDirection.ToWidget, widget.id, iframe.contentWindow, window);
+        this.transport = new PostmessageTransport(WidgetApiDirection.ToWidget, widget.id, iframe.contentWindow, globalThis);
         this.transport.targetOrigin = widget.origin;
         this.transport.on("message", this.handleMessage.bind(this));
 

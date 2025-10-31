@@ -147,10 +147,10 @@ export class WidgetApi extends EventEmitter {
         private clientOrigin: string | null = null,
     ) {
         super();
-        if (!window.parent) {
+        if (!globalThis.parent) {
             throw new Error("No parent window. This widget doesn't appear to be embedded properly.");
         }
-        this.transport = new PostmessageTransport(WidgetApiDirection.FromWidget, widgetId, window.parent, window);
+        this.transport = new PostmessageTransport(WidgetApiDirection.FromWidget, widgetId, globalThis.parent, globalThis);
         this.transport.targetOrigin = clientOrigin;
         this.transport.on("message", this.handleMessage.bind(this));
     }
