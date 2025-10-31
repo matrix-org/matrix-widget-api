@@ -159,7 +159,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         if (this.stopController.signal.aborted) return;
         if (!ev.data) return; // invalid event
 
-        if (this.strictOriginCheck && ev.origin !== window.origin) return; // bad origin
+        if (this.strictOriginCheck && ev.origin !== globalThis.origin) return; // bad origin
 
         // treat the message as a response first, then downgrade to a request
         const response = <IWidgetApiResponse>ev.data;

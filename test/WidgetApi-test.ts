@@ -100,7 +100,7 @@ describe("WidgetApi", () => {
 
             const response = clientTrafficHelper.nextQueuedResponse();
             if (response) {
-                window.postMessage(
+                globalThis.postMessage(
                     {
                         ...request,
                         response: response,
@@ -109,14 +109,14 @@ describe("WidgetApi", () => {
                 );
             }
         };
-        window.addEventListener("message", clientListener);
+        globalThis.addEventListener("message", clientListener);
 
         widgetApi = new WidgetApi("WidgetApi-test", "*");
         widgetApi.start();
     });
 
     afterEach(() => {
-        window.removeEventListener("message", clientListener);
+        globalThis.removeEventListener("message", clientListener);
     });
 
     describe("readEventRelations", () => {
