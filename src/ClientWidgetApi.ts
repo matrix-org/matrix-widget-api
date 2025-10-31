@@ -609,17 +609,17 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (!isDelayedEvent) {
-                sendEventPromise = this.driver.sendEvent(
+            if (isDelayedEvent) {
+                sendEventPromise = this.driver.sendDelayedEvent(
+                    request.data.delay ?? null,
+                    request.data.parent_delay_id ?? null,
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendDelayedEvent(
-                    request.data.delay ?? null,
-                    request.data.parent_delay_id ?? null,
+                sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
@@ -635,17 +635,17 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (!isDelayedEvent) {
-                sendEventPromise = this.driver.sendEvent(
+            if (isDelayedEvent) {
+                sendEventPromise = this.driver.sendDelayedEvent(
+                    request.data.delay ?? null,
+                    request.data.parent_delay_id ?? null,
                     request.data.type,
                     content,
                     null, // not sending a state event
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendDelayedEvent(
-                    request.data.delay ?? null,
-                    request.data.parent_delay_id ?? null,
+                sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     content,
                     null, // not sending a state event
