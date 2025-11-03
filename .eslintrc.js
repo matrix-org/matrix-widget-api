@@ -8,6 +8,7 @@ module.exports = {
         browser: true,
     },
     rules: {
+        "no-duplicate-imports": ["error"],
         "no-var": ["warn"],
         "prefer-rest-params": ["warn"],
         "prefer-spread": ["warn"],

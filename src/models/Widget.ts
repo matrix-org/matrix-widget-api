@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { IWidget, IWidgetData, WidgetType } from "..";
+import { ITemplateParams, IWidget, IWidgetData, runTemplate, WidgetType } from "..";
 import { assertPresent } from "./validation/utils";
-import { ITemplateParams, runTemplate } from "..";
 
 /**
  * Represents the barest form of widget.
