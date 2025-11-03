@@ -62,7 +62,6 @@ import {
 } from "./interfaces/SendToDeviceAction";
 import { EventDirection, EventKind, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
-import { IRoomAccountData } from "./interfaces/IRoomAccountData";
 import {
     IGetOpenIDActionRequest,
     IGetOpenIDActionResponseData,
@@ -472,9 +471,9 @@ export class ClientWidgetApi extends EventEmitter {
 
         this.driver.askOpenID(observer);
     }
+
     private handleReadRoomAccountData(request: IReadRoomAccountDataFromWidgetActionRequest): void | Promise<void> {
-        let events: Promise<IRoomAccountData[]> = Promise.resolve([]);
-        events = this.driver.readRoomAccountData(request.data.type);
+        const events = this.driver.readRoomAccountData(request.data.type);
 
         if (!this.canReceiveRoomAccountData(request.data.type)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
