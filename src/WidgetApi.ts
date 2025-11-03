@@ -688,7 +688,7 @@ export class WidgetApi extends EventEmitter {
         const onUpdateTurnServers = async (ev: CustomEvent<IUpdateTurnServersRequest>): Promise<void> => {
             ev.preventDefault();
             setTurnServer(ev.detail.data);
-            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
+            this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
         };
 
         // Start listening for updates before we even start watching, to catch
