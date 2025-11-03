@@ -386,7 +386,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        if (!request.data?.uri || !request.data?.uri.toString().startsWith("https://matrix.to/#")) {
+        if (!request.data?.uri.startsWith("https://matrix.to/#")) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Invalid matrix.to URI" },
             });
