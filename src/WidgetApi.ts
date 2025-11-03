@@ -481,7 +481,7 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
-     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
      */
     public updateDelayedEvent(
         delayId: string,
@@ -665,7 +665,7 @@ export class WidgetApi extends EventEmitter {
      * @param {string} uri The URI to navigate to.
      * @returns {Promise<void>} Resolves when complete.
      * @throws Throws if the URI is invalid or cannot be processed.
-     * @deprecated This currently relies on an unstable MSC (MSC2931).
+     * @experimental This currently relies on an unstable MSC (MSC2931).
      */
     public navigateTo(uri: string): Promise<void> {
         if (!uri || !uri.startsWith("https://matrix.to/#")) {

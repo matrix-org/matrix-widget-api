@@ -26,28 +26,31 @@ export enum MatrixCapabilities {
      */
     RequiresClient = "io.element.requires_client",
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC2931Navigate = "org.matrix.msc2931.navigate",
+    /**
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
+     */
     MSC3846TurnServers = "town.robin.msc3846.turn_servers",
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC3973UserDirectorySearch = "org.matrix.msc3973.user_directory_search",
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4039UploadFile = "org.matrix.msc4039.upload_file",
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4039DownloadFile = "org.matrix.msc4039.download_file",
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4157SendDelayedEvent = "org.matrix.msc4157.send.delayed_event",
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update_delayed_event",
 }
