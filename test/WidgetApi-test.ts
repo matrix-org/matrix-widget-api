@@ -32,7 +32,6 @@ import {
     IWidgetApiRequestData,
     IWidgetApiResponse,
     IWidgetApiResponseData,
-    UpdateDelayedEventAction,
     WidgetApiDirection,
 } from "../src";
 
@@ -394,43 +393,59 @@ describe("WidgetApi", () => {
 
     describe("updateDelayedEvent", () => {
         it("updates delayed events", async () => {
-            widgetTransportHelper.queueResponse({});
-            await expect(widgetApi.updateDelayedEvent("id", UpdateDelayedEventAction.Send)).resolves.toEqual({});
+            for (const updateDelayedEvent of [
+                widgetApi.cancelScheduledDelayedEvent,
+                widgetApi.restartScheduledDelayedEvent,
+                widgetApi.sendScheduledDelayedEvent,
+            ]) {
+                widgetTransportHelper.queueResponse({});
+                await expect(updateDelayedEvent.call(widgetApi, "id")).resolves.toEqual({});
+            }
         });
 
         it("should handle an error", async () => {
-            widgetTransportHelper.queueResponse({
-                error: { message: "An error occurred" },
-            } as IWidgetApiErrorResponseData);
+            for (const updateDelayedEvent of [
+                widgetApi.cancelScheduledDelayedEvent,
+                widgetApi.restartScheduledDelayedEvent,
+                widgetApi.sendScheduledDelayedEvent,
+            ]) {
+                widgetTransportHelper.queueResponse({
+                    error: { message: "An error occurred" },
+                } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.updateDelayedEvent("id", UpdateDelayedEventAction.Send)).rejects.toThrow(
-                "An error occurred",
-            );
+                await expect(updateDelayedEvent.call(widgetApi, "id")).rejects.toThrow("An error occurred");
+            }
         });
 
         it("should handle an error with details", async () => {
-            const errorDetails: IWidgetApiErrorResponseDataDetails = {
-                matrix_api_error: {
-                    http_status: 400,
-                    http_headers: {},
-                    url: "",
-                    response: {
-                        errcode: "M_UNKNOWN",
-                        error: "Unknown error",
+            for (const updateDelayedEvent of [
+                widgetApi.cancelScheduledDelayedEvent,
+                widgetApi.restartScheduledDelayedEvent,
+                widgetApi.sendScheduledDelayedEvent,
+            ]) {
+                const errorDetails: IWidgetApiErrorResponseDataDetails = {
+                    matrix_api_error: {
+                        http_status: 400,
+                        http_headers: {},
+                        url: "",
+                        response: {
+                            errcode: "M_UNKNOWN",
+                            error: "Unknown error",
+                        },
                     },
-                },
-            };
+                };
 
-            widgetTransportHelper.queueResponse({
-                error: {
-                    message: "An error occurred",
-                    ...errorDetails,
-                },
-            } as IWidgetApiErrorResponseData);
+                widgetTransportHelper.queueResponse({
+                    error: {
+                        message: "An error occurred",
+                        ...errorDetails,
+                    },
+                } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.updateDelayedEvent("id", UpdateDelayedEventAction.Send)).rejects.toThrow(
-                new WidgetApiResponseError("An error occurred", errorDetails),
-            );
+                await expect(updateDelayedEvent.call(widgetApi, "id")).rejects.toThrow(
+                    new WidgetApiResponseError("An error occurred", errorDetails),
+                );
+            }
         });
     });
 

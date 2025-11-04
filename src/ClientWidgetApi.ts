@@ -690,25 +690,31 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
+        let updateDelayedEvent: (delayId: string) => Promise<void>;
         switch (request.data.action) {
             case UpdateDelayedEventAction.Cancel:
+                updateDelayedEvent = this.driver.cancelScheduledDelayedEvent;
+                break;
             case UpdateDelayedEventAction.Restart:
+                updateDelayedEvent = this.driver.restartScheduledDelayedEvent;
+                break;
             case UpdateDelayedEventAction.Send:
-                this.driver
-                    .updateDelayedEvent(request.data.delay_id, request.data.action)
-                    .then(() => {
-                        return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
-                    })
-                    .catch((e: unknown) => {
-                        console.error("error updating delayed event: ", e);
-                        this.handleDriverError(e, request, "Error updating delayed event");
-                    });
+                updateDelayedEvent = this.driver.sendScheduledDelayedEvent;
                 break;
             default:
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: { message: "Invalid request - unsupported action" },
                 });
         }
+        updateDelayedEvent
+            .call(this.driver, request.data.delay_id)
+            .then(() => {
+                return this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+            })
+            .catch((e: unknown) => {
+                console.error("error updating delayed event: ", e);
+                this.handleDriverError(e, request, "Error updating delayed event");
+            });
     }
 
     private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {

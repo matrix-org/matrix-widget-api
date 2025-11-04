@@ -23,7 +23,6 @@ import {
     IRoomAccountData,
     ITurnServer,
     IWidgetApiErrorResponseDataDetails,
-    UpdateDelayedEventAction,
 } from "..";
 
 export interface ISendEventDetails {
@@ -142,10 +141,32 @@ export abstract class WidgetDriver {
 
     /**
      * @experimental Part of MSC4140 & MSC4157
-     * Run the specified {@link action} for the delayed event matching the provided {@link delayId}.
-     * @throws Rejected when there is no matching delayed event, or when the action failed to run.
+     * Cancel the scheduled delivery of the delayed event matching the provided {@link delayId}.
+     * @throws Rejected when there is no matching delayed event,
+     * or when the delayed event failed to be cancelled.
      */
-    public updateDelayedEvent(delayId: string, action: UpdateDelayedEventAction): Promise<void> {
+    public cancelScheduledDelayedEvent(delayId: string): Promise<void> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
+     * @experimental Part of MSC4140 & MSC4157
+     * Restart the scheduled delivery of the delayed event matching the provided {@link delayId}.
+     * @throws Rejected when there is no matching delayed event,
+     * or when the delayed event failed to be restarted.
+     */
+    public restartScheduledDelayedEvent(delayId: string): Promise<void> {
+        return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
+     * @experimental Part of MSC4140 & MSC4157
+     * Immediately send the delayed event matching the provided {@link delayId},
+     * instead of waiting for its scheduled delivery.
+     * @throws Rejected when there is no matching delayed event,
+     * or when the delayed event failed to be sent.
+     */
+    public sendScheduledDelayedEvent(delayId: string): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
     }
 

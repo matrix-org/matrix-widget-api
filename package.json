@@ -45,14 +45,14 @@
         "@babel/preset-env": "^7.11.5",
         "@babel/preset-typescript": "^7.10.4",
         "@casualbot/jest-sonar-reporter": "^2.2.7",
-        "@stylistic/eslint-plugin": "^2.10.1",
+        "@stylistic/eslint-plugin": "^3.1.0",
         "@testing-library/dom": "^8.0.0",
         "@types/jest": "^29.5.12",
-        "@types/node": "^18.16.0",
-        "@typescript-eslint/eslint-plugin": "^8.0.0",
-        "@typescript-eslint/parser": "^8.0.0",
+        "@types/node": "^22.18.13",
+        "@typescript-eslint/eslint-plugin": "^8.46.2",
+        "@typescript-eslint/parser": "^8.46.2",
         "browserify": "^17.0.0",
-        "eslint": "^8.0.0",
+        "eslint": "^8.57.1",
         "eslint-config-google": "^0.14.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-babel": "^5.3.1",
@@ -65,7 +65,7 @@
         "rimraf": "^3.0.2",
         "tinyify": "^3.0.0",
         "ts-node": "^10.9.1",
-        "typescript": "^5.0.4"
+        "typescript": "^5.9.3"
     },
     "dependencies": {
         "@types/events": "^3.0.0",
