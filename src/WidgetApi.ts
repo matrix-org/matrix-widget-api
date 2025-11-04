@@ -144,7 +144,7 @@ export class WidgetApi extends EventEmitter {
      */
     public constructor(
         widgetId: string | null = null,
-        private readonly clientOrigin: string | null = null,
+        clientOrigin: string | null = null,
     ) {
         super();
         if (!globalThis.parent) {

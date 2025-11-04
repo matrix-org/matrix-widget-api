@@ -59,7 +59,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
 
     public constructor(
         private readonly sendDirection: WidgetApiDirection,
-        private readonly initialWidgetId: string | null,
+        initialWidgetId: string | null,
         private readonly transportWindow: Window | typeof globalThis,
         private readonly inboundWindow: Window | typeof globalThis,
     ) {
