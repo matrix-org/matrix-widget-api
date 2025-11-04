@@ -794,3 +794,124 @@ describe("WidgetApi", () => {
         });
     });
 });
+
+describe("postMessage", () => {
+    let widgetApi: WidgetApi;
+    const onHandledRequest = jest.fn();
+
+    let afterMessage: Promise<void>;
+    let afterMessageListener: () => void;
+
+    beforeEach(() => {
+        widgetApi = new WidgetApi();
+        widgetApi.start();
+
+        onHandledRequest.mockClear();
+        widgetApi.transport.on("message", onHandledRequest);
+
+        ({ promise: afterMessage, resolve: afterMessageListener } = Promise.withResolvers<void>());
+        afterMessage = new Promise((resolve) => {
+            afterMessageListener = resolve;
+            globalThis.addEventListener("message", afterMessageListener);
+        });
+    });
+
+    afterEach(() => {
+        globalThis.removeEventListener("message", afterMessageListener);
+        widgetApi.transport.removeAllListeners();
+    });
+
+    async function postMessage(message: unknown): Promise<void> {
+        globalThis.postMessage(message, "*");
+        await afterMessage;
+    }
+
+    it("should handle a valid request", async () => {
+        const action = "a";
+        widgetApi.on(`action:${action}`, (ev: Event) => {
+            ev.preventDefault();
+        });
+
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            action,
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).toHaveBeenCalled();
+    });
+
+    it("should drop a request with the wrong direction", async () => {
+        await postMessage({
+            api: WidgetApiDirection.FromWidget,
+            requestId: "rid",
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request without an action", async () => {
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            widgetId: "w",
+            data: {},
+        } satisfies Omit<IWidgetApiRequest, "action">);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request without an request ID", async () => {
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies Omit<IWidgetApiRequest, "requestId">);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request without an widget ID", async () => {
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            action: "a",
+            requestId: "rid",
+            data: {},
+        } satisfies Omit<IWidgetApiRequest, "widgetId">);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should enforce strictOriginCheck", async () => {
+        // the generated MessageEvent will have an empty origin
+        widgetApi.transport.strictOriginCheck = true;
+
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a null message", async () => {
+        await postMessage(null);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request after having aborted", async () => {
+        widgetApi.transport.stop();
+
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+});
