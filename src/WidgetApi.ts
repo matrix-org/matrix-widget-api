@@ -494,7 +494,7 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
-     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
      */
     public restartScheduledDelayedEvent(delayId: string): Promise<IUpdateDelayedEventFromWidgetResponseData> {
         return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
@@ -507,7 +507,7 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
-     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
      */
     public sendScheduledDelayedEvent(delayId: string): Promise<IUpdateDelayedEventFromWidgetResponseData> {
         return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
