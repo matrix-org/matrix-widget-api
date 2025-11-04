@@ -13,7 +13,8 @@ on:
                     - major
 concurrency: release
 permissions:
-    contents: write
+    id-token: write # Allow npm to authenticate as a trusted publisher
+    contents: write # Allow creating a release
 jobs:
     release:
         name: "Release & Publish"
@@ -45,16 +46,15 @@ jobs:
               run: yarn build
 
             - name: 🚀 Publish to npm
-              id: npm-publish
-              uses: JS-DevTools/npm-publish@v3
-              with:
-                  token: ${{ secrets.NPM_TOKEN }}
-                  access: public
+              # We use npm since Yarn Classic doesn't support trusted publishing
+              run: |
+                  npm publish --provenance --ignore-scripts
+                  echo "VERSION=$(jq '.version' --raw-output package.json)" >> "$GITHUB_ENV"
 
             - name: 🧬 Create release
               uses: softprops/action-gh-release@v2
               with:
-                  tag_name: v${{ steps.npm-publish.outputs.version }}
-                  body: ${{ steps.npm-publish.outputs.version }} Release
+                  tag_name: v${{ env.VERSION }}
+                  body: ${{ env.VERSION }} Release
                   draft: false
                   prerelease: false
