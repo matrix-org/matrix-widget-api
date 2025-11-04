@@ -165,15 +165,13 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         const response = <IWidgetApiResponse>ev.data;
         if (!response.action || !response.requestId || !response.widgetId) return; // invalid request/response
 
-        if (!response.response) {
-            // it's a request
+        if (response.response) {
+            if (response.api !== this.sendDirection) return; // wrong direction
+            this.handleResponse(response);
+        } else {
             const request = <IWidgetApiRequest>response;
             if (request.api !== invertedDirection(this.sendDirection)) return; // wrong direction
             this.handleRequest(request);
-        } else {
-            // it's a response
-            if (response.api !== this.sendDirection) return; // wrong direction
-            this.handleResponse(response);
         }
     }
 
