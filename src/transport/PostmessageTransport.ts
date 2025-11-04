@@ -45,7 +45,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     public timeoutSeconds = 10;
 
     private _ready = false;
-    private _widgetId: string | null = null;
+    private _widgetId: string | null;
     private readonly outboundRequests = new Map<string, IOutboundRequest | null>();
     private readonly stopController = new AbortController();
 
