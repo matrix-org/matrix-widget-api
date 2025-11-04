@@ -214,12 +214,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Missing capability" },
                 });
             });
 
-            expect(driver.navigate).not.toBeCalled();
+            expect(driver.navigate).not.toHaveBeenCalled();
         });
 
         it("fails to navigate to an unsupported URI", async () => {
@@ -238,12 +238,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Invalid matrix.to URI" },
                 });
             });
 
-            expect(driver.navigate).not.toBeCalled();
+            expect(driver.navigate).not.toHaveBeenCalled();
         });
 
         it("should reject requests when the driver throws an exception", async () => {
@@ -264,7 +264,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Error handling navigation" },
                 });
             });
@@ -294,7 +294,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Error handling navigation",
                         matrix_api_error: {
@@ -416,7 +416,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Error sending event" },
                 });
             });
@@ -453,7 +453,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Error sending event",
                         matrix_api_error: {
@@ -498,12 +498,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: expect.any(String) },
                 });
             });
 
-            expect(driver.sendDelayedEvent).not.toBeCalled();
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
         });
 
         it("sends delayed message events", async () => {
@@ -633,7 +633,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Error sending event" },
                 });
             });
@@ -673,7 +673,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Error sending event",
                         matrix_api_error: {
@@ -922,12 +922,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: expect.any(String) },
                 });
             });
 
-            expect(driver.cancelScheduledDelayedEvent).not.toBeCalled();
+            expect(driver.cancelScheduledDelayedEvent).not.toHaveBeenCalled();
         });
 
         it("fails to restart delayed events", async () => {
@@ -947,12 +947,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: expect.any(String) },
                 });
             });
 
-            expect(driver.restartScheduledDelayedEvent).not.toBeCalled();
+            expect(driver.restartScheduledDelayedEvent).not.toHaveBeenCalled();
         });
 
         it("fails to send delayed events", async () => {
@@ -972,12 +972,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: expect.any(String) },
                 });
             });
 
-            expect(driver.sendScheduledDelayedEvent).not.toBeCalled();
+            expect(driver.sendScheduledDelayedEvent).not.toHaveBeenCalled();
         });
 
         it("fails to update delayed events with unsupported action", async () => {
@@ -997,14 +997,14 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: expect.any(String) },
                 });
             });
 
-            expect(driver.cancelScheduledDelayedEvent).not.toBeCalled();
-            expect(driver.restartScheduledDelayedEvent).not.toBeCalled();
-            expect(driver.sendScheduledDelayedEvent).not.toBeCalled();
+            expect(driver.cancelScheduledDelayedEvent).not.toHaveBeenCalled();
+            expect(driver.restartScheduledDelayedEvent).not.toHaveBeenCalled();
+            expect(driver.sendScheduledDelayedEvent).not.toHaveBeenCalled();
         });
 
         it("can cancel delayed events", async () => {
@@ -1101,7 +1101,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Error updating delayed event" },
                 });
             });
@@ -1132,7 +1132,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Error updating delayed event",
                         matrix_api_error: {
@@ -1209,12 +1209,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Invalid request - missing event type" },
                 });
             });
 
-            expect(driver.sendToDevice).not.toBeCalled();
+            expect(driver.sendToDevice).not.toHaveBeenCalled();
         });
 
         it("fails to send to-device events without event contents", async () => {
@@ -1234,12 +1234,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Invalid request - missing event contents" },
                 });
             });
 
-            expect(driver.sendToDevice).not.toBeCalled();
+            expect(driver.sendToDevice).not.toHaveBeenCalled();
         });
 
         it("fails to send to-device events without encryption flag", async () => {
@@ -1265,12 +1265,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Invalid request - missing encryption flag" },
                 });
             });
 
-            expect(driver.sendToDevice).not.toBeCalled();
+            expect(driver.sendToDevice).not.toHaveBeenCalled();
         });
 
         it("fails to send to-device events with any event type", async () => {
@@ -1297,12 +1297,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Cannot send to-device events of this type" },
                 });
             });
 
-            expect(driver.sendToDevice).not.toBeCalled();
+            expect(driver.sendToDevice).not.toHaveBeenCalled();
         });
 
         it("should reject requests when the driver throws an exception", async () => {
@@ -1333,7 +1333,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Error sending event" },
                 });
             });
@@ -1371,7 +1371,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Error sending event",
                         matrix_api_error: {
@@ -1685,12 +1685,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: expect.any(String) },
                 });
             });
 
-            expect(driver.readRoomTimeline).not.toBeCalled();
+            expect(driver.readRoomTimeline).not.toHaveBeenCalled();
         });
 
         it("reads state events with a specific state key", async () => {
@@ -1785,12 +1785,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: expect.any(String) },
                 });
             });
 
-            expect(driver.readRoomTimeline).not.toBeCalled();
+            expect(driver.readRoomTimeline).not.toHaveBeenCalled();
         });
     });
 
@@ -1806,7 +1806,7 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC3869]),
             });
         });
@@ -1829,12 +1829,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     chunk: [createRoomEvent()],
                 });
             });
 
-            expect(driver.readEventRelations).toBeCalledWith(
+            expect(driver.readEventRelations).toHaveBeenCalledWith(
                 "$event",
                 undefined,
                 undefined,
@@ -1872,12 +1872,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     chunk: [createRoomEvent(), createRoomEvent({ type: "net.example.test", state_key: "A" })],
                 });
             });
 
-            expect(driver.readEventRelations).toBeCalledWith(
+            expect(driver.readEventRelations).toHaveBeenCalledWith(
                 "$event",
                 undefined,
                 undefined,
@@ -1916,12 +1916,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     chunk: [],
                 });
             });
 
-            expect(driver.readEventRelations).toBeCalledWith(
+            expect(driver.readEventRelations).toHaveBeenCalledWith(
                 "$event",
                 "!room-id",
                 "m.reference",
@@ -1944,7 +1944,7 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Invalid request - missing event ID" },
             });
         });
@@ -1963,7 +1963,7 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Invalid request - limit out of range" },
             });
         });
@@ -1982,7 +1982,7 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Unable to access room timeline: !another-room-id" },
             });
         });
@@ -2005,7 +2005,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Unexpected error while reading relations" },
                 });
             });
@@ -2033,7 +2033,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Unexpected error while reading relations",
                         matrix_api_error: {
@@ -2064,7 +2064,7 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC3973]),
             });
         });
@@ -2092,7 +2092,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     limited: true,
                     results: [
                         {
@@ -2104,7 +2104,7 @@ describe("ClientWidgetApi", () => {
                 });
             });
 
-            expect(driver.searchUserDirectory).toBeCalledWith("foo", undefined);
+            expect(driver.searchUserDirectory).toHaveBeenCalledWith("foo", undefined);
         });
 
         it("should accept all options and pass it to the driver", async () => {
@@ -2138,7 +2138,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     limited: false,
                     results: [
                         {
@@ -2155,7 +2155,7 @@ describe("ClientWidgetApi", () => {
                 });
             });
 
-            expect(driver.searchUserDirectory).toBeCalledWith("foo", 5);
+            expect(driver.searchUserDirectory).toHaveBeenCalledWith("foo", 5);
         });
 
         it("should accept empty search_term", async () => {
@@ -2177,13 +2177,13 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     limited: false,
                     results: [],
                 });
             });
 
-            expect(driver.searchUserDirectory).toBeCalledWith("", undefined);
+            expect(driver.searchUserDirectory).toHaveBeenCalledWith("", undefined);
         });
 
         it("should reject requests when the capability was not requested", async () => {
@@ -2197,11 +2197,11 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Missing capability" },
             });
 
-            expect(driver.searchUserDirectory).not.toBeCalled();
+            expect(driver.searchUserDirectory).not.toHaveBeenCalled();
         });
 
         it("should reject requests without search_term", async () => {
@@ -2217,11 +2217,11 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Invalid request - missing search term" },
             });
 
-            expect(driver.searchUserDirectory).not.toBeCalled();
+            expect(driver.searchUserDirectory).not.toHaveBeenCalled();
         });
 
         it("should reject requests with a negative limit", async () => {
@@ -2240,11 +2240,11 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Invalid request - limit out of range" },
             });
 
-            expect(driver.searchUserDirectory).not.toBeCalled();
+            expect(driver.searchUserDirectory).not.toHaveBeenCalled();
         });
 
         it("should reject requests when the driver throws an exception", async () => {
@@ -2263,7 +2263,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Unexpected error while searching in the user directory" },
                 });
             });
@@ -2292,7 +2292,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Unexpected error while searching in the user directory",
                         matrix_api_error: {
@@ -2324,7 +2324,7 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4039]),
             });
         });
@@ -2347,12 +2347,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     "m.upload.size": 1000,
                 });
             });
 
-            expect(driver.getMediaConfig).toBeCalled();
+            expect(driver.getMediaConfig).toHaveBeenCalled();
         });
 
         it("should reject requests when the capability was not requested", async () => {
@@ -2366,11 +2366,11 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Missing capability" },
             });
 
-            expect(driver.getMediaConfig).not.toBeCalled();
+            expect(driver.getMediaConfig).not.toHaveBeenCalled();
         });
 
         it("should reject requests when the driver throws an exception", async () => {
@@ -2389,7 +2389,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Unexpected error while getting the media configuration" },
                 });
             });
@@ -2418,7 +2418,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Unexpected error while getting the media configuration",
                         matrix_api_error: {
@@ -2450,7 +2450,7 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4039]),
             });
         });
@@ -2477,12 +2477,12 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     content_uri: "mxc://...",
                 });
             });
 
-            expect(driver.uploadFile).toBeCalled();
+            expect(driver.uploadFile).toHaveBeenCalled();
         });
 
         it("should reject requests when the capability was not requested", async () => {
@@ -2498,11 +2498,11 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Missing capability" },
             });
 
-            expect(driver.uploadFile).not.toBeCalled();
+            expect(driver.uploadFile).not.toHaveBeenCalled();
         });
 
         it("should reject requests when the driver throws an exception", async () => {
@@ -2523,7 +2523,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Unexpected error while uploading a file" },
                 });
             });
@@ -2554,7 +2554,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Unexpected error while uploading a file",
                         matrix_api_error: {
@@ -2616,11 +2616,11 @@ describe("ClientWidgetApi", () => {
 
             emitEvent(new CustomEvent("", { detail: event }));
 
-            expect(transport.reply).toBeCalledWith(event, {
+            expect(transport.reply).toHaveBeenCalledWith(event, {
                 error: { message: "Missing capability" },
             });
 
-            expect(driver.uploadFile).not.toBeCalled();
+            expect(driver.uploadFile).not.toHaveBeenCalled();
         });
 
         it("should reject requests when the driver throws an exception", async () => {
@@ -2641,7 +2641,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Unexpected error while downloading a file" },
                 });
             });
@@ -2672,7 +2672,7 @@ describe("ClientWidgetApi", () => {
             emitEvent(new CustomEvent("", { detail: event }));
 
             await waitFor(() => {
-                expect(transport.reply).toBeCalledWith(event, {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: {
                         message: "Unexpected error while downloading a file",
                         matrix_api_error: {
