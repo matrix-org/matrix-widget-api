@@ -770,28 +770,34 @@ describe("WidgetApi", () => {
             );
         });
     });
+});
 
-    describe("capabilities", () => {
-        it("should request single capability", () => {
-            const capability = "org.example.capability";
+describe("capabilities", () => {
+    let widgetApi: WidgetApi;
+
+    beforeEach(() => {
+        widgetApi = new WidgetApi();
+    });
+
+    it("should request single capability", () => {
+        const capability = "org.example.capability";
+        expect(widgetApi.hasCapability(capability)).toBe(false);
+        widgetApi.requestCapability(capability);
+        expect(widgetApi.hasCapability(capability)).toBe(true);
+    });
+
+    it("should request multiple capabilities", () => {
+        const capabilities: string[] = [];
+        for (let i = 1; i <= 3; i++) {
+            capabilities.push(`org.example.capability${i}`);
+        }
+        for (const capability of capabilities) {
             expect(widgetApi.hasCapability(capability)).toBe(false);
-            widgetApi.requestCapability(capability);
+        }
+        widgetApi.requestCapabilities(capabilities);
+        for (const capability of capabilities) {
             expect(widgetApi.hasCapability(capability)).toBe(true);
-        });
-
-        it("should request multiple capability", () => {
-            const capabilities: string[] = [];
-            for (let i = 1; i <= 3; i++) {
-                capabilities.push(`org.example.capability${i}`);
-            }
-            for (const capability of capabilities) {
-                expect(widgetApi.hasCapability(capability)).toBe(false);
-            }
-            widgetApi.requestCapabilities(capabilities);
-            for (const capability of capabilities) {
-                expect(widgetApi.hasCapability(capability)).toBe(true);
-            }
-        });
+        }
     });
 });
 
