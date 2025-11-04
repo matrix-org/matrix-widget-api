@@ -142,10 +142,7 @@ export class WidgetApi extends EventEmitter {
      * the API will use the widget ID from the first valid request it receives.
      * @param {string} clientOrigin The origin of the client, or null if not known.
      */
-    public constructor(
-        widgetId: string | null = null,
-        clientOrigin: string | null = null,
-    ) {
+    public constructor(widgetId: string | null = null, clientOrigin: string | null = null) {
         super();
         if (!globalThis.parent) {
             throw new Error("No parent window. This widget doesn't appear to be embedded properly.");
