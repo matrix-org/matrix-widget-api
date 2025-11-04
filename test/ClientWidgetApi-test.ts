@@ -128,7 +128,9 @@ describe("ClientWidgetApi", () => {
             readEventRelations: jest.fn(),
             sendEvent: jest.fn(),
             sendDelayedEvent: jest.fn(),
-            updateDelayedEvent: jest.fn(),
+            cancelScheduledDelayedEvent: jest.fn(),
+            restartScheduledDelayedEvent: jest.fn(),
+            sendScheduledDelayedEvent: jest.fn(),
             sendToDevice: jest.fn(),
             askOpenID: jest.fn(),
             readRoomAccountData: jest.fn(),
@@ -903,7 +905,57 @@ describe("ClientWidgetApi", () => {
     });
 
     describe("update_delayed_event action", () => {
-        it("fails to update delayed events", async () => {
+        it("fails to cancel delayed events", async () => {
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: "f",
+                    action: UpdateDelayedEventAction.Cancel,
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.cancelScheduledDelayedEvent).not.toBeCalled();
+        });
+
+        it("fails to restart delayed events", async () => {
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: "f",
+                    action: UpdateDelayedEventAction.Restart,
+                },
+            };
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toBeCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.restartScheduledDelayedEvent).not.toBeCalled();
+        });
+
+        it("fails to send delayed events", async () => {
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
                 widgetId: "test",
@@ -925,7 +977,7 @@ describe("ClientWidgetApi", () => {
                 });
             });
 
-            expect(driver.updateDelayedEvent).not.toBeCalled();
+            expect(driver.sendScheduledDelayedEvent).not.toBeCalled();
         });
 
         it("fails to update delayed events with unsupported action", async () => {
@@ -950,42 +1002,88 @@ describe("ClientWidgetApi", () => {
                 });
             });
 
-            expect(driver.updateDelayedEvent).not.toBeCalled();
+            expect(driver.cancelScheduledDelayedEvent).not.toBeCalled();
+            expect(driver.restartScheduledDelayedEvent).not.toBeCalled();
+            expect(driver.sendScheduledDelayedEvent).not.toBeCalled();
         });
 
-        it("updates delayed events", async () => {
-            driver.updateDelayedEvent.mockResolvedValue(undefined);
+        it("can cancel delayed events", async () => {
+            driver.cancelScheduledDelayedEvent.mockResolvedValue(undefined);
 
-            for (const action of [
-                UpdateDelayedEventAction.Cancel,
-                UpdateDelayedEventAction.Restart,
-                UpdateDelayedEventAction.Send,
-            ]) {
-                const event: IUpdateDelayedEventFromWidgetActionRequest = {
-                    api: WidgetApiDirection.FromWidget,
-                    widgetId: "test",
-                    requestId: "0",
-                    action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
-                    data: {
-                        delay_id: "f",
-                        action,
-                    },
-                };
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: "f",
+                    action: UpdateDelayedEventAction.Cancel,
+                },
+            };
 
-                await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
+            await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
 
-                emitEvent(new CustomEvent("", { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
-                await waitFor(() => {
-                    expect(transport.reply).toHaveBeenCalledWith(event, {});
-                });
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
 
-                expect(driver.updateDelayedEvent).toHaveBeenCalledWith(event.data.delay_id, event.data.action);
-            }
+            expect(driver.cancelScheduledDelayedEvent).toHaveBeenCalledWith(event.data.delay_id);
+        });
+
+        it("can restart delayed events", async () => {
+            driver.restartScheduledDelayedEvent.mockResolvedValue(undefined);
+
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: "f",
+                    action: UpdateDelayedEventAction.Restart,
+                },
+            };
+
+            await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.restartScheduledDelayedEvent).toHaveBeenCalledWith(event.data.delay_id);
+        });
+
+        it("can send delayed events", async () => {
+            driver.sendScheduledDelayedEvent.mockResolvedValue(undefined);
+
+            const event: IUpdateDelayedEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
+                data: {
+                    delay_id: "f",
+                    action: UpdateDelayedEventAction.Send,
+                },
+            };
+
+            await loadIframe(["org.matrix.msc4157.update_delayed_event"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.sendScheduledDelayedEvent).toHaveBeenCalledWith(event.data.delay_id);
         });
 
         it("should reject requests when the driver throws an exception", async () => {
-            driver.updateDelayedEvent.mockRejectedValue(new Error("M_BAD_JSON: Content must be a JSON object"));
+            driver.sendScheduledDelayedEvent.mockRejectedValue(new Error("M_BAD_JSON: Content must be a JSON object"));
 
             const event: IUpdateDelayedEventFromWidgetActionRequest = {
                 api: WidgetApiDirection.FromWidget,
@@ -1012,7 +1110,7 @@ describe("ClientWidgetApi", () => {
         it("should reject with Matrix API error response thrown by driver", async () => {
             driver.processError.mockImplementation(processCustomMatrixError);
 
-            driver.updateDelayedEvent.mockRejectedValue(
+            driver.sendScheduledDelayedEvent.mockRejectedValue(
                 new CustomMatrixError("failed to update delayed event", 400, "M_NOT_JSON", {
                     reason: "Content must be a JSON object.",
                 }),
