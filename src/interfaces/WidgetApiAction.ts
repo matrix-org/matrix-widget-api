@@ -49,47 +49,47 @@ export enum WidgetApiFromWidgetAction {
     BeeperReadRoomAccountData = "com.beeper.read_room_account_data",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC2876ReadEvents = "org.matrix.msc2876.read_events",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC2931Navigate = "org.matrix.msc2931.navigate",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC2974RenegotiateCapabilities = "org.matrix.msc2974.request_capabilities",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC3869ReadRelations = "org.matrix.msc3869.read_relations",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC3973UserDirectorySearch = "org.matrix.msc3973.user_directory_search",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4039GetMediaConfigAction = "org.matrix.msc4039.get_media_config",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4039UploadFileAction = "org.matrix.msc4039.upload_file",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4039DownloadFileAction = "org.matrix.msc4039.download_file",
 
     /**
-     * @deprecated It is not recommended to rely on this existing - it can be removed without notice.
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update_delayed_event",
 }

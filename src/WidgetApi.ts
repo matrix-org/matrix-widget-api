@@ -131,7 +131,7 @@ export class WidgetApi extends EventEmitter {
 
     private capabilitiesFinished = false;
     private supportsMSC2974Renegotiate = false;
-    private requestedCapabilities: Capability[] = [];
+    private readonly requestedCapabilities: Capability[] = [];
     private approvedCapabilities?: Capability[];
     private cachedClientVersions?: ApiVersion[];
     private turnServerWatchers = 0;
@@ -142,15 +142,17 @@ export class WidgetApi extends EventEmitter {
      * the API will use the widget ID from the first valid request it receives.
      * @param {string} clientOrigin The origin of the client, or null if not known.
      */
-    public constructor(
-        widgetId: string | null = null,
-        private clientOrigin: string | null = null,
-    ) {
+    public constructor(widgetId: string | null = null, clientOrigin: string | null = null) {
         super();
-        if (!window.parent) {
+        if (!globalThis.parent) {
             throw new Error("No parent window. This widget doesn't appear to be embedded properly.");
         }
-        this.transport = new PostmessageTransport(WidgetApiDirection.FromWidget, widgetId, window.parent, window);
+        this.transport = new PostmessageTransport(
+            WidgetApiDirection.FromWidget,
+            widgetId,
+            globalThis.parent,
+            globalThis,
+        );
         this.transport.targetOrigin = clientOrigin;
         this.transport.on("message", this.handleMessage.bind(this));
     }
@@ -191,7 +193,9 @@ export class WidgetApi extends EventEmitter {
      * @throws Throws if the capabilities negotiation has already started.
      */
     public requestCapabilities(capabilities: Capability[]): void {
-        capabilities.forEach((cap) => this.requestCapability(cap));
+        for (const cap of capabilities) {
+            this.requestCapability(cap);
+        }
     }
 
     /**
@@ -474,7 +478,7 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
-     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
      */
     public cancelScheduledDelayedEvent(delayId: string): Promise<IUpdateDelayedEventFromWidgetResponseData> {
         return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
@@ -487,7 +491,7 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
-     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
      */
     public restartScheduledDelayedEvent(delayId: string): Promise<IUpdateDelayedEventFromWidgetResponseData> {
         return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
@@ -500,7 +504,7 @@ export class WidgetApi extends EventEmitter {
     }
 
     /**
-     * @deprecated This currently relies on an unstable MSC (MSC4157).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
      */
     public sendScheduledDelayedEvent(delayId: string): Promise<IUpdateDelayedEventFromWidgetResponseData> {
         return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
@@ -681,7 +685,7 @@ export class WidgetApi extends EventEmitter {
      * @param {string} uri The URI to navigate to.
      * @returns {Promise<void>} Resolves when complete.
      * @throws Throws if the URI is invalid or cannot be processed.
-     * @deprecated This currently relies on an unstable MSC (MSC2931).
+     * @experimental This currently relies on an unstable MSC (MSC2931).
      */
     public navigateTo(uri: string): Promise<void> {
         if (!uri || !uri.startsWith("https://matrix.to/#")) {
@@ -704,7 +708,7 @@ export class WidgetApi extends EventEmitter {
         const onUpdateTurnServers = async (ev: CustomEvent<IUpdateTurnServersRequest>): Promise<void> => {
             ev.preventDefault();
             setTurnServer(ev.detail.data);
-            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
+            this.transport.reply<IWidgetApiAcknowledgeResponseData>(ev.detail, {});
         };
 
         // Start listening for updates before we even start watching, to catch

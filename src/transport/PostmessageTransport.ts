@@ -45,9 +45,9 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     public timeoutSeconds = 10;
 
     private _ready = false;
-    private _widgetId: string | null = null;
-    private outboundRequests = new Map<string, IOutboundRequest | null>();
-    private stopController = new AbortController();
+    private _widgetId: string | null;
+    private readonly outboundRequests = new Map<string, IOutboundRequest | null>();
+    private readonly stopController = new AbortController();
 
     public get ready(): boolean {
         return this._ready;
@@ -58,10 +58,10 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     }
 
     public constructor(
-        private sendDirection: WidgetApiDirection,
-        private initialWidgetId: string | null,
-        private transportWindow: Window,
-        private inboundWindow: Window,
+        private readonly sendDirection: WidgetApiDirection,
+        initialWidgetId: string | null,
+        private readonly transportWindow: Window | typeof globalThis,
+        private readonly inboundWindow: Window | typeof globalThis,
     ) {
         super();
         this._widgetId = initialWidgetId;
@@ -159,21 +159,19 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
         if (this.stopController.signal.aborted) return;
         if (!ev.data) return; // invalid event
 
-        if (this.strictOriginCheck && ev.origin !== window.origin) return; // bad origin
+        if (this.strictOriginCheck && ev.origin !== globalThis.origin) return; // bad origin
 
         // treat the message as a response first, then downgrade to a request
         const response = <IWidgetApiResponse>ev.data;
         if (!response.action || !response.requestId || !response.widgetId) return; // invalid request/response
 
-        if (!response.response) {
-            // it's a request
+        if (response.response) {
+            if (response.api !== this.sendDirection) return; // wrong direction
+            this.handleResponse(response);
+        } else {
             const request = <IWidgetApiRequest>response;
             if (request.api !== invertedDirection(this.sendDirection)) return; // wrong direction
             this.handleRequest(request);
-        } else {
-            // it's a response
-            if (response.api !== this.sendDirection) return; // wrong direction
-            this.handleResponse(response);
         }
     }
 

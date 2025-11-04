@@ -53,7 +53,7 @@ class WidgetTransportHelper {
     /** For ignoring the request sent by {@link WidgetApi.start} */
     private skippedFirstRequest = false;
 
-    public constructor(private channels: TransportChannels) {}
+    public constructor(private readonly channels: TransportChannels) {}
 
     public nextTrackedRequest(): SendRequestArgs | undefined {
         if (!this.skippedFirstRequest) {
@@ -69,7 +69,7 @@ class WidgetTransportHelper {
 }
 
 class ClientTransportHelper {
-    public constructor(private channels: TransportChannels) {}
+    public constructor(private readonly channels: TransportChannels) {}
 
     public trackRequest(action: WidgetApiFromWidgetAction, data: IWidgetApiRequestData): void {
         this.channels.requestQueue.push({ action, data });
@@ -99,7 +99,7 @@ describe("WidgetApi", () => {
 
             const response = clientTrafficHelper.nextQueuedResponse();
             if (response) {
-                window.postMessage(
+                globalThis.postMessage(
                     {
                         ...request,
                         response: response,
@@ -108,14 +108,14 @@ describe("WidgetApi", () => {
                 );
             }
         };
-        window.addEventListener("message", clientListener);
+        globalThis.addEventListener("message", clientListener);
 
         widgetApi = new WidgetApi("WidgetApi-test", "*");
         widgetApi.start();
     });
 
     afterEach(() => {
-        window.removeEventListener("message", clientListener);
+        globalThis.removeEventListener("message", clientListener);
     });
 
     describe("readEventRelations", () => {
@@ -335,10 +335,12 @@ describe("WidgetApi", () => {
                 delay_id: "id",
             } as ISendEventFromWidgetResponseData);
 
-            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, undefined)).resolves.toEqual({
-                room_id: "!room-id",
-                delay_id: "id",
-            });
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, "parent-id")).resolves.toEqual(
+                {
+                    room_id: "!room-id",
+                    delay_id: "id",
+                },
+            );
         });
 
         it("sends delayed child action state events", async () => {
@@ -348,7 +350,7 @@ describe("WidgetApi", () => {
             } as ISendEventFromWidgetResponseData);
 
             await expect(
-                widgetApi.sendStateEvent("m.room.topic", "", {}, "!room-id", 1000, undefined),
+                widgetApi.sendStateEvent("m.room.topic", "", {}, "!room-id", 1000, "parent-id"),
             ).resolves.toEqual({
                 room_id: "!room-id",
                 delay_id: "id",
@@ -360,7 +362,7 @@ describe("WidgetApi", () => {
                 error: { message: "An error occurred" },
             } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, undefined)).rejects.toThrow(
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000)).rejects.toThrow(
                 "An error occurred",
             );
         });
@@ -385,7 +387,7 @@ describe("WidgetApi", () => {
                 },
             } as IWidgetApiErrorResponseData);
 
-            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, undefined)).rejects.toThrow(
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000)).rejects.toThrow(
                 new WidgetApiResponseError("An error occurred", errorDetails),
             );
         });
@@ -767,5 +769,155 @@ describe("WidgetApi", () => {
                 new WidgetApiResponseError("An error occurred", errorDetails),
             );
         });
+    });
+});
+
+describe("capabilities", () => {
+    let widgetApi: WidgetApi;
+
+    beforeEach(() => {
+        widgetApi = new WidgetApi();
+    });
+
+    it("should request single capability", () => {
+        const capability = "org.example.capability";
+        expect(widgetApi.hasCapability(capability)).toBe(false);
+        widgetApi.requestCapability(capability);
+        expect(widgetApi.hasCapability(capability)).toBe(true);
+    });
+
+    it("should request multiple capabilities", () => {
+        const capabilities: string[] = [];
+        for (let i = 1; i <= 3; i++) {
+            capabilities.push(`org.example.capability${i}`);
+        }
+        for (const capability of capabilities) {
+            expect(widgetApi.hasCapability(capability)).toBe(false);
+        }
+        widgetApi.requestCapabilities(capabilities);
+        for (const capability of capabilities) {
+            expect(widgetApi.hasCapability(capability)).toBe(true);
+        }
+    });
+});
+
+describe("postMessage", () => {
+    let widgetApi: WidgetApi;
+    const onHandledRequest = jest.fn();
+
+    let afterMessage: Promise<void>;
+    let afterMessageListener: () => void;
+
+    beforeEach(() => {
+        widgetApi = new WidgetApi();
+        widgetApi.start();
+
+        onHandledRequest.mockClear();
+        widgetApi.transport.on("message", onHandledRequest);
+
+        ({ promise: afterMessage, resolve: afterMessageListener } = Promise.withResolvers<void>());
+        afterMessage = new Promise((resolve) => {
+            afterMessageListener = resolve;
+            globalThis.addEventListener("message", afterMessageListener);
+        });
+    });
+
+    afterEach(() => {
+        globalThis.removeEventListener("message", afterMessageListener);
+        widgetApi.transport.removeAllListeners();
+    });
+
+    async function postMessage(message: unknown): Promise<void> {
+        globalThis.postMessage(message, "*");
+        await afterMessage;
+    }
+
+    it("should handle a valid request", async () => {
+        const action = "a";
+        widgetApi.on(`action:${action}`, (ev: Event) => {
+            ev.preventDefault();
+        });
+
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            action,
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).toHaveBeenCalled();
+    });
+
+    it("should drop a request with the wrong direction", async () => {
+        await postMessage({
+            api: WidgetApiDirection.FromWidget,
+            requestId: "rid",
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request without an action", async () => {
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            widgetId: "w",
+            data: {},
+        } satisfies Omit<IWidgetApiRequest, "action">);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request without an request ID", async () => {
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies Omit<IWidgetApiRequest, "requestId">);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request without an widget ID", async () => {
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            action: "a",
+            requestId: "rid",
+            data: {},
+        } satisfies Omit<IWidgetApiRequest, "widgetId">);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should enforce strictOriginCheck", async () => {
+        // the generated MessageEvent will have an empty origin
+        widgetApi.transport.strictOriginCheck = true;
+
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a null message", async () => {
+        await postMessage(null);
+        expect(onHandledRequest).not.toHaveBeenCalled();
+    });
+
+    it("should drop a request after having aborted", async () => {
+        widgetApi.transport.stop();
+
+        await postMessage({
+            api: WidgetApiDirection.ToWidget,
+            requestId: "rid",
+            action: "a",
+            widgetId: "w",
+            data: {},
+        } satisfies IWidgetApiRequest);
+        expect(onHandledRequest).not.toHaveBeenCalled();
     });
 });

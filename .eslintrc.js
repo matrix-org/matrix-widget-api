@@ -8,6 +8,7 @@ module.exports = {
         browser: true,
     },
     rules: {
+        "no-duplicate-imports": ["error"],
         "no-var": ["warn"],
         "prefer-rest-params": ["warn"],
         "prefer-spread": ["warn"],
@@ -24,6 +25,8 @@ module.exports = {
                 asyncArrow: "always",
             },
         ],
+        "@typescript-eslint/await-thenable": ["error"],
+        "@typescript-eslint/prefer-readonly": ["error"],
         "arrow-parens": "off",
         "prefer-promise-reject-errors": "off",
         "quotes": "off",

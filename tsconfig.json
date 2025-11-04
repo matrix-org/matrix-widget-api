@@ -11,7 +11,8 @@
         "declaration": true,
         "types": ["jest"],
         "lib": ["es2020", "dom"],
-        "strict": true
+        "strict": true,
+        "noUnusedLocals": true
     },
     "include": ["./src/**/*.ts"]
 }

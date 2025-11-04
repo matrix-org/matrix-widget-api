@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-import { IWidget, IWidgetData, WidgetType } from "..";
+import { ITemplateParams, IWidget, IWidgetData, runTemplate, WidgetType } from "..";
 import { assertPresent } from "./validation/utils";
-import { ITemplateParams, runTemplate } from "..";
 
 /**
  * Represents the barest form of widget.
  */
 export class Widget {
-    public constructor(private definition: IWidget) {
+    public constructor(private readonly definition: IWidget) {
         if (!this.definition) throw new Error("Definition is required");
 
         assertPresent(definition, "id");

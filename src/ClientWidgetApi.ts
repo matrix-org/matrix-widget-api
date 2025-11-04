@@ -62,7 +62,6 @@ import {
 } from "./interfaces/SendToDeviceAction";
 import { EventDirection, EventKind, WidgetEventCapability } from "./models/WidgetEventCapability";
 import { IRoomEvent } from "./interfaces/IRoomEvent";
-import { IRoomAccountData } from "./interfaces/IRoomAccountData";
 import {
     IGetOpenIDActionRequest,
     IGetOpenIDActionResponseData,
@@ -141,15 +140,15 @@ export class ClientWidgetApi extends EventEmitter {
     private cachedWidgetVersions: ApiVersion[] | null = null;
     // contentLoadedActionSent is used to check that only one ContentLoaded request is send.
     private contentLoadedActionSent = false;
-    private allowedCapabilities = new Set<Capability>();
-    private allowedEvents: WidgetEventCapability[] = [];
+    private readonly allowedCapabilities = new Set<Capability>();
+    private readonly allowedEvents: WidgetEventCapability[] = [];
     private isStopped = false;
     private turnServers: AsyncGenerator<ITurnServer> | null = null;
     private contentLoadedWaitTimer?: ReturnType<typeof setTimeout>;
     // Stores pending requests to push a room's state to the widget
-    private pushRoomStateTasks = new Set<Promise<void>>();
+    private readonly pushRoomStateTasks = new Set<Promise<void>>();
     // Room ID → event type → state key → events to be pushed
-    private pushRoomStateResult = new Map<string, Map<string, Map<string, IRoomEvent>>>();
+    private readonly pushRoomStateResult = new Map<string, Map<string, Map<string, IRoomEvent>>>();
     private flushRoomStateTask: Promise<void> | null = null;
 
     /**
@@ -162,8 +161,8 @@ export class ClientWidgetApi extends EventEmitter {
      */
     public constructor(
         public readonly widget: Widget,
-        private iframe: HTMLIFrameElement,
-        private driver: WidgetDriver,
+        iframe: HTMLIFrameElement,
+        private readonly driver: WidgetDriver,
     ) {
         super();
         if (!iframe?.contentWindow) {
@@ -175,7 +174,12 @@ export class ClientWidgetApi extends EventEmitter {
         if (!driver) {
             throw new Error("Invalid driver");
         }
-        this.transport = new PostmessageTransport(WidgetApiDirection.ToWidget, widget.id, iframe.contentWindow, window);
+        this.transport = new PostmessageTransport(
+            WidgetApiDirection.ToWidget,
+            widget.id,
+            iframe.contentWindow,
+            globalThis,
+        );
         this.transport.targetOrigin = widget.origin;
         this.transport.on("message", this.handleMessage.bind(this));
 
@@ -230,7 +234,7 @@ export class ClientWidgetApi extends EventEmitter {
 
     public async getWidgetVersions(): Promise<ApiVersion[]> {
         if (Array.isArray(this.cachedWidgetVersions)) {
-            return Promise.resolve(this.cachedWidgetVersions);
+            return this.cachedWidgetVersions;
         }
 
         try {
@@ -381,7 +385,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        if (!request.data?.uri || !request.data?.uri.toString().startsWith("https://matrix.to/#")) {
+        if (!request.data?.uri.startsWith("https://matrix.to/#")) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Invalid matrix.to URI" },
             });
@@ -467,9 +471,9 @@ export class ClientWidgetApi extends EventEmitter {
 
         this.driver.askOpenID(observer);
     }
+
     private handleReadRoomAccountData(request: IReadRoomAccountDataFromWidgetActionRequest): void | Promise<void> {
-        let events: Promise<IRoomAccountData[]> = Promise.resolve([]);
-        events = this.driver.readRoomAccountData(request.data.type);
+        const events = this.driver.readRoomAccountData(request.data.type);
 
         if (!this.canReceiveRoomAccountData(request.data.type)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -609,17 +613,17 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (!isDelayedEvent) {
-                sendEventPromise = this.driver.sendEvent(
+            if (isDelayedEvent) {
+                sendEventPromise = this.driver.sendDelayedEvent(
+                    request.data.delay ?? null,
+                    request.data.parent_delay_id ?? null,
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendDelayedEvent(
-                    request.data.delay ?? null,
-                    request.data.parent_delay_id ?? null,
+                sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
@@ -635,17 +639,17 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (!isDelayedEvent) {
-                sendEventPromise = this.driver.sendEvent(
+            if (isDelayedEvent) {
+                sendEventPromise = this.driver.sendDelayedEvent(
+                    request.data.delay ?? null,
+                    request.data.parent_delay_id ?? null,
                     request.data.type,
                     content,
                     null, // not sending a state event
                     request.data.room_id,
                 );
             } else {
-                sendEventPromise = this.driver.sendDelayedEvent(
-                    request.data.delay ?? null,
-                    request.data.parent_delay_id ?? null,
+                sendEventPromise = this.driver.sendEvent(
                     request.data.type,
                     content,
                     null, // not sending a state event
@@ -715,25 +719,25 @@ export class ClientWidgetApi extends EventEmitter {
 
     private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {
         if (!request.data.type) {
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Invalid request - missing event type" },
             });
         } else if (!request.data.messages) {
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Invalid request - missing event contents" },
             });
         } else if (typeof request.data.encrypted !== "boolean") {
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Invalid request - missing encryption flag" },
             });
         } else if (!this.canSendToDeviceEvent(request.data.type)) {
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Cannot send to-device events of this type" },
             });
         } else {
             try {
                 await this.driver.sendToDevice(request.data.type, request.data.encrypted, request.data.messages);
-                await this.transport.reply<ISendToDeviceFromWidgetResponseData>(request, {});
+                this.transport.reply<ISendToDeviceFromWidgetResponseData>(request, {});
             } catch (e) {
                 console.error("error sending to-device event", e);
                 this.handleDriverError(e, request, "Error sending event");
@@ -762,12 +766,12 @@ export class ClientWidgetApi extends EventEmitter {
 
     private async handleWatchTurnServers(request: IWatchTurnServersRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC3846TurnServers)) {
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Missing capability" },
             });
         } else if (this.turnServers) {
             // We're already polling, so this is a no-op
-            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+            this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
         } else {
             try {
                 const turnServers = this.driver.getTurnServers();
@@ -776,14 +780,14 @@ export class ClientWidgetApi extends EventEmitter {
                 // client isn't banned from getting TURN servers entirely
                 const { done, value } = await turnServers.next();
                 if (done) throw new Error("Client refuses to provide any TURN servers");
-                await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+                this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
 
                 // Start the poll loop, sending the widget the initial result
                 this.pollTurnServers(turnServers, value);
                 this.turnServers = turnServers;
             } catch (e) {
                 console.error("error getting first TURN server results", e);
-                await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: { message: "TURN servers not available" },
                 });
             }
@@ -792,17 +796,17 @@ export class ClientWidgetApi extends EventEmitter {
 
     private async handleUnwatchTurnServers(request: IUnwatchTurnServersRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC3846TurnServers)) {
-            await this.transport.reply<IWidgetApiErrorResponseData>(request, {
+            this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: "Missing capability" },
             });
         } else if (!this.turnServers) {
             // We weren't polling anyways, so this is a no-op
-            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+            this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
         } else {
             // Stop the generator, allowing it to clean up
             await this.turnServers.return(undefined);
             this.turnServers = null;
-            await this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
+            this.transport.reply<IWidgetApiAcknowledgeResponseData>(request, {});
         }
     }
 
@@ -1147,7 +1151,7 @@ export class ClientWidgetApi extends EventEmitter {
     private async flushRoomState(): Promise<void> {
         try {
             // Only send a single action once all concurrent tasks have completed
-            do await Promise.all([...this.pushRoomStateTasks]);
+            do await Promise.all(this.pushRoomStateTasks);
             while (this.pushRoomStateTasks.size > 0);
 
             const events: IRoomEvent[] = [];
@@ -1257,7 +1261,7 @@ export class ClientWidgetApi extends EventEmitter {
                     eventTypeMap.set(rawEvent.type, stateKeyMap);
                 }
                 if (!stateKeyMap.has(rawEvent.type)) stateKeyMap.set(rawEvent.state_key, rawEvent);
-                do await Promise.all([...this.pushRoomStateTasks]);
+                do await Promise.all(this.pushRoomStateTasks);
                 while (this.pushRoomStateTasks.size > 0);
                 await this.flushRoomStateTask;
             }

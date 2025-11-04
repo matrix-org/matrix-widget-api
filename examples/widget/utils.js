@@ -15,7 +15,7 @@
  */
 
 function parseFragment() {
-    const fragmentString = window.location.hash || "?";
+    const fragmentString = globalThis.location.hash || "?";
     return new URLSearchParams(fragmentString.substring(Math.max(fragmentString.indexOf("?"), 0)));
 }
 
