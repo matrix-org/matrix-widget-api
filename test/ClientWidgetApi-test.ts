@@ -506,9 +506,12 @@ describe("ClientWidgetApi", () => {
             expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
         });
 
-        it("sends delayed message events", async () => {
+        it.each([
+            { hasDelay: true,  hasParent: false },
+            { hasDelay: false, hasParent: true },
+            { hasDelay: true,  hasParent: true },
+        ])("sends delayed message events (hasDelay = $hasDelay, hasParent = $hasParent)", async ({ hasDelay, hasParent }) => {
             const roomId = "!room:example.org";
-            const parentDelayId = "fp";
             const timeoutDelayId = "ft";
 
             driver.sendDelayedEvent.mockResolvedValue({
@@ -525,8 +528,8 @@ describe("ClientWidgetApi", () => {
                     type: "m.room.message",
                     content: {},
                     room_id: roomId,
-                    delay: 5000,
-                    parent_delay_id: parentDelayId,
+                    ...(hasDelay && { delay: 5000 }),
+                    ...(hasParent && { parent_delay_id: "fp" }),
                 },
             };
 
@@ -546,8 +549,8 @@ describe("ClientWidgetApi", () => {
             });
 
             expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
-                event.data.delay,
-                event.data.parent_delay_id,
+                event.data.delay ?? null,
+                event.data.parent_delay_id ?? null,
                 event.data.type,
                 event.data.content,
                 null,
@@ -555,9 +558,12 @@ describe("ClientWidgetApi", () => {
             );
         });
 
-        it("sends delayed state events", async () => {
+        it.each([
+            { hasDelay: true, hasParent: false },
+            { hasDelay: false, hasParent: true },
+            { hasDelay: true, hasParent: true },
+        ])("sends delayed state events (hasDelay = $hasDelay, hasParent = $hasParent)", async ({ hasDelay, hasParent }) => {
             const roomId = "!room:example.org";
-            const parentDelayId = "fp";
             const timeoutDelayId = "ft";
 
             driver.sendDelayedEvent.mockResolvedValue({
@@ -575,8 +581,8 @@ describe("ClientWidgetApi", () => {
                     content: {},
                     state_key: "",
                     room_id: roomId,
-                    delay: 5000,
-                    parent_delay_id: parentDelayId,
+                    ...(hasDelay && { delay: 5000 }),
+                    ...(hasParent && { parent_delay_id: "fp" }),
                 },
             };
 
@@ -596,8 +602,8 @@ describe("ClientWidgetApi", () => {
             });
 
             expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
-                event.data.delay,
-                event.data.parent_delay_id,
+                event.data.delay ?? null,
+                event.data.parent_delay_id ?? null,
                 event.data.type,
                 event.data.content,
                 "",

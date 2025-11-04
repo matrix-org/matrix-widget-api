@@ -770,4 +770,23 @@ describe("WidgetApi", () => {
             );
         });
     });
+
+    describe("capabilities", () => {
+        it("should request single capability", () => {
+            const capability = "org.example.capability";
+            widgetApi.requestCapability(capability);
+            expect(widgetApi.hasCapability(capability));
+        });
+
+        it("should request multiple capability", () => {
+            const capabilities: string[] = [];
+            for (let i = 1; i <= 3; i++) {
+                capabilities.push(`org.example.capability${i}`);
+            }
+            widgetApi.requestCapabilities(capabilities);
+            for (const capability of capabilities) {
+                expect(widgetApi.hasCapability(capability));
+            }
+        });
+    });
 });
