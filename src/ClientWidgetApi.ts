@@ -612,7 +612,6 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-
         let sendEventPromise: Promise<ISendEventDetails | ISendDelayedEventDetails>;
         if (request.data.state_key !== undefined) {
             if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
@@ -677,10 +676,7 @@ export class ClientWidgetApi extends EventEmitter {
                     ...params,
                 );
             } else if (request.data.sticky_duration_ms) {
-                sendEventPromise = this.driver.sendStickyEvent(
-                    request.data.sticky_duration_ms,
-                    ...params,
-                );
+                sendEventPromise = this.driver.sendStickyEvent(request.data.sticky_duration_ms, ...params);
             } else {
                 sendEventPromise = this.driver.sendEvent(...params);
             }

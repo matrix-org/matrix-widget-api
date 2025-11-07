@@ -474,7 +474,7 @@ export class WidgetApi extends EventEmitter {
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(delay !== undefined && { delay }),
                 ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
-                ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs })
+                ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
             },
         );
     }

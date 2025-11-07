@@ -104,7 +104,7 @@ export abstract class WidgetDriver {
         eventType: string,
         content: unknown,
         stateKey: string | null = null,
-        roomId: string | null = null
+        roomId: string | null = null,
     ): Promise<ISendEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
     }
@@ -126,11 +126,11 @@ export abstract class WidgetDriver {
      * @throws Rejected when the event could not be sent.
      */
     public sendStickyEvent(
-        stickyDurationMs: number, 
+        stickyDurationMs: number,
         eventType: string,
         content: unknown,
         stateKey: string | null = null,
-        roomId: string | null = null
+        roomId: string | null = null,
     ): Promise<ISendEventDetails> {
         throw new Error("Method not implemented.");
     }
@@ -188,11 +188,11 @@ export abstract class WidgetDriver {
     public sendDelayedStickyEvent(
         delay: number | null,
         parentDelayId: string | null,
-        stickyDurationMs: number, 
+        stickyDurationMs: number,
         eventType: string,
         content: unknown,
         stateKey: string | null = null,
-        roomId: string | null = null
+        roomId: string | null = null,
     ): Promise<ISendEventDetails> {
         throw new Error("Method not implemented.");
     }
