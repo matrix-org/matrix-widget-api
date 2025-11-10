@@ -117,8 +117,6 @@ export abstract class WidgetDriver {
      * @param {number} stickyDurationMs The length of time a sticky event may remain sticky, in milliseconds.
      * @param {string} eventType The event type to be sent.
      * @param {*} content The content for the event.
-     * @param {string|null} stateKey The state key if this is a state event, otherwise null.
-     * May be an empty string.
      * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
      * user is currently looking at.
      * @returns {Promise<ISendEventDetails>} Resolves when the event has been sent with
@@ -129,7 +127,6 @@ export abstract class WidgetDriver {
         stickyDurationMs: number,
         eventType: string,
         content: unknown,
-        stateKey: string | null = null,
         roomId: string | null = null,
     ): Promise<ISendEventDetails> {
         throw new Error("Method not implemented.");
@@ -177,8 +174,6 @@ export abstract class WidgetDriver {
      * or null if it will be put in a new group. May not be null if {@link delay} is null.
      * @param {string} eventType The event type to be sent.
      * @param {*} content The content for the event.
-     * @param {string|null} stateKey The state key if this is a state event, otherwise null.
-     * May be an empty string.
      * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
      * user is currently looking at.
      * @returns {Promise<ISendDelayedEventDetails>} Resolves when the event has been sent with
@@ -191,7 +186,6 @@ export abstract class WidgetDriver {
         stickyDurationMs: number,
         eventType: string,
         content: unknown,
-        stateKey: string | null = null,
         roomId: string | null = null,
     ): Promise<ISendDelayedEventDetails> {
         throw new Error("Method not implemented.");
