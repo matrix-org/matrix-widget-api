@@ -181,7 +181,7 @@ export abstract class WidgetDriver {
      * May be an empty string.
      * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
      * user is currently looking at.
-     * @returns {Promise<ISendEventDetails>} Resolves when the event has been sent with
+     * @returns {Promise<ISendDelayedEventDetails>} Resolves when the event has been sent with
      * details of that event.
      * @throws Rejected when the event could not be sent.
      */
@@ -193,7 +193,7 @@ export abstract class WidgetDriver {
         content: unknown,
         stateKey: string | null = null,
         roomId: string | null = null,
-    ): Promise<ISendEventDetails> {
+    ): Promise<ISendDelayedEventDetails> {
         throw new Error("Method not implemented.");
     }
 

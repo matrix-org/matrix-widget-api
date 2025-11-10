@@ -393,6 +393,57 @@ describe("WidgetApi", () => {
         });
     });
 
+    describe("sticky sendEvent", () => {
+        it("sends sticky message events", async () => {
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                event_id: "$event_id",
+            } as ISendEventFromWidgetResponseData);
+
+            await expect(
+                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, undefined, 2500),
+            ).resolves.toEqual({
+                room_id: "!room-id",
+                event_id: "$event_id",
+            });
+        });
+
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                error: { message: "An error occurred" },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(
+                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, undefined, 2500),
+            ).rejects.toThrow("An error occurred");
+        });
+
+        it("should handle an error with details", async () => {
+            const errorDetails: IWidgetApiErrorResponseDataDetails = {
+                matrix_api_error: {
+                    http_status: 400,
+                    http_headers: {},
+                    url: "",
+                    response: {
+                        errcode: "M_UNKNOWN",
+                        error: "Unknown error",
+                    },
+                },
+            };
+
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(
+                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, undefined, 2500),
+            ).rejects.toThrow(new WidgetApiResponseError("An error occurred", errorDetails));
+        });
+    });
+
     describe("updateDelayedEvent", () => {
         it("updates delayed events", async () => {
             for (const updateDelayedEvent of [

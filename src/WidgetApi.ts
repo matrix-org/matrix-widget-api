@@ -441,8 +441,9 @@ export class WidgetApi extends EventEmitter {
         roomId?: string,
         delay?: number,
         parentDelayId?: string,
+        stickyDurationMs?: number,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, undefined, content, roomId, delay, parentDelayId);
+        return this.sendEvent(eventType, undefined, content, roomId, delay, parentDelayId, stickyDurationMs);
     }
 
     public sendStateEvent(
@@ -511,19 +512,6 @@ export class WidgetApi extends EventEmitter {
     public sendScheduledDelayedEvent(delayId: string): Promise<IUpdateDelayedEventFromWidgetResponseData> {
         return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent,
-            {
-                delay_id: delayId,
-                action: UpdateDelayedEventAction.Send,
-            },
-        );
-    }
-
-    /**
-     * @experimental This currently relies on an unstable MSC (MSC4157).
-     */
-    public sendStickyEvent(delayId: string): Promise<IUpdateDelayedEventFromWidgetResponseData> {
-        return this.transport.send<IUpdateDelayedEventFromWidgetRequestData, IUpdateDelayedEventFromWidgetResponseData>(
-            WidgetApiFromWidgetAction.MSC4354SendStickyEvent,
             {
                 delay_id: delayId,
                 action: UpdateDelayedEventAction.Send,
