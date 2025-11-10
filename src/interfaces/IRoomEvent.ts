@@ -27,4 +27,7 @@ export interface IRoomEvent {
     sticky?: {
         duration_ms: number;
     };
+    msc4354_sticky?: {
+        duration_ms: number;
+    };
 }
