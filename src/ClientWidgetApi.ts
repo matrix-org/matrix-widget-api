@@ -678,9 +678,12 @@ export class ClientWidgetApi extends EventEmitter {
                     ...params,
                 );
             } else if (request.data.sticky_duration_ms) {
-                sendEventPromise = this.driver.sendStickyEvent(request.data.sticky_duration_ms,
-                request.data.type,
-                content, request.data.room_id);
+                sendEventPromise = this.driver.sendStickyEvent(
+                    request.data.sticky_duration_ms,
+                    request.data.type,
+                    content,
+                    request.data.room_id,
+                );
             } else {
                 sendEventPromise = this.driver.sendEvent(...params);
             }

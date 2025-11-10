@@ -782,13 +782,7 @@ describe("ClientWidgetApi", () => {
                 });
             });
 
-            expect(driver.sendStickyEvent).toHaveBeenCalledWith(
-                5000,
-                event.data.type,
-                event.data.content,
-                null,
-                roomId,
-            );
+            expect(driver.sendStickyEvent).toHaveBeenCalledWith(5000, event.data.type, event.data.content, roomId);
         });
 
         it.each([
@@ -845,7 +839,6 @@ describe("ClientWidgetApi", () => {
                     5000,
                     event.data.type,
                     event.data.content,
-                    null,
                     roomId,
                 );
             },
