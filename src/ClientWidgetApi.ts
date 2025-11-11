@@ -1125,10 +1125,10 @@ export class ClientWidgetApi extends EventEmitter {
      */
     public async feedToDevice(message: IToDeviceMessage, encrypted: boolean): Promise<void> {
         if (this.canReceiveToDeviceEvent(message.type)) {
-            await this.transport.send<ISendToDeviceToWidgetRequestData>(
-                WidgetApiToWidgetAction.SendToDevice,
-                { ...message, encrypted },
-            );
+            await this.transport.send<ISendToDeviceToWidgetRequestData>(WidgetApiToWidgetAction.SendToDevice, {
+                ...message,
+                encrypted,
+            });
         }
     }
 
