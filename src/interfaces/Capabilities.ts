@@ -53,6 +53,10 @@ export enum MatrixCapabilities {
      * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4157UpdateDelayedEvent = "org.matrix.msc4157.update_delayed_event",
+    /**
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC4354SendStickyEvent = "org.matrix.msc4354.send_sticky_event",
 }
 
 export type Capability = MatrixCapabilities | string;

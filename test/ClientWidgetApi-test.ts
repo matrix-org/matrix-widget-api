@@ -20,7 +20,7 @@ import { waitFor } from "@testing-library/dom";
 import { ClientWidgetApi } from "../src/ClientWidgetApi";
 import { WidgetDriver } from "../src/driver/WidgetDriver";
 import { CurrentApiVersions, UnstableApiVersion } from "../src/interfaces/ApiVersion";
-import { Capability } from "../src/interfaces/Capabilities";
+import { Capability, MatrixCapabilities } from "../src/interfaces/Capabilities";
 import { IRoomEvent } from "../src/interfaces/IRoomEvent";
 import { IWidgetApiRequest } from "../src/interfaces/IWidgetApiRequest";
 import { IReadRelationsFromWidgetActionRequest } from "../src/interfaces/ReadRelationsAction";
@@ -141,6 +141,8 @@ describe("ClientWidgetApi", () => {
             downloadFile: jest.fn(),
             getKnownRooms: jest.fn(() => []),
             processError: jest.fn(),
+            sendStickyEvent: jest.fn(),
+            sendDelayedStickyEvent: jest.fn(),
         } as Partial<WidgetDriver> as jest.Mocked<WidgetDriver>;
 
         clientWidgetApi = new ClientWidgetApi(
@@ -699,6 +701,183 @@ describe("ClientWidgetApi", () => {
                             },
                         } satisfies IMatrixApiError,
                     },
+                });
+            });
+        });
+    });
+
+    describe("send_event action for sticky events", () => {
+        it("fails to send delayed events", async () => {
+            const roomId = "!room:example.org";
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: "m.room.message",
+                    content: {
+                        sticky_key: "foobar",
+                    },
+                    delay: 5000,
+                    room_id: roomId,
+                    sticky_duration_ms: 5000,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                // Without the required capability
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: expect.any(String) },
+                });
+            });
+
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+        });
+
+        it("can send a sticky message event", async () => {
+            const roomId = "!room:example.org";
+            const eventId = "$evt:example.org";
+
+            driver.sendStickyEvent.mockResolvedValue({
+                roomId,
+                eventId,
+            });
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: "m.room.message",
+                    content: {
+                        sticky_key: "12345",
+                    },
+                    room_id: roomId,
+                    sticky_duration_ms: 5000,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4354SendStickyEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    event_id: eventId,
+                });
+            });
+
+            expect(driver.sendStickyEvent).toHaveBeenCalledWith(5000, event.data.type, event.data.content, roomId);
+        });
+
+        it.each([
+            { hasDelay: true, hasParent: false },
+            { hasDelay: false, hasParent: true },
+            { hasDelay: true, hasParent: true },
+        ])(
+            "sends sticky message events with a delay (withDelay = $hasDelay, hasParent = $hasParent)",
+            async ({ hasDelay, hasParent }) => {
+                const roomId = "!room:example.org";
+                const timeoutDelayId = "ft";
+
+                driver.sendDelayedStickyEvent.mockResolvedValue({
+                    roomId,
+                    delayId: timeoutDelayId,
+                });
+
+                const event: ISendEventFromWidgetActionRequest = {
+                    api: WidgetApiDirection.FromWidget,
+                    widgetId: "test",
+                    requestId: "0",
+                    action: WidgetApiFromWidgetAction.SendEvent,
+                    data: {
+                        type: "m.room.message",
+                        content: {
+                            sticky_key: "12345",
+                        },
+                        room_id: roomId,
+                        ...(hasDelay && { delay: 5000 }),
+                        ...(hasParent && { parent_delay_id: "fp" }),
+                        sticky_duration_ms: 5000,
+                    },
+                };
+
+                await loadIframe([
+                    `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                    `org.matrix.msc2762.send.event:${event.data.type}`,
+                    MatrixCapabilities.MSC4157SendDelayedEvent,
+                    MatrixCapabilities.MSC4354SendStickyEvent,
+                ]);
+
+                emitEvent(new CustomEvent("", { detail: event }));
+
+                await waitFor(() => {
+                    expect(transport.reply).toHaveBeenCalledWith(event, {
+                        room_id: roomId,
+                        delay_id: timeoutDelayId,
+                    });
+                });
+
+                expect(driver.sendDelayedStickyEvent).toHaveBeenCalledWith(
+                    event.data.delay ?? null,
+                    event.data.parent_delay_id ?? null,
+                    5000,
+                    event.data.type,
+                    event.data.content,
+                    roomId,
+                );
+            },
+        );
+
+        it("does not allow sticky state events", async () => {
+            const roomId = "!room:example.org";
+            const timeoutDelayId = "ft";
+
+            driver.sendDelayedEvent.mockResolvedValue({
+                roomId,
+                delayId: timeoutDelayId,
+            });
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: "m.room.topic",
+                    content: {},
+                    state_key: "",
+                    room_id: roomId,
+                    sticky_duration_ms: 5000,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.state_event:${event.data.type}`,
+                MatrixCapabilities.MSC4354SendStickyEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Cannot send a state event with a sticky duration" },
                 });
             });
         });
