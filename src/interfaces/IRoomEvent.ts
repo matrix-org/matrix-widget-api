@@ -21,6 +21,6 @@ export interface IRoomEvent {
     room_id: string; // eslint-disable-line camelcase
     state_key?: string; // eslint-disable-line camelcase
     origin_server_ts: number; // eslint-disable-line camelcase
-    content: unknown;
-    unsigned: unknown;
+    content: Record<string, unknown>;
+    unsigned: Record<string, unknown>;
 }
