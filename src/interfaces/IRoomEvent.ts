@@ -23,4 +23,11 @@ export interface IRoomEvent {
     origin_server_ts: number; // eslint-disable-line camelcase
     content: Record<string, unknown>;
     unsigned: Record<string, unknown>;
+    //MSC4354
+    sticky?: {
+        duration_ms: number;
+    };
+    msc4354_sticky?: {
+        duration_ms: number;
+    };
 }

@@ -110,6 +110,29 @@ export abstract class WidgetDriver {
     }
 
     /**
+     * @experimental Part of MSC4354
+     * Sends a sticky event into a room. If `roomId` is falsy, the client should send the event
+     * into the room the user is currently looking at. The widget API will have already
+     * verified that the widget is capable of sending the event to that room.
+     * @param {number} stickyDurationMs The length of time a sticky event may remain sticky, in milliseconds.
+     * @param {string} eventType The event type to be sent.
+     * @param {*} content The content for the event.
+     * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
+     * user is currently looking at.
+     * @returns {Promise<ISendEventDetails>} Resolves when the event has been sent with
+     * details of that event.
+     * @throws Rejected when the event could not be sent.
+     */
+    public sendStickyEvent(
+        stickyDurationMs: number,
+        eventType: string,
+        content: unknown,
+        roomId: string | null = null,
+    ): Promise<ISendEventDetails> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
      * @experimental Part of MSC4140 & MSC4157
      * Sends a delayed event into a room. If `roomId` is falsy, the client should send it
      * into the room the user is currently looking at. The widget API will have already
@@ -137,6 +160,35 @@ export abstract class WidgetDriver {
         roomId: string | null = null,
     ): Promise<ISendDelayedEventDetails> {
         return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
+     * @experimental Part of MSC4140, MSC4157 and MSC4354
+     * Sends a delayed sticky event into a room. If `roomId` is falsy, the client should send the event
+     * into the room the user is currently looking at. The widget API will have already
+     * verified that the widget is capable of sending the event to that room.
+     * @param {number} stickyDurationMs The length of time a sticky event may remain sticky, in milliseconds.
+     * @param {number|null} delay How much later to send the event, or null to not send the
+     * event automatically. May not be null if {@link parentDelayId} is null.
+     * @param {string|null} parentDelayId The ID of the delayed event this one is grouped with,
+     * or null if it will be put in a new group. May not be null if {@link delay} is null.
+     * @param {string} eventType The event type to be sent.
+     * @param {*} content The content for the event.
+     * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
+     * user is currently looking at.
+     * @returns {Promise<ISendDelayedEventDetails>} Resolves when the event has been sent with
+     * details of that event.
+     * @throws Rejected when the event could not be sent.
+     */
+    public sendDelayedStickyEvent(
+        delay: number | null,
+        parentDelayId: string | null,
+        stickyDurationMs: number,
+        eventType: string,
+        content: unknown,
+        roomId: string | null = null,
+    ): Promise<ISendDelayedEventDetails> {
+        throw new Error("Method not implemented.");
     }
 
     /**
