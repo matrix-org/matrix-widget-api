@@ -48,6 +48,7 @@ import {
 } from "../src";
 import { IGetMediaConfigActionFromWidgetActionRequest } from "../src/interfaces/GetMediaConfigAction";
 import { IReadRoomAccountDataFromWidgetActionRequest } from "../src/interfaces/ReadRoomAccountDataAction";
+import { IToDeviceMessage } from "../src/interfaces/IToDeviceMessage";
 
 jest.mock("../src/transport/PostmessageTransport");
 
@@ -886,11 +887,11 @@ describe("ClientWidgetApi", () => {
     describe("receiving events", () => {
         const roomId = "!room:example.org";
         const otherRoomId = "!other-room:example.org";
-        const event = createRoomEvent({ room_id: roomId, type: "m.room.message", content: "hello" });
+        const event = createRoomEvent({ room_id: roomId, type: "m.room.message", content: { hello: "there" } });
         const eventFromOtherRoom = createRoomEvent({
             room_id: otherRoomId,
             type: "m.room.message",
-            content: "test",
+            content: { test: "test" },
         });
 
         it("forwards events to the widget from one room only", async () => {
@@ -1092,6 +1093,22 @@ describe("ClientWidgetApi", () => {
                 // Only the updated join rules should have been delivered
                 expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.UpdateState);
             });
+        });
+    });
+
+    describe.only("receiving to device messages", () => {
+        it.each([true, false])("forwards device messages to the widget", async (encrypted) => {
+            const event: IToDeviceMessage = {
+                content: { foo: "bar" },
+                type: "org.example.mytype",
+                sender: "@alice:example.org",
+            };
+            // Give the widget capabilities to receive from just one room
+            await loadIframe(["org.matrix.msc3819.receive.to_device:org.example.mytype"]);
+
+            // Event from the matching room should be forwarded
+            await clientWidgetApi.feedToDevice(event, encrypted);
+            expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendToDevice, { ...event, encrypted });
         });
     });
 
@@ -1727,7 +1744,7 @@ describe("ClientWidgetApi", () => {
         it("reads events from a specific room", async () => {
             const roomId = "!room:example.org";
             jest.spyOn(clientWidgetApi, "getWidgetVersions").mockResolvedValue([]);
-            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
+            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: { test: "test" } });
             driver.readRoomTimeline.mockImplementation(async (rId) => {
                 if (rId === roomId) return [event];
                 return [];
@@ -1772,8 +1789,12 @@ describe("ClientWidgetApi", () => {
             const roomId = "!room:example.org";
             const otherRoomId = "!other-room:example.org";
             jest.spyOn(clientWidgetApi, "getWidgetVersions").mockResolvedValue([]);
-            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: "test" });
-            const otherRoomEvent = createRoomEvent({ room_id: otherRoomId, type: "net.example.test", content: "hi" });
+            const event = createRoomEvent({ room_id: roomId, type: "net.example.test", content: { test: "test" } });
+            const otherRoomEvent = createRoomEvent({
+                room_id: otherRoomId,
+                type: "net.example.test",
+                content: { hi: "there" },
+            });
             driver.getKnownRooms.mockReturnValue([roomId, otherRoomId]);
             driver.readRoomTimeline.mockImplementation(async (rId) => {
                 if (rId === roomId) return [event];
