@@ -17,7 +17,7 @@
 import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { WidgetApiFromWidgetAction, WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
-import { IRoomEvent } from "./IRoomEvent";
+import { IToDeviceMessage } from "./IToDeviceMessage";
 
 export interface ISendToDeviceFromWidgetRequestData extends IWidgetApiRequestData {
     type: string;
@@ -38,7 +38,7 @@ export interface ISendToDeviceFromWidgetActionResponse extends ISendToDeviceFrom
     response: ISendToDeviceFromWidgetResponseData;
 }
 
-export interface ISendToDeviceToWidgetRequestData extends IWidgetApiRequestData, IRoomEvent {
+export interface ISendToDeviceToWidgetRequestData extends IWidgetApiRequestData, IToDeviceMessage {
     encrypted: boolean;
 }
 

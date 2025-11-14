@@ -109,6 +109,7 @@ import {
 } from "./interfaces/DownloadFileAction";
 import { IThemeChangeActionRequestData } from "./interfaces/ThemeChangeAction";
 import { IUpdateStateToWidgetRequestData } from "./interfaces/UpdateStateAction";
+import { IToDeviceMessage } from "./interfaces/IToDeviceMessage";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -1153,13 +1154,12 @@ export class ClientWidgetApi extends EventEmitter {
      *   able to receive the event due to permissions, rejects if the widget
      *   failed to handle the event.
      */
-    public async feedToDevice(rawEvent: IRoomEvent, encrypted: boolean): Promise<void> {
-        if (this.canReceiveToDeviceEvent(rawEvent.type)) {
-            await this.transport.send<ISendToDeviceToWidgetRequestData>(
-                WidgetApiToWidgetAction.SendToDevice,
-                // it's compatible, but missing the index signature
-                { ...rawEvent, encrypted } as ISendToDeviceToWidgetRequestData,
-            );
+    public async feedToDevice(message: IToDeviceMessage, encrypted: boolean): Promise<void> {
+        if (this.canReceiveToDeviceEvent(message.type)) {
+            await this.transport.send<ISendToDeviceToWidgetRequestData>(WidgetApiToWidgetAction.SendToDevice, {
+                ...message,
+                encrypted,
+            });
         }
     }
 
