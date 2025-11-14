@@ -1110,6 +1110,20 @@ describe("ClientWidgetApi", () => {
             await clientWidgetApi.feedToDevice(event, encrypted);
             expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendToDevice, { ...event, encrypted });
         });
+        it("ignores messages not allowed by capabilities", async () => {
+            const event: IToDeviceMessage = {
+                content: { foo: "bar" },
+                type: "org.example.othertype",
+                sender: "@alice:example.org",
+            };
+            // Give the widget capabilities to receive from just one room
+            await loadIframe(["org.matrix.msc3819.receive.to_device:org.example.mytype"]);
+            // Clear all prior messages.
+            jest.mocked(transport.send).mockClear();
+            // Event from the matching room should be forwarded
+            await clientWidgetApi.feedToDevice(event, false);
+            expect(transport.send).not.toHaveBeenCalled();
+        });
     });
 
     describe("update_delayed_event action", () => {
