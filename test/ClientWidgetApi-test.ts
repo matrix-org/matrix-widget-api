@@ -1096,7 +1096,7 @@ describe("ClientWidgetApi", () => {
         });
     });
 
-    describe.only("receiving to device messages", () => {
+    describe("receiving to device messages", () => {
         it.each([true, false])("forwards device messages to the widget", async (encrypted) => {
             const event: IToDeviceMessage = {
                 content: { foo: "bar" },
