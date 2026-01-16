@@ -57,6 +57,10 @@ export enum MatrixCapabilities {
      * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4354SendStickyEvent = "org.matrix.msc4354.send_sticky_event",
+    /**
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC4354ReceiveStickyEvent = "org.matrix.msc4354.receive_sticky_event",
 }
 
 export type Capability = MatrixCapabilities | string;
