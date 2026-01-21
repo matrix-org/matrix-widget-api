@@ -771,7 +771,7 @@ describe("ClientWidgetApi", () => {
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.event:${event.data.type}`,
-                MatrixCapabilities.MSC4354SendStickyEvent,
+                MatrixCapabilities.MSC4407SendStickyEvent,
             ]);
 
             emitEvent(new CustomEvent("", { detail: event }));
@@ -822,7 +822,7 @@ describe("ClientWidgetApi", () => {
                     `org.matrix.msc2762.timeline:${event.data.room_id}`,
                     `org.matrix.msc2762.send.event:${event.data.type}`,
                     MatrixCapabilities.MSC4157SendDelayedEvent,
-                    MatrixCapabilities.MSC4354SendStickyEvent,
+                    MatrixCapabilities.MSC4407SendStickyEvent,
                 ]);
 
                 emitEvent(new CustomEvent("", { detail: event }));
@@ -871,7 +871,7 @@ describe("ClientWidgetApi", () => {
             await loadIframe([
                 `org.matrix.msc2762.timeline:${event.data.room_id}`,
                 `org.matrix.msc2762.send.state_event:${event.data.type}`,
-                MatrixCapabilities.MSC4354SendStickyEvent,
+                MatrixCapabilities.MSC4407SendStickyEvent,
             ]);
 
             emitEvent(new CustomEvent("", { detail: event }));

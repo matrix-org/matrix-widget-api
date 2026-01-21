@@ -607,9 +607,9 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         const isStickyEvent = request.data.sticky_duration_ms !== undefined;
-        if (isStickyEvent && !this.hasCapability(MatrixCapabilities.MSC4354SendStickyEvent)) {
+        if (isStickyEvent && !this.hasCapability(MatrixCapabilities.MSC4407SendStickyEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
-                error: { message: `Missing capability for ${MatrixCapabilities.MSC4354SendStickyEvent}` },
+                error: { message: `Missing capability for ${MatrixCapabilities.MSC4407SendStickyEvent}` },
             });
         }
 
