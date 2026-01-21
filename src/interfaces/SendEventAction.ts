@@ -29,7 +29,7 @@ export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
     delay?: number; // eslint-disable-line camelcase
     parent_delay_id?: string; // eslint-disable-line camelcase
 
-    // MSC4354SendStickyEvent
+    // MSC4407
     sticky_duration_ms?: number;
 }
 

@@ -110,7 +110,7 @@ export abstract class WidgetDriver {
     }
 
     /**
-     * @experimental Part of MSC4354
+     * @experimental Part of MSC4407
      * Sends a sticky event into a room. If `roomId` is falsy, the client should send the event
      * into the room the user is currently looking at. The widget API will have already
      * verified that the widget is capable of sending the event to that room.
@@ -163,7 +163,7 @@ export abstract class WidgetDriver {
     }
 
     /**
-     * @experimental Part of MSC4140, MSC4157 and MSC4354
+     * @experimental Part of MSC4140, MSC4157 and MSC4407
      * Sends a delayed sticky event into a room. If `roomId` is falsy, the client should send the event
      * into the room the user is currently looking at. The widget API will have already
      * verified that the widget is capable of sending the event to that room.
