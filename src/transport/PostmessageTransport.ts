@@ -144,18 +144,17 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
     }
 
     public start(): void {
-        this.inboundWindow.addEventListener("message", (ev: MessageEvent) => {
-            this.handleMessage(ev);
-        });
+        this.inboundWindow.addEventListener("message", this.handleMessage);
         this._ready = true;
     }
 
     public stop(): void {
         this._ready = false;
         this.stopController.abort();
+        this.inboundWindow.removeEventListener("message", this.handleMessage);
     }
 
-    private handleMessage(ev: MessageEvent): void {
+    private readonly handleMessage = (ev: MessageEvent): void => {
         if (this.stopController.signal.aborted) return;
         if (!ev.data) return; // invalid event
 
@@ -173,7 +172,7 @@ export class PostmessageTransport extends EventEmitter implements ITransport {
             if (request.api !== invertedDirection(this.sendDirection)) return; // wrong direction
             this.handleRequest(request);
         }
-    }
+    };
 
     private handleRequest(request: IWidgetApiRequest): void {
         if (this.widgetId) {
