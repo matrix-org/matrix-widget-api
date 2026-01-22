@@ -95,6 +95,7 @@ import {
     IUpdateDelayedEventFromWidgetResponseData,
     UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
+import { IForwardLogLineFromWidgetRequestData } from "./interfaces/ForwardLogLineAction";
 
 export class WidgetApiResponseError extends Error {
     static {
@@ -831,6 +832,22 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<IDownloadFileActionFromWidgetRequestData, IDownloadFileActionFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
             data,
+        );
+    }
+
+    /**
+     * Forward a log line to the parent window.
+     * Note: This should only be called if the client has indicated they would like logging, 
+     * as per `org.matrix.mscXXXX.log_forwarding` in the URL params.
+     * 
+     * @param level A string log level.
+     * @param parts Parts of the log line, may be a string or object based.
+     * @returns When the line has been acknowledged.
+     */
+    public async forwardLogLine(level: string, ...parts: unknown[]): Promise<IWidgetApiAcknowledgeResponseData> {
+        return this.transport.send<IForwardLogLineFromWidgetRequestData>(
+            WidgetApiFromWidgetAction.MSCXXXXForwardLogEvent,
+            { level, parts },
         );
     }
 
