@@ -57,6 +57,7 @@ export interface ISearchUserDirectoryResult {
 
 export interface IGetMediaConfigResult {
     [key: string]: unknown;
+
     "m.upload.size"?: number;
 }
 
@@ -238,6 +239,7 @@ export abstract class WidgetDriver {
     ): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
     }
+
     /**
      * Reads an element of room account data. The widget API will have already verified that the widget is
      * capable of receiving the `eventType` of the requested information. If `roomIds` is supplied, it may
@@ -307,6 +309,22 @@ export abstract class WidgetDriver {
         roomIds: string[] | null = null,
     ): Promise<IRoomEvent[]> {
         return Promise.resolve([]);
+    }
+
+    /**
+     * Gets all sticky events of the given type the user has access to.
+     * The widget API will have already verified that the widget is capable of receiving the events.
+     *
+     * This is needed because widgets will get only live messages as they appear in the timeline.
+     * However, sticky events act like a state, and the current state is made by events that may have been
+     * sent before the widget was loaded.
+     * Events are sticky for 1h maximum, so the widget has access to the past hour of sticky events maximum.
+     *
+     * @experimental Part of MSC4407 - Sticky Events (Widget API)
+     * @param roomId - The ID of the room.
+     */
+    public readStickyEvents(roomId: string): Promise<IRoomEvent[]> {
+        throw new Error("readStickyEvents is not implemented");
     }
 
     /**

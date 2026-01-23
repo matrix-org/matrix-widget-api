@@ -110,6 +110,7 @@ import {
 import { IThemeChangeActionRequestData } from "./interfaces/ThemeChangeAction";
 import { IUpdateStateToWidgetRequestData } from "./interfaces/UpdateStateAction";
 import { IToDeviceMessage } from "./interfaces/IToDeviceMessage";
+import { IUpdateStickyStateToWidgetRequestData } from "./interfaces/UpdateStickyStateAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -295,12 +296,39 @@ export class ClientWidgetApi extends EventEmitter {
             if (isTimelineCapability(c)) {
                 const roomId = getTimelineRoomIDFromCapability(c);
                 if (roomId === Symbols.AnyRoom) {
-                    for (const roomId of this.driver.getKnownRooms()) this.pushRoomState(roomId);
+                    for (const roomId of this.driver.getKnownRooms()) {
+                        this.pushRoomState(roomId);
+                    }
                 } else {
                     this.pushRoomState(roomId);
                 }
             }
         }
+
+        if (allowed.includes(MatrixCapabilities.MSC4407ReceiveStickyEvent)) {
+            console.debug(`Widget ${this.widget.id} is allowed to receive sticky events, check current sticky state.`);
+            // If the widget can receive sticky events, push all sticky events in known rooms now.
+            // Sticky events are like a state, and passed history is needed to get the full state.
+            const roomIds = allowed
+                .filter((capability) => isTimelineCapability(capability))
+                .map((timelineCapability) => getTimelineRoomIDFromCapability(timelineCapability))
+                .flatMap((roomIdOrWildcard) => {
+                    if (roomIdOrWildcard === Symbols.AnyRoom) {
+                        // Do we support getting sticky state for any room?
+                        return this.driver.getKnownRooms();
+                    } else {
+                        return roomIdOrWildcard;
+                    }
+                });
+            console.debug(`Widget ${this.widget.id} is allowed to receive sticky events in rooms:`, roomIds);
+
+            for (const roomId of roomIds) {
+                this.pushStickyState(roomId).catch((err) => {
+                    console.error(`Failed to push sticky events to widget ${this.widget.id} for room ${roomId}:`, err);
+                });
+            }
+        }
+
         // If new events are allowed and the currently viewed room isn't covered
         // by a timeline capability, then we know that there could be some state
         // in the viewed room that the widget hasn't learned about yet- push it.
@@ -1200,6 +1228,39 @@ export class ClientWidgetApi extends EventEmitter {
         } finally {
             this.flushRoomStateTask = null;
         }
+    }
+
+    /**
+     * Reads the current sticky state of the room and pushes it to the widget.
+     *
+     * It will only push events that the widget is allowed to receive.
+     * @param roomId
+     * @private
+     */
+    private async pushStickyState(roomId: string): Promise<IWidgetApiAcknowledgeResponseData> {
+        console.debug("Pushing sticky state to widget for room", roomId);
+        return this.driver
+            .readStickyEvents(roomId)
+            .then((events) => {
+                // filter to the allowed sticky events
+                const filtered = events.filter((e) => {
+                    return this.canReceiveRoomEvent(
+                        e.type,
+                        typeof e.content?.msgtype === "string" ? e.content.msgtype : null,
+                    );
+                });
+                return { roomId, stickyEvents: filtered };
+            })
+            .then(({ roomId, stickyEvents }) => {
+                console.debug("Pushing", stickyEvents.length, "sticky events to widget for room", roomId);
+                return this.transport.send<IUpdateStickyStateToWidgetRequestData>(
+                    WidgetApiToWidgetAction.MSC4407PushInitialStickyState,
+                    {
+                        roomId,
+                        stickyEvents,
+                    },
+                );
+            });
     }
 
     /**
