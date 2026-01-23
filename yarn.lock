@@ -1148,6 +1148,13 @@
   dependencies:
     eslint-visitor-keys "^3.4.3"
 
+"@eslint-community/eslint-utils@^4.9.1":
+  version "4.9.1"
+  resolved "https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.9.1.tgz#4e90af67bc51ddee6cdef5284edf572ec376b595"
+  integrity sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ==
+  dependencies:
+    eslint-visitor-keys "^3.4.3"
+
 "@eslint-community/regexpp@^4.10.0", "@eslint-community/regexpp@^4.6.1":
   version "4.12.1"
   resolved "https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.12.1.tgz#cfc6cffe39df390a3841cde2abccf92eaa7ae0e0"
@@ -1557,16 +1564,17 @@
   dependencies:
     "@sinonjs/commons" "^2.0.0"
 
-"@stylistic/eslint-plugin@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@stylistic/eslint-plugin/-/eslint-plugin-3.1.0.tgz#a9f655c518f76bfc5feb46b467d0f06e511b289d"
-  integrity sha512-pA6VOrOqk0+S8toJYhQGv2MWpQQR0QpeUo9AhNkC49Y26nxBQ/nH1rta9bUU1rPw2fJ1zZEMV5oCX5AazT7J2g==
+"@stylistic/eslint-plugin@^5.0.0":
+  version "5.7.1"
+  resolved "https://registry.yarnpkg.com/@stylistic/eslint-plugin/-/eslint-plugin-5.7.1.tgz#bb108186a0133071b38be5fa705cd262260be8a8"
+  integrity sha512-zjTUwIsEfT+k9BmXwq1QEFYsb4afBlsI1AXFyWQBgggMzwBFOuu92pGrE5OFx90IOjNl+lUbQoTG7f8S0PkOdg==
   dependencies:
-    "@typescript-eslint/utils" "^8.13.0"
-    eslint-visitor-keys "^4.2.0"
-    espree "^10.3.0"
+    "@eslint-community/eslint-utils" "^4.9.1"
+    "@typescript-eslint/types" "^8.53.1"
+    eslint-visitor-keys "^4.2.1"
+    espree "^10.4.0"
     estraverse "^5.3.0"
-    picomatch "^4.0.2"
+    picomatch "^4.0.3"
 
 "@testing-library/dom@^8.0.0":
   version "8.20.1"
@@ -1806,6 +1814,11 @@
   resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-8.46.2.tgz#2bad7348511b31e6e42579820e62b73145635763"
   integrity sha512-lNCWCbq7rpg7qDsQrd3D6NyWYu+gkTENkG5IKYhUIcxSb59SQC/hEQ+MrG4sTgBVghTonNWq42bA/d4yYumldQ==
 
+"@typescript-eslint/types@^8.53.1":
+  version "8.53.1"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-8.53.1.tgz#101f203f0807a63216cceceedb815fabe21d5793"
+  integrity sha512-jr/swrr2aRmUAUjW5/zQHbMaui//vQlsZcJKijZf3M26bnmLj8LyZUpj8/Rd6uzaek06OWsqdofN/Thenm5O8A==
+
 "@typescript-eslint/typescript-estree@8.46.2":
   version "8.46.2"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-8.46.2.tgz#ab547a27e4222bb6a3281cb7e98705272e2c7d08"
@@ -1822,7 +1835,7 @@
     semver "^7.6.0"
     ts-api-utils "^2.1.0"
 
-"@typescript-eslint/utils@8.46.2", "@typescript-eslint/utils@^8.13.0":
+"@typescript-eslint/utils@8.46.2":
   version "8.46.2"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-8.46.2.tgz#b313d33d67f9918583af205bd7bcebf20f231732"
   integrity sha512-sExxzucx0Tud5tE0XqR0lT0psBQvEpnpiul9XbGUB1QwpWJJAps1O/Z7hJxLGiZLBKMCutjTzDgmd1muEhBnVg==
@@ -1921,12 +1934,12 @@ acorn@^8.1.0, acorn@^8.8.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.2.tgz#1b2f25db02af965399b9776b0c2c391276d37c4a"
   integrity sha512-xjIYgE8HBrkpd/sJqOGNspf8uHG+NOHGOw6a/Urj8taM2EXfdNAH2oFcPeIFfsv3+kz/mJrS5VuMqbNLjCa2vw==
 
-acorn@^8.11.0, acorn@^8.4.1:
+acorn@^8.11.0, acorn@^8.15.0, acorn@^8.4.1:
   version "8.15.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.15.0.tgz#a360898bc415edaac46c8241f6383975b930b816"
   integrity sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==
 
-acorn@^8.14.0, acorn@^8.9.0:
+acorn@^8.9.0:
   version "8.14.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.14.0.tgz#063e2c70cac5fb4f6467f0b11152e04c682795b0"
   integrity sha512-cl669nCJTZBsL97OF4kUQm5g5hC2uihk0NxY3WENAC0TYdILVkAyHymAntgxGkl7K+t0cXIrH5siy5S4XkFycA==
@@ -3638,11 +3651,6 @@ eslint-visitor-keys@^3.4.1, eslint-visitor-keys@^3.4.3:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-3.4.3.tgz#0cd72fe8550e3c2eae156a96a4dddcd1c8ac5800"
   integrity sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag==
 
-eslint-visitor-keys@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-4.2.0.tgz#687bacb2af884fcdda8a6e7d65c606f46a14cd45"
-  integrity sha512-UyLnSehNt62FFhSwjZlHmeokpRK59rcz29j+F1/aDgbkbRTk7wIc9XzdoasMUbRNKDM0qQt/+BJ4BrpFeABemw==
-
 eslint-visitor-keys@^4.2.1:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-4.2.1.tgz#4cfea60fe7dd0ad8e816e1ed026c1d5251b512c1"
@@ -3692,14 +3700,14 @@ eslint@^8.57.1:
     strip-ansi "^6.0.1"
     text-table "^0.2.0"
 
-espree@^10.3.0:
-  version "10.3.0"
-  resolved "https://registry.yarnpkg.com/espree/-/espree-10.3.0.tgz#29267cf5b0cb98735b65e64ba07e0ed49d1eed8a"
-  integrity sha512-0QYC8b24HWY8zjRnDTL6RiHfDbAWn63qb4LMj1Z4b076A4une81+z03Kg7l7mn/48PUTqoLptSXez8oknU8Clg==
+espree@^10.4.0:
+  version "10.4.0"
+  resolved "https://registry.yarnpkg.com/espree/-/espree-10.4.0.tgz#d54f4949d4629005a1fa168d937c3ff1f7e2a837"
+  integrity sha512-j6PAQ2uUr79PZhBjP5C5fhl8e39FmRnOjsD5lGnWrFU8i2G776tBK7+nP8KuQUTTyAZUwfQqXAgrVH5MbH9CYQ==
   dependencies:
-    acorn "^8.14.0"
+    acorn "^8.15.0"
     acorn-jsx "^5.3.2"
-    eslint-visitor-keys "^4.2.0"
+    eslint-visitor-keys "^4.2.1"
 
 espree@^9.6.0, espree@^9.6.1:
   version "9.6.1"
@@ -5956,10 +5964,10 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.3, picomatch@^2.3.1:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
-picomatch@^4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-4.0.2.tgz#77c742931e8f3b8820946c76cd0c1f13730d1dab"
-  integrity sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==
+picomatch@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-4.0.3.tgz#796c76136d1eead715db1e7bad785dedd695a042"
+  integrity sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==
 
 pify@^4.0.1:
   version "4.0.1"
