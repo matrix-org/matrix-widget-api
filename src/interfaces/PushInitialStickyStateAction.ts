@@ -19,20 +19,20 @@ import { WidgetApiToWidgetAction } from "./WidgetApiAction";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 import { IRoomEvent } from "./IRoomEvent";
 
-export interface IUpdateStickyStateToWidgetRequestData extends IWidgetApiRequestData {
+export interface IPushInitialStickyStateToWidgetRequestData extends IWidgetApiRequestData {
     roomId: string;
     stickyEvents: IRoomEvent[];
 }
 
-export interface IUpdateStickyStateToWidgetActionRequest extends IWidgetApiRequest {
+export interface IPushInitialStickyStateToWidgetActionRequest extends IWidgetApiRequest {
     action: WidgetApiToWidgetAction.MSC4407PushInitialStickyState;
-    data: IUpdateStickyStateToWidgetRequestData;
+    data: IPushInitialStickyStateToWidgetRequestData;
 }
 
-export interface IUpdateStickyStateToWidgetResponseData extends IWidgetApiResponseData {
+export interface IPushInitialStickyStateToWidgetResponseData extends IWidgetApiResponseData {
     // nothing
 }
 
-export interface IUpdateStickyStateToWidgetActionResponse extends IUpdateStickyStateToWidgetActionRequest {
-    response: IUpdateStickyStateToWidgetResponseData;
+export interface IPushInitialStickyStateToWidgetActionResponse extends IPushInitialStickyStateToWidgetActionRequest {
+    response: IPushInitialStickyStateToWidgetResponseData;
 }

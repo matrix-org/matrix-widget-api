@@ -110,7 +110,7 @@ import {
 import { IThemeChangeActionRequestData } from "./interfaces/ThemeChangeAction";
 import { IUpdateStateToWidgetRequestData } from "./interfaces/UpdateStateAction";
 import { IToDeviceMessage } from "./interfaces/IToDeviceMessage";
-import { IUpdateStickyStateToWidgetRequestData } from "./interfaces/UpdateStickyStateAction";
+import { IPushInitialStickyStateToWidgetRequestData } from "./interfaces/PushInitialStickyStateAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -1253,7 +1253,7 @@ export class ClientWidgetApi extends EventEmitter {
             })
             .then(({ roomId, stickyEvents }) => {
                 console.debug("Pushing", stickyEvents.length, "sticky events to widget for room", roomId);
-                return this.transport.send<IUpdateStickyStateToWidgetRequestData>(
+                return this.transport.send<IPushInitialStickyStateToWidgetRequestData>(
                     WidgetApiToWidgetAction.MSC4407PushInitialStickyState,
                     {
                         roomId,
