@@ -1067,7 +1067,7 @@ export class ClientWidgetApi extends EventEmitter {
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
                         error: {
-                            message: "Unknown or unsupported action: " + ev.detail.action,
+                            message: "Unknown or unsupported from-widget action: " + ev.detail.action,
                         },
                     });
             }
