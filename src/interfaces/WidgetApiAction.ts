@@ -30,6 +30,13 @@ export enum WidgetApiToWidgetAction {
     SendToDevice = "send_to_device",
     UpdateState = "update_state",
     UpdateTurnServers = "update_turn_servers",
+
+    /**
+     * When a widget is approved to receive sticky events, this action is sent to notify it of the current
+     * sticky state (i.e., the events that are currently sticky in the room and sent before the widget was active).
+     * @experimental - Part of MSC4407 and may change or be removed without warning.
+     */
+    MSC4407PushInitialStickyState = "org.matrix.msc4407.initial_sticky_state",
 }
 
 export enum WidgetApiFromWidgetAction {

@@ -884,6 +884,146 @@ describe("ClientWidgetApi", () => {
         });
     });
 
+    describe("Sticky events updates", () => {
+        // Some testing contants for sticky events
+        const ROOM_A = "!here:example.org";
+        const ROOM_B = "!there:example.org";
+
+        const ALICE_RTC_MEMBER_EVENT = createRoomEvent({
+            sender: "@alice:example.org",
+            room_id: ROOM_A,
+            type: "org.matrix.msc4143.rtc.member",
+            content: {
+                member: {
+                    device_id: "HXKHKJSLZI",
+                },
+                msc4354_sticky_key: "001",
+            },
+        });
+
+        const BOB_RTC_MEMBER_EVENT = createRoomEvent({
+            sender: "@bob:example.org",
+            room_id: ROOM_A,
+            type: "org.matrix.msc4143.rtc.member",
+            content: {
+                msc4354_sticky_key: "002",
+            },
+        });
+
+        const ANOTHER_STICKY_EVENT = createRoomEvent({
+            type: "org.example.active_poll",
+            room_id: ROOM_A,
+            content: {
+                q: "How are you?",
+                options: ["Good", "Bad", "Okay"],
+                msc4354_sticky_key: "ac_000",
+            },
+        });
+
+        const OTHER_ROOM_RTC_EVENT = {
+            ...ALICE_RTC_MEMBER_EVENT,
+            room_id: ROOM_B,
+        };
+
+        beforeEach(() => {
+            driver.readStickyEvents = jest.fn().mockImplementation((roomId) => {
+                if (roomId === ROOM_A) {
+                    return Promise.resolve([ALICE_RTC_MEMBER_EVENT, BOB_RTC_MEMBER_EVENT, ANOTHER_STICKY_EVENT]);
+                } else if (roomId === ROOM_B) {
+                    return Promise.resolve([OTHER_ROOM_RTC_EVENT]);
+                }
+                return Promise.resolve([]);
+            });
+        });
+
+        it("Feed current sticky events to the widget when loaded", async () => {
+            // Load
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${ROOM_A}`,
+                "org.matrix.msc2762.receive.event:org.matrix.msc4143.rtc.member",
+                MatrixCapabilities.MSC4407ReceiveStickyEvent,
+            ]);
+
+            await waitFor(() => {
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, BOB_RTC_MEMBER_EVENT);
+            });
+        });
+
+        it("Feed current sticky events to the widget when loaded room B", async () => {
+            // Load
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${ROOM_B}`,
+                "org.matrix.msc2762.receive.event:org.matrix.msc4143.rtc.member",
+                MatrixCapabilities.MSC4407ReceiveStickyEvent,
+            ]);
+
+            await waitFor(() => {
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, OTHER_ROOM_RTC_EVENT);
+                expect(transport.send).not.toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.SendEvent,
+                    ALICE_RTC_MEMBER_EVENT,
+                );
+            });
+        });
+
+        it("Should not push sticky events of type that the widget cannot receive", async () => {
+            // Load
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${ROOM_A}`,
+                "org.matrix.msc2762.receive.event:org.matrix.msc4143.rtc.member",
+                MatrixCapabilities.MSC4407ReceiveStickyEvent,
+            ]);
+
+            // -- ASSERT
+            // The sticky events of the unrequested type should not be pushed
+            await waitFor(() => {
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, BOB_RTC_MEMBER_EVENT);
+                expect(transport.send).not.toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.SendEvent,
+                    ANOTHER_STICKY_EVENT,
+                );
+            });
+        });
+
+        it("Should not push sticky events from another room", async () => {
+            // Load
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${ROOM_A}`,
+                "org.matrix.msc2762.receive.event:org.matrix.msc4143.rtc.member",
+                MatrixCapabilities.MSC4407ReceiveStickyEvent,
+            ]);
+
+            // -- ASSERT
+            // The sticky events of the unrequested type should not be pushed
+            await waitFor(() => {
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, BOB_RTC_MEMBER_EVENT);
+                expect(transport.send).not.toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.SendEvent,
+                    OTHER_ROOM_RTC_EVENT,
+                );
+            });
+        });
+
+        it("Should not push past sticky event if sticky capability not requested", async () => {
+            // -- ACT
+            // Request permission to read `org.matrix.msc4143.rtc.member` but without
+            // the permission to read sticky events
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${ROOM_A}`,
+                "org.matrix.msc2762.receive.event:org.matrix.msc4143.rtc.member",
+            ]);
+
+            // -- ASSERT
+            // No sticky events should be pushed!
+            await waitFor(() => {
+                expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, expect.anything());
+            });
+        });
+    });
+
     describe("receiving events", () => {
         const roomId = "!room:example.org";
         const otherRoomId = "!other-room:example.org";
