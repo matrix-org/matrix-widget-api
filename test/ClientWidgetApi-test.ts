@@ -960,7 +960,10 @@ describe("ClientWidgetApi", () => {
 
             await waitFor(() => {
                 expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, OTHER_ROOM_RTC_EVENT);
-                expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
+                expect(transport.send).not.toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.SendEvent,
+                    ALICE_RTC_MEMBER_EVENT,
+                );
             });
         });
 
