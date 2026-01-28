@@ -920,7 +920,7 @@ describe("ClientWidgetApi", () => {
             },
         });
 
-        const OTHER_ROOM_EVENT = {
+        const OTHER_ROOM_RTC_EVENT = {
             ...ALICE_RTC_MEMBER_EVENT,
             room_id: ROOM_B,
         };
@@ -930,7 +930,7 @@ describe("ClientWidgetApi", () => {
                 if (roomId === ROOM_A) {
                     return Promise.resolve([ALICE_RTC_MEMBER_EVENT, BOB_RTC_MEMBER_EVENT, ANOTHER_STICKY_EVENT]);
                 } else if (roomId === ROOM_B) {
-                    return Promise.resolve([OTHER_ROOM_EVENT]);
+                    return Promise.resolve([OTHER_ROOM_RTC_EVENT]);
                 }
                 return Promise.resolve([]);
             });
@@ -945,11 +945,22 @@ describe("ClientWidgetApi", () => {
             ]);
 
             await waitFor(() => {
-                // The initial topic and name should have been pushed
-                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.MSC4407PushInitialStickyState, {
-                    roomId: ROOM_A,
-                    stickyEvents: [ALICE_RTC_MEMBER_EVENT, BOB_RTC_MEMBER_EVENT],
-                });
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, BOB_RTC_MEMBER_EVENT);
+            });
+        });
+
+        it("Feed current sticky events to the widget when loaded room B", async () => {
+            // Load
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${ROOM_B}`,
+                "org.matrix.msc2762.receive.event:org.matrix.msc4143.rtc.member",
+                MatrixCapabilities.MSC4407ReceiveStickyEvent,
+            ]);
+
+            await waitFor(() => {
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, OTHER_ROOM_RTC_EVENT);
+                expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
             });
         });
 
@@ -964,10 +975,32 @@ describe("ClientWidgetApi", () => {
             // -- ASSERT
             // The sticky events of the unrequested type should not be pushed
             await waitFor(() => {
-                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.MSC4407PushInitialStickyState, {
-                    roomId: ROOM_A,
-                    stickyEvents: [ALICE_RTC_MEMBER_EVENT, BOB_RTC_MEMBER_EVENT],
-                });
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, BOB_RTC_MEMBER_EVENT);
+                expect(transport.send).not.toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.SendEvent,
+                    ANOTHER_STICKY_EVENT,
+                );
+            });
+        });
+
+        it("Should not push sticky events from another room", async () => {
+            // Load
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${ROOM_A}`,
+                "org.matrix.msc2762.receive.event:org.matrix.msc4143.rtc.member",
+                MatrixCapabilities.MSC4407ReceiveStickyEvent,
+            ]);
+
+            // -- ASSERT
+            // The sticky events of the unrequested type should not be pushed
+            await waitFor(() => {
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, ALICE_RTC_MEMBER_EVENT);
+                expect(transport.send).toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, BOB_RTC_MEMBER_EVENT);
+                expect(transport.send).not.toHaveBeenCalledWith(
+                    WidgetApiToWidgetAction.SendEvent,
+                    OTHER_ROOM_RTC_EVENT,
+                );
             });
         });
 
@@ -983,10 +1016,7 @@ describe("ClientWidgetApi", () => {
             // -- ASSERT
             // No sticky events should be pushed!
             await waitFor(() => {
-                expect(transport.send).not.toHaveBeenCalledWith(
-                    WidgetApiToWidgetAction.MSC4407PushInitialStickyState,
-                    expect.anything(),
-                );
+                expect(transport.send).not.toHaveBeenCalledWith(WidgetApiToWidgetAction.SendEvent, expect.anything());
             });
         });
     });
