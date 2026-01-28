@@ -65,7 +65,6 @@ export type * from "./interfaces/UploadFileAction";
 export type * from "./interfaces/DownloadFileAction";
 export type * from "./interfaces/ThemeChangeAction";
 export type * from "./interfaces/LanguageChangeAction";
-export type * from "./interfaces/PushInitialStickyStateAction";
 
 // Complex models
 export * from "./models/WidgetEventCapability";

@@ -110,7 +110,6 @@ import {
 import { IThemeChangeActionRequestData } from "./interfaces/ThemeChangeAction";
 import { IUpdateStateToWidgetRequestData } from "./interfaces/UpdateStateAction";
 import { IToDeviceMessage } from "./interfaces/IToDeviceMessage";
-import { IPushInitialStickyStateToWidgetRequestData } from "./interfaces/PushInitialStickyStateAction";
 
 /**
  * API handler for the client side of widgets. This raises events
@@ -1237,7 +1236,7 @@ export class ClientWidgetApi extends EventEmitter {
      * @param roomId
      * @private
      */
-    private async pushStickyState(roomId: string): Promise<IWidgetApiAcknowledgeResponseData> {
+    private async pushStickyState(roomId: string): Promise<void> {
         console.debug("Pushing sticky state to widget for room", roomId);
         return this.driver
             .readStickyEvents(roomId)
@@ -1251,15 +1250,16 @@ export class ClientWidgetApi extends EventEmitter {
                 });
                 return { roomId, stickyEvents: filtered };
             })
-            .then(({ roomId, stickyEvents }) => {
+            .then(async ({ roomId, stickyEvents }) => {
                 console.debug("Pushing", stickyEvents.length, "sticky events to widget for room", roomId);
-                return this.transport.send<IPushInitialStickyStateToWidgetRequestData>(
-                    WidgetApiToWidgetAction.MSC4407PushInitialStickyState,
-                    {
-                        roomId,
-                        stickyEvents,
-                    },
-                );
+                const promises = stickyEvents.map((rawEvent) => {
+                    return this.transport.send<ISendEventToWidgetRequestData>(
+                        WidgetApiToWidgetAction.SendEvent,
+                        // copied from feedEvent; it's compatible, but missing the index signature
+                        rawEvent as ISendEventToWidgetRequestData,
+                    );
+                });
+                await Promise.all(promises);
             });
     }
 
