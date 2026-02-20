@@ -698,10 +698,7 @@ export class ClientWidgetApi extends EventEmitter {
                     request.data.room_id,
                 );
             } else if (delay !== undefined) {
-                sendEventPromise = this.driver.sendDelayedEvent(
-                    delay,
-                    ...params,
-                );
+                sendEventPromise = this.driver.sendDelayedEvent(delay, ...params);
             } else if (request.data.sticky_duration_ms) {
                 sendEventPromise = this.driver.sendStickyEvent(
                     request.data.sticky_duration_ms,

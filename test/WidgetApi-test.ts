@@ -372,9 +372,7 @@ describe("WidgetApi", () => {
                 event_id: "$event_id",
             } as ISendEventFromWidgetResponseData);
 
-            await expect(
-                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500),
-            ).resolves.toEqual({
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500)).resolves.toEqual({
                 room_id: "!room-id",
                 event_id: "$event_id",
             });
@@ -385,9 +383,9 @@ describe("WidgetApi", () => {
                 error: { message: "An error occurred" },
             } as IWidgetApiErrorResponseData);
 
-            await expect(
-                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500),
-            ).rejects.toThrow("An error occurred");
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500)).rejects.toThrow(
+                "An error occurred",
+            );
         });
 
         it("should handle an error with details", async () => {
@@ -410,9 +408,9 @@ describe("WidgetApi", () => {
                 },
             } as IWidgetApiErrorResponseData);
 
-            await expect(
-                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500),
-            ).rejects.toThrow(new WidgetApiResponseError("An error occurred", errorDetails));
+            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500)).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
         });
     });
 
