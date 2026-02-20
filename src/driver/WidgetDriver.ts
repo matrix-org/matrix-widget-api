@@ -138,10 +138,7 @@ export abstract class WidgetDriver {
      * Sends a delayed event into a room. If `roomId` is falsy, the client should send it
      * into the room the user is currently looking at. The widget API will have already
      * verified that the widget is capable of sending the event to that room.
-     * @param {number|null} delay How much later to send the event, or null to not send the
-     * event automatically. May not be null if {@link parentDelayId} is null.
-     * @param {string|null} parentDelayId The ID of the delayed event this one is grouped with,
-     * or null if it will be put in a new group. May not be null if {@link delay} is null.
+     * @param {number} delay How much later to send the event.
      * @param {string} eventType The event type of the event to be sent.
      * @param {*} content The content for the event to be sent.
      * @param {string|null} stateKey The state key if the event to be sent a state event,
@@ -153,8 +150,7 @@ export abstract class WidgetDriver {
      * @throws Rejected when the delayed event could not be sent.
      */
     public sendDelayedEvent(
-        delay: number | null,
-        parentDelayId: string | null,
+        delay: number,
         eventType: string,
         content: unknown,
         stateKey: string | null = null,
@@ -169,10 +165,7 @@ export abstract class WidgetDriver {
      * into the room the user is currently looking at. The widget API will have already
      * verified that the widget is capable of sending the event to that room.
      * @param {number} stickyDurationMs The length of time a sticky event may remain sticky, in milliseconds.
-     * @param {number|null} delay How much later to send the event, or null to not send the
-     * event automatically. May not be null if {@link parentDelayId} is null.
-     * @param {string|null} parentDelayId The ID of the delayed event this one is grouped with,
-     * or null if it will be put in a new group. May not be null if {@link delay} is null.
+     * @param {number} delay How much later to send the event.
      * @param {string} eventType The event type to be sent.
      * @param {*} content The content for the event.
      * @param {string|null} roomId The room ID to send the event to. If falsy, the room the
@@ -182,8 +175,7 @@ export abstract class WidgetDriver {
      * @throws Rejected when the event could not be sent.
      */
     public sendDelayedStickyEvent(
-        delay: number | null,
-        parentDelayId: string | null,
+        delay: number,
         stickyDurationMs: number,
         eventType: string,
         content: unknown,

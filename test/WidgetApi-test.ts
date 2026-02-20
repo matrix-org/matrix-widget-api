@@ -329,34 +329,6 @@ describe("WidgetApi", () => {
             });
         });
 
-        it("sends delayed child action message events", async () => {
-            widgetTransportHelper.queueResponse({
-                room_id: "!room-id",
-                delay_id: "id",
-            } as ISendEventFromWidgetResponseData);
-
-            await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", 1000, "parent-id")).resolves.toEqual(
-                {
-                    room_id: "!room-id",
-                    delay_id: "id",
-                },
-            );
-        });
-
-        it("sends delayed child action state events", async () => {
-            widgetTransportHelper.queueResponse({
-                room_id: "!room-id",
-                delay_id: "id",
-            } as ISendEventFromWidgetResponseData);
-
-            await expect(
-                widgetApi.sendStateEvent("m.room.topic", "", {}, "!room-id", 1000, "parent-id"),
-            ).resolves.toEqual({
-                room_id: "!room-id",
-                delay_id: "id",
-            });
-        });
-
         it("should handle an error", async () => {
             widgetTransportHelper.queueResponse({
                 error: { message: "An error occurred" },
@@ -401,7 +373,7 @@ describe("WidgetApi", () => {
             } as ISendEventFromWidgetResponseData);
 
             await expect(
-                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, undefined, 2500),
+                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500),
             ).resolves.toEqual({
                 room_id: "!room-id",
                 event_id: "$event_id",
@@ -414,7 +386,7 @@ describe("WidgetApi", () => {
             } as IWidgetApiErrorResponseData);
 
             await expect(
-                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, undefined, 2500),
+                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500),
             ).rejects.toThrow("An error occurred");
         });
 
@@ -439,7 +411,7 @@ describe("WidgetApi", () => {
             } as IWidgetApiErrorResponseData);
 
             await expect(
-                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, undefined, 2500),
+                widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500),
             ).rejects.toThrow(new WidgetApiResponseError("An error occurred", errorDetails));
         });
     });

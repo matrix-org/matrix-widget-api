@@ -509,116 +509,98 @@ describe("ClientWidgetApi", () => {
             expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
         });
 
-        it.each([
-            { hasDelay: true, hasParent: false },
-            { hasDelay: false, hasParent: true },
-            { hasDelay: true, hasParent: true },
-        ])(
-            "sends delayed message events (hasDelay = $hasDelay, hasParent = $hasParent)",
-            async ({ hasDelay, hasParent }) => {
-                const roomId = "!room:example.org";
-                const timeoutDelayId = "ft";
+        it("sends delayed message events", async () => {
+            const roomId = "!room:example.org";
+            const timeoutDelayId = "ft";
 
-                driver.sendDelayedEvent.mockResolvedValue({
-                    roomId,
-                    delayId: timeoutDelayId,
+            driver.sendDelayedEvent.mockResolvedValue({
+                roomId,
+                delayId: timeoutDelayId,
+            });
+
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: "m.room.message",
+                    content: {},
+                    room_id: roomId,
+                    delay: 5000,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                "org.matrix.msc4157.send.delayed_event",
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    delay_id: timeoutDelayId,
                 });
+            });
 
-                const event: ISendEventFromWidgetActionRequest = {
-                    api: WidgetApiDirection.FromWidget,
-                    widgetId: "test",
-                    requestId: "0",
-                    action: WidgetApiFromWidgetAction.SendEvent,
-                    data: {
-                        type: "m.room.message",
-                        content: {},
-                        room_id: roomId,
-                        ...(hasDelay && { delay: 5000 }),
-                        ...(hasParent && { parent_delay_id: "fp" }),
-                    },
-                };
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
+                event.data.delay,
+                event.data.type,
+                event.data.content,
+                null,
+                roomId,
+            );
+        });
 
-                await loadIframe([
-                    `org.matrix.msc2762.timeline:${event.data.room_id}`,
-                    `org.matrix.msc2762.send.event:${event.data.type}`,
-                    "org.matrix.msc4157.send.delayed_event",
-                ]);
+        it("sends delayed state events", async () => {
+            const roomId = "!room:example.org";
+            const timeoutDelayId = "ft";
 
-                emitEvent(new CustomEvent("", { detail: event }));
+            driver.sendDelayedEvent.mockResolvedValue({
+                roomId,
+                delayId: timeoutDelayId,
+            });
 
-                await waitFor(() => {
-                    expect(transport.reply).toHaveBeenCalledWith(event, {
-                        room_id: roomId,
-                        delay_id: timeoutDelayId,
-                    });
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: "m.room.topic",
+                    content: {},
+                    state_key: "",
+                    room_id: roomId,
+                    delay: 5000,
+                },
+            };
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.state_event:${event.data.type}`,
+                "org.matrix.msc4157.send.delayed_event",
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    delay_id: timeoutDelayId,
                 });
+            });
 
-                expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
-                    event.data.delay ?? null,
-                    event.data.parent_delay_id ?? null,
-                    event.data.type,
-                    event.data.content,
-                    null,
-                    roomId,
-                );
-            },
-        );
-
-        it.each([
-            { hasDelay: true, hasParent: false },
-            { hasDelay: false, hasParent: true },
-            { hasDelay: true, hasParent: true },
-        ])(
-            "sends delayed state events (hasDelay = $hasDelay, hasParent = $hasParent)",
-            async ({ hasDelay, hasParent }) => {
-                const roomId = "!room:example.org";
-                const timeoutDelayId = "ft";
-
-                driver.sendDelayedEvent.mockResolvedValue({
-                    roomId,
-                    delayId: timeoutDelayId,
-                });
-
-                const event: ISendEventFromWidgetActionRequest = {
-                    api: WidgetApiDirection.FromWidget,
-                    widgetId: "test",
-                    requestId: "0",
-                    action: WidgetApiFromWidgetAction.SendEvent,
-                    data: {
-                        type: "m.room.topic",
-                        content: {},
-                        state_key: "",
-                        room_id: roomId,
-                        ...(hasDelay && { delay: 5000 }),
-                        ...(hasParent && { parent_delay_id: "fp" }),
-                    },
-                };
-
-                await loadIframe([
-                    `org.matrix.msc2762.timeline:${event.data.room_id}`,
-                    `org.matrix.msc2762.send.state_event:${event.data.type}`,
-                    "org.matrix.msc4157.send.delayed_event",
-                ]);
-
-                emitEvent(new CustomEvent("", { detail: event }));
-
-                await waitFor(() => {
-                    expect(transport.reply).toHaveBeenCalledWith(event, {
-                        room_id: roomId,
-                        delay_id: timeoutDelayId,
-                    });
-                });
-
-                expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
-                    event.data.delay ?? null,
-                    event.data.parent_delay_id ?? null,
-                    event.data.type,
-                    event.data.content,
-                    "",
-                    roomId,
-                );
-            },
-        );
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
+                event.data.delay ?? null,
+                event.data.type,
+                event.data.content,
+                "",
+                roomId,
+            );
+        });
 
         it("should reject requests when the driver throws an exception", async () => {
             const roomId = "!room:example.org";
@@ -635,7 +617,6 @@ describe("ClientWidgetApi", () => {
                     content: "hello",
                     room_id: roomId,
                     delay: 5000,
-                    parent_delay_id: "fp",
                 },
             };
 
@@ -675,7 +656,6 @@ describe("ClientWidgetApi", () => {
                     content: "hello",
                     room_id: roomId,
                     delay: 5000,
-                    parent_delay_id: "fp",
                 },
             };
 
@@ -786,64 +766,55 @@ describe("ClientWidgetApi", () => {
             expect(driver.sendStickyEvent).toHaveBeenCalledWith(5000, event.data.type, event.data.content, roomId);
         });
 
-        it.each([
-            { hasDelay: true, hasParent: false },
-            { hasDelay: false, hasParent: true },
-            { hasDelay: true, hasParent: true },
-        ])(
-            "sends sticky message events with a delay (withDelay = $hasDelay, hasParent = $hasParent)",
-            async ({ hasDelay, hasParent }) => {
-                const roomId = "!room:example.org";
-                const timeoutDelayId = "ft";
+        it("sends sticky message events with a delay", async () => {
+            const roomId = "!room:example.org";
+            const timeoutDelayId = "ft";
 
-                driver.sendDelayedStickyEvent.mockResolvedValue({
-                    roomId,
-                    delayId: timeoutDelayId,
-                });
+            driver.sendDelayedStickyEvent.mockResolvedValue({
+                roomId,
+                delayId: timeoutDelayId,
+            });
 
-                const event: ISendEventFromWidgetActionRequest = {
-                    api: WidgetApiDirection.FromWidget,
-                    widgetId: "test",
-                    requestId: "0",
-                    action: WidgetApiFromWidgetAction.SendEvent,
-                    data: {
-                        type: "m.room.message",
-                        content: {
-                            sticky_key: "12345",
-                        },
-                        room_id: roomId,
-                        ...(hasDelay && { delay: 5000 }),
-                        ...(hasParent && { parent_delay_id: "fp" }),
-                        sticky_duration_ms: 5000,
+            const event: ISendEventFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SendEvent,
+                data: {
+                    type: "m.room.message",
+                    content: {
+                        sticky_key: "12345",
                     },
-                };
+                    room_id: roomId,
+                    delay: 5000,
+                    sticky_duration_ms: 5000,
+                },
+            };
 
-                await loadIframe([
-                    `org.matrix.msc2762.timeline:${event.data.room_id}`,
-                    `org.matrix.msc2762.send.event:${event.data.type}`,
-                    MatrixCapabilities.MSC4157SendDelayedEvent,
-                    MatrixCapabilities.MSC4407SendStickyEvent,
-                ]);
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${event.data.room_id}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+                MatrixCapabilities.MSC4407SendStickyEvent,
+            ]);
 
-                emitEvent(new CustomEvent("", { detail: event }));
+            emitEvent(new CustomEvent("", { detail: event }));
 
-                await waitFor(() => {
-                    expect(transport.reply).toHaveBeenCalledWith(event, {
-                        room_id: roomId,
-                        delay_id: timeoutDelayId,
-                    });
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    delay_id: timeoutDelayId,
                 });
+            });
 
-                expect(driver.sendDelayedStickyEvent).toHaveBeenCalledWith(
-                    event.data.delay ?? null,
-                    event.data.parent_delay_id ?? null,
-                    5000,
-                    event.data.type,
-                    event.data.content,
-                    roomId,
-                );
-            },
-        );
+            expect(driver.sendDelayedStickyEvent).toHaveBeenCalledWith(
+                event.data.delay ?? null,
+                5000,
+                event.data.type,
+                event.data.content,
+                roomId,
+            );
+        });
 
         it("does not allow sticky state events", async () => {
             const roomId = "!room:example.org";

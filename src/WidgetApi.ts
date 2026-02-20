@@ -440,10 +440,9 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         delay?: number,
-        parentDelayId?: string,
         stickyDurationMs?: number,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, undefined, content, roomId, delay, parentDelayId, stickyDurationMs);
+        return this.sendEvent(eventType, undefined, content, roomId, delay, stickyDurationMs);
     }
 
     public sendStateEvent(
@@ -452,9 +451,8 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         delay?: number,
-        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, stateKey, content, roomId, delay, parentDelayId);
+        return this.sendEvent(eventType, stateKey, content, roomId, delay);
     }
 
     private sendEvent(
@@ -463,7 +461,6 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         delay?: number,
-        parentDelayId?: string,
         stickyDurationMs?: number,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
@@ -474,7 +471,6 @@ export class WidgetApi extends EventEmitter {
                 ...(stateKey !== undefined && { state_key: stateKey }),
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(delay !== undefined && { delay }),
-                ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
                 ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
             },
         );
