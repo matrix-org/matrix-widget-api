@@ -626,6 +626,10 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
+        if (request.data.parent_delay_id !== undefined) {
+            console.warn("Data includes parent_delay_id, but the widgetDriver ignores it");
+        }
+
         const delay = request.data.delay;
         if (delay !== undefined && !this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {

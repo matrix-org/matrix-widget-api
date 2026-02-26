@@ -441,8 +441,35 @@ export class WidgetApi extends EventEmitter {
         roomId?: string,
         delay?: number,
         stickyDurationMs?: number,
+    ): Promise<ISendEventFromWidgetResponseData>;
+
+    /**
+     * @deprecated Use the overload of this function without {@link parentDelayId} instead.
+     */
+    public sendRoomEvent(
+        eventType: string,
+        content: unknown,
+        roomId?: string,
+        delay?: number,
+        parentDelayId?: string,
+        stickyDurationMs?: number,
+    ): Promise<ISendEventFromWidgetResponseData>;
+
+    public sendRoomEvent(
+        eventType: string,
+        content: unknown,
+        roomId?: string,
+        delay?: number,
+        parentDelayIdOrStickyDurationMs?: string | number,
+        stickyDurationMs?: number,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, undefined, content, roomId, delay, stickyDurationMs);
+        let parentDelayId: string | undefined;
+        if (typeof parentDelayIdOrStickyDurationMs === "number") {
+            stickyDurationMs = parentDelayIdOrStickyDurationMs;
+        } else {
+            parentDelayId = parentDelayIdOrStickyDurationMs;
+        }
+        return this.sendEvent(eventType, undefined, content, roomId, delay, parentDelayId, stickyDurationMs);
     }
 
     public sendStateEvent(
@@ -451,8 +478,29 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         delay?: number,
+    ): Promise<ISendEventFromWidgetResponseData>;
+
+    /**
+     * @deprecated Use the overload of this function without {@link parentDelayId} instead.
+     */
+    public sendStateEvent(
+        eventType: string,
+        stateKey: string,
+        content: unknown,
+        roomId?: string,
+        delay?: number,
+        parentDelayId?: string,
+    ): Promise<ISendEventFromWidgetResponseData>;
+
+    public sendStateEvent(
+        eventType: string,
+        stateKey: string,
+        content: unknown,
+        roomId?: string,
+        delay?: number,
+        parentDelayId?: string,
     ): Promise<ISendEventFromWidgetResponseData> {
-        return this.sendEvent(eventType, stateKey, content, roomId, delay);
+        return this.sendEvent(eventType, stateKey, content, roomId, delay, parentDelayId);
     }
 
     private sendEvent(
@@ -461,6 +509,7 @@ export class WidgetApi extends EventEmitter {
         content: unknown,
         roomId?: string,
         delay?: number,
+        parentDelayId?: string,
         stickyDurationMs?: number,
     ): Promise<ISendEventFromWidgetResponseData> {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
@@ -471,6 +520,7 @@ export class WidgetApi extends EventEmitter {
                 ...(stateKey !== undefined && { state_key: stateKey }),
                 ...(roomId !== undefined && { room_id: roomId }),
                 ...(delay !== undefined && { delay }),
+                ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
                 ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
             },
         );
