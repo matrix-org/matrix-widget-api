@@ -626,8 +626,12 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const isDelayedEvent = request.data.delay !== undefined || request.data.parent_delay_id !== undefined;
-        if (isDelayedEvent && !this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
+        if (request.data.parent_delay_id !== undefined) {
+            console.warn("Data includes parent_delay_id, but the widgetDriver ignores it");
+        }
+
+        const delay = request.data.delay;
+        if (delay !== undefined && !this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: `Missing capability for ${MatrixCapabilities.MSC4157SendDelayedEvent}` },
             });
@@ -653,10 +657,9 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            if (isDelayedEvent) {
+            if (delay !== undefined) {
                 sendEventPromise = this.driver.sendDelayedEvent(
-                    request.data.delay ?? null,
-                    request.data.parent_delay_id ?? null,
+                    delay,
                     request.data.type,
                     request.data.content || {},
                     request.data.state_key,
@@ -690,21 +693,16 @@ export class ClientWidgetApi extends EventEmitter {
                 request.data.room_id,
             ];
 
-            if (isDelayedEvent && request.data.sticky_duration_ms) {
+            if (delay !== undefined && request.data.sticky_duration_ms) {
                 sendEventPromise = this.driver.sendDelayedStickyEvent(
-                    request.data.delay ?? null,
-                    request.data.parent_delay_id ?? null,
+                    delay,
                     request.data.sticky_duration_ms,
                     request.data.type,
                     content,
                     request.data.room_id,
                 );
-            } else if (isDelayedEvent) {
-                sendEventPromise = this.driver.sendDelayedEvent(
-                    request.data.delay ?? null,
-                    request.data.parent_delay_id ?? null,
-                    ...params,
-                );
+            } else if (delay !== undefined) {
+                sendEventPromise = this.driver.sendDelayedEvent(delay, ...params);
             } else if (request.data.sticky_duration_ms) {
                 sendEventPromise = this.driver.sendStickyEvent(
                     request.data.sticky_duration_ms,

@@ -27,6 +27,7 @@ export interface ISendEventFromWidgetRequestData extends IWidgetApiRequestData {
 
     // MSC4157
     delay?: number; // eslint-disable-line camelcase
+    /** @deprecated */
     parent_delay_id?: string; // eslint-disable-line camelcase
 
     // MSC4407
