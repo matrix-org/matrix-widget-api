@@ -59,6 +59,7 @@ export type * from "./interfaces/NavigateAction";
 export type * from "./interfaces/TurnServerActions";
 export type * from "./interfaces/ReadRelationsAction";
 export type * from "./interfaces/GetMediaConfigAction";
+export type * from "./interfaces/RtcTransportsAction";
 export * from "./interfaces/UpdateDelayedEventAction";
 export type * from "./interfaces/UpdateStateAction";
 export type * from "./interfaces/UploadFileAction";

@@ -83,6 +83,10 @@ import {
     IGetMediaConfigActionFromWidgetResponseData,
 } from "./interfaces/GetMediaConfigAction";
 import {
+    IRtcTransportsFromWidgetRequestData,
+    IRtcTransportsFromWidgetResponseData,
+} from "./interfaces/RtcTransportsAction";
+import {
     IUploadFileActionFromWidgetRequestData,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
@@ -835,6 +839,25 @@ export class WidgetApi extends EventEmitter {
             IGetMediaConfigActionFromWidgetRequestData,
             IGetMediaConfigActionFromWidgetResponseData
         >(WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction, data);
+    }
+
+    /**
+     * Discover the RTC transports (e.g. SFUs, TURN servers) the homeserver
+     * supports (MSC4515 / MSC4143).
+     * @returns Promise which resolves with the available RTC transports.
+     */
+    public async getRtcTransports(): Promise<IRtcTransportsFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4515)) {
+            throw new Error("The get_rtc_transports action is not supported by the client.");
+        }
+
+        const data: IRtcTransportsFromWidgetRequestData = {};
+
+        return this.transport.send<IRtcTransportsFromWidgetRequestData, IRtcTransportsFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC4515GetRtcTransports,
+            data,
+        );
     }
 
     /**

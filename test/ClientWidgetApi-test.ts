@@ -47,6 +47,7 @@ import {
     UpdateDelayedEventAction,
 } from "../src";
 import { IGetMediaConfigActionFromWidgetActionRequest } from "../src/interfaces/GetMediaConfigAction";
+import { IRtcTransportsFromWidgetActionRequest } from "../src/interfaces/RtcTransportsAction";
 import { IReadRoomAccountDataFromWidgetActionRequest } from "../src/interfaces/ReadRoomAccountDataAction";
 import { IToDeviceMessage } from "../src/interfaces/IToDeviceMessage";
 
@@ -138,6 +139,7 @@ describe("ClientWidgetApi", () => {
             validateCapabilities: jest.fn(),
             searchUserDirectory: jest.fn(),
             getMediaConfig: jest.fn(),
+            getRtcTransports: jest.fn(),
             uploadFile: jest.fn(),
             downloadFile: jest.fn(),
             getKnownRooms: jest.fn(() => []),
@@ -2765,6 +2767,132 @@ describe("ClientWidgetApi", () => {
                             response: {
                                 errcode: "M_LIMIT_EXCEEDED",
                                 error: "failed to get the media configuration",
+                                reason: "Too many requests",
+                                retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
+    });
+
+    describe("org.matrix.msc4515.get_rtc_transports action", () => {
+        it("should present as supported api version", () => {
+            const event: ISupportedVersionsActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SupportedApiVersions,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4515]),
+            });
+        });
+
+        it("should handle and process the request", async () => {
+            driver.getRtcTransports.mockResolvedValue({
+                rtc_transports: [{ type: "livekit", livekit_service_url: "https://livekit-jwt.example.com" }],
+            });
+
+            const event: IRtcTransportsFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4515GetRtcTransports,
+                data: {},
+            };
+
+            await loadIframe(["org.matrix.msc4515.rtc_transports"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    rtc_transports: [{ type: "livekit", livekit_service_url: "https://livekit-jwt.example.com" }],
+                });
+            });
+
+            expect(driver.getRtcTransports).toHaveBeenCalled();
+        });
+
+        it("should reject requests when the capability was not requested", async () => {
+            const event: IRtcTransportsFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4515GetRtcTransports,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: "Missing capability" },
+            });
+
+            expect(driver.getRtcTransports).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.getRtcTransports.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
+
+            const event: IRtcTransportsFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4515GetRtcTransports,
+                data: {},
+            };
+
+            await loadIframe(["org.matrix.msc4515.rtc_transports"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Unexpected error while getting the RTC transports" },
+                });
+            });
+        });
+
+        it("should reject with Matrix API error response thrown by driver", async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.getRtcTransports.mockRejectedValue(
+                new CustomMatrixError("failed to get the RTC transports", 429, "M_LIMIT_EXCEEDED", {
+                    reason: "Too many requests",
+                    retry_after_ms: 2000,
+                }),
+            );
+
+            const event: IRtcTransportsFromWidgetActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4515GetRtcTransports,
+                data: {},
+            };
+
+            await loadIframe(["org.matrix.msc4515.rtc_transports"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: {
+                        message: "Unexpected error while getting the RTC transports",
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: "",
+                            response: {
+                                errcode: "M_LIMIT_EXCEEDED",
+                                error: "failed to get the RTC transports",
                                 reason: "Too many requests",
                                 retry_after_ms: 2000,
                             },
