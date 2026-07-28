@@ -23,6 +23,7 @@ import {
     IRoomAccountData,
     ITurnServer,
     IWidgetApiErrorResponseDataDetails,
+    IRtcTransport,
 } from "..";
 
 export interface ISendEventDetails {
@@ -59,6 +60,10 @@ export interface IGetMediaConfigResult {
     [key: string]: unknown;
 
     "m.upload.size"?: number;
+}
+
+export interface IRtcTransportsResult {
+    rtc_transports: IRtcTransport[];
 }
 
 /**
@@ -455,6 +460,16 @@ export abstract class WidgetDriver {
      */
     public getMediaConfig(): Promise<IGetMediaConfigResult> {
         throw new Error("Get media config is not implemented");
+    }
+
+    /**
+     * Discover the RTC transports (e.g. SFUs, TURN servers) the homeserver
+     * supports, by delegating to the authenticated
+     * `GET /_matrix/client/v1/rtc/transports` Client-Server endpoint (MSC4143).
+     * @returns Promise which resolves with the available transports.
+     */
+    public getRtcTransports(): Promise<IRtcTransportsResult> {
+        throw new Error("Get RTC transports is not implemented");
     }
 
     /**

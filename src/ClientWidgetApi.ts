@@ -96,6 +96,10 @@ import {
     IGetMediaConfigActionFromWidgetResponseData,
 } from "./interfaces/GetMediaConfigAction";
 import {
+    IRtcTransportsFromWidgetActionRequest,
+    IRtcTransportsFromWidgetResponseData,
+} from "./interfaces/RtcTransportsAction";
+import {
     IUpdateDelayedEventFromWidgetActionRequest,
     UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
@@ -971,6 +975,25 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async handleRtcTransports(request: IRtcTransportsFromWidgetActionRequest): Promise<void> {
+        if (!this.hasCapability(MatrixCapabilities.MSC4515RtcTransports)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const result = await this.driver.getRtcTransports();
+
+            return this.transport.reply<IRtcTransportsFromWidgetResponseData>(request, {
+                rtc_transports: result.rtc_transports,
+            });
+        } catch (e) {
+            console.error("error while getting the RTC transports", e);
+            this.handleDriverError(e, request, "Unexpected error while getting the RTC transports");
+        }
+    }
+
     private async handleUploadFile(request: IUploadFileActionFromWidgetActionRequest): Promise<void> {
         if (!this.hasCapability(MatrixCapabilities.MSC4039UploadFile)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -1054,6 +1077,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleReadRoomAccountData(<IReadRoomAccountDataFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4039GetMediaConfigAction:
                     return this.handleGetMediaConfig(<IGetMediaConfigActionFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4515GetRtcTransports:
+                    return this.handleRtcTransports(<IRtcTransportsFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4039UploadFileAction:
                     return this.handleUploadFile(<IUploadFileActionFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4039DownloadFileAction:
