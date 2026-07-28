@@ -19,10 +19,12 @@ import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 
 export interface IRtcTransport {
-    // The globally unique transport identifier. Follows the Common Namespaced
-    // Identifier Grammar (without the namespacing requirement).
+    /**
+     * The globally unique transport identifier. Follows the Common Namespaced
+     * Identifier Grammar (without the namespacing requirement).
+     */
     type: string;
-    // Further transport-specific properties, defined by the transport's specification.
+    /** Further transport-specific properties, defined by the transport's specification.*/
     [key: string]: unknown;
 }
 

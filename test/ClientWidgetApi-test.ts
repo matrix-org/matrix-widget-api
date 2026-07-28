@@ -2829,6 +2829,8 @@ describe("ClientWidgetApi", () => {
                 data: {},
             };
 
+            await loadIframe([]); // Without the required capability
+
             emitEvent(new CustomEvent("", { detail: event }));
 
             expect(transport.reply).toHaveBeenCalledWith(event, {
