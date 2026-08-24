@@ -16,7 +16,7 @@
 
 import { EventEmitter } from "events";
 
-import { Capability } from "./interfaces/Capabilities";
+import { Capability, MatrixCapabilities } from "./interfaces/Capabilities";
 import { IWidgetApiRequest, IWidgetApiRequestEmptyData } from "./interfaces/IWidgetApiRequest";
 import { IWidgetApiAcknowledgeResponseData } from "./interfaces/IWidgetApiResponse";
 import { WidgetApiDirection } from "./interfaces/WidgetApiDirection";
@@ -94,6 +94,12 @@ import {
     IDownloadFileActionFromWidgetRequestData,
     IDownloadFileActionFromWidgetResponseData,
 } from "./interfaces/DownloadFileAction";
+import {
+    IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData,
+    IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData,
+    IRtcLivekitGetTokenFromWidgetRequestData,
+    IRtcLivekitGetTokenFromWidgetResponseData,
+} from "./interfaces/RtcLivekitActions";
 import {
     IUpdateDelayedEventFromWidgetRequestData,
     IUpdateDelayedEventFromWidgetResponseData,
@@ -303,6 +309,26 @@ export class WidgetApi extends EventEmitter {
      */
     public requestCapabilityToReceiveRoomAccountData(eventType: string): void {
         this.requestCapability(WidgetEventCapability.forRoomAccountData(EventDirection.Receive, eventType).raw);
+    }
+
+    /**
+     * Requests the capability to obtain a JWT for a LiveKit SFU through the client.
+     * It is not guaranteed to be allowed, but will be asked for if the negotiation
+     * has not already happened.
+     * @see {@link https://github.com/matrix-org/matrix-spec-proposals/pull/4533|MSC4533}
+     */
+    public requestCapabilityToGetRtcLivekitToken(): void {
+        this.requestCapability(MatrixCapabilities.MSC4533RtcLivekitGetToken);
+    }
+
+    /**
+     * Requests the capability to hand a MatrixRTC session's delayed leave event over
+     * to the server through the client. It is not guaranteed to be allowed, but will
+     * be asked for if the negotiation has not already happened.
+     * @see {@link https://github.com/matrix-org/matrix-spec-proposals/pull/4533|MSC4533}
+     */
+    public requestCapabilityToDelegateRtcLivekitDelayedLeave(): void {
+        this.requestCapability(MatrixCapabilities.MSC4533RtcLivekitDelegateDelayedLeave);
     }
 
     /**
@@ -901,6 +927,54 @@ export class WidgetApi extends EventEmitter {
             WidgetApiFromWidgetAction.MSC4039DownloadFileAction,
             data,
         );
+    }
+
+    /**
+     * Obtains a JWT for a LiveKit SFU, by asking the client to call the homeserver's
+     * `/rtc/livekit/get_token` endpoint on the widget's behalf.
+     * @param data The request data, which the client uses as the request body verbatim.
+     * @returns Resolves to the response body of the endpoint, verbatim.
+     * @see {@link https://github.com/matrix-org/matrix-spec-proposals/pull/4533|MSC4533}
+     */
+    public async getRtcLivekitToken(
+        data: IRtcLivekitGetTokenFromWidgetRequestData,
+    ): Promise<IRtcLivekitGetTokenFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4533)) {
+            throw new Error("The rtc_livekit_get_token action is not supported by the client.");
+        }
+
+        return this.transport.send<IRtcLivekitGetTokenFromWidgetRequestData, IRtcLivekitGetTokenFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC4533RtcLivekitGetToken,
+            data,
+        );
+    }
+
+    /**
+     * Hands a MatrixRTC session's delayed leave event over to the server, by asking the
+     * client to call the homeserver's `/rtc/livekit/delegate_delayed_leave` endpoint on
+     * the widget's behalf.
+     *
+     * Homeservers may not support this endpoint, in which case the request rejects with a
+     * {@link WidgetApiResponseError} whose `matrix_api_error` reports an HTTP 404 with
+     * `M_UNRECOGNIZED`. The widget is then responsible for refreshing the delayed leave
+     * event itself.
+     * @param data The request data, which the client uses as the request body verbatim.
+     * @returns Resolves to the response body of the endpoint, verbatim.
+     * @see {@link https://github.com/matrix-org/matrix-spec-proposals/pull/4533|MSC4533}
+     */
+    public async delegateRtcLivekitDelayedLeave(
+        data: IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData,
+    ): Promise<IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4533)) {
+            throw new Error("The rtc_livekit_delegate_delayed_leave action is not supported by the client.");
+        }
+
+        return this.transport.send<
+            IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData,
+            IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4533RtcLivekitDelegateDelayedLeave, data);
     }
 
     /**

@@ -36,6 +36,8 @@ import {
     IMatrixApiError,
     INavigateActionRequest,
     IReadEventFromWidgetActionRequest,
+    IRtcLivekitDelegateDelayedLeaveFromWidgetActionRequest,
+    IRtcLivekitGetTokenFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
     ISendToDeviceFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
@@ -142,6 +144,8 @@ describe("ClientWidgetApi", () => {
             getRtcTransports: jest.fn(),
             uploadFile: jest.fn(),
             downloadFile: jest.fn(),
+            getRtcLivekitToken: jest.fn(),
+            delegateRtcLivekitDelayedLeave: jest.fn(),
             getKnownRooms: jest.fn(() => []),
             processError: jest.fn(),
             sendStickyEvent: jest.fn(),
@@ -3151,6 +3155,204 @@ describe("ClientWidgetApi", () => {
                                 error: "failed to download a file",
                                 reason: "Too many requests",
                                 retry_after_ms: 2000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
+    });
+
+    describe("org.matrix.msc4533.rtc_livekit_get_token action", () => {
+        const data = {
+            server_name: "example.org",
+            url: "wss://livekit.example.org",
+            room_id: "!room-id",
+            slot_id: "slot-id",
+            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+        };
+
+        function makeEvent(): IRtcLivekitGetTokenFromWidgetActionRequest {
+            return {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4533RtcLivekitGetToken,
+                data,
+            };
+        }
+
+        it("should handle and process the request", async () => {
+            driver.getRtcLivekitToken.mockResolvedValue({ jwt: "the-jwt" });
+
+            const event = makeEvent();
+
+            await loadIframe([MatrixCapabilities.MSC4533RtcLivekitGetToken]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, { jwt: "the-jwt" });
+            });
+
+            expect(driver.getRtcLivekitToken).toHaveBeenCalledWith(data);
+        });
+
+        it("should reject requests when the capability was not requested", async () => {
+            const event = makeEvent();
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Missing capability" },
+                });
+            });
+
+            expect(driver.getRtcLivekitToken).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.getRtcLivekitToken.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
+
+            const event = makeEvent();
+
+            await loadIframe([MatrixCapabilities.MSC4533RtcLivekitGetToken]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Unexpected error while getting a LiveKit token" },
+                });
+            });
+        });
+
+        it("should reject with Matrix API error response thrown by driver", async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+            driver.getRtcLivekitToken.mockRejectedValue(
+                new CustomMatrixError("failed to get a token", 404, "M_UNRECOGNIZED", {
+                    reason: "Unrecognized request",
+                }),
+            );
+
+            const event = makeEvent();
+
+            await loadIframe([MatrixCapabilities.MSC4533RtcLivekitGetToken]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: {
+                        message: "Unexpected error while getting a LiveKit token",
+                        matrix_api_error: {
+                            http_status: 404,
+                            http_headers: {},
+                            url: "",
+                            response: {
+                                errcode: "M_UNRECOGNIZED",
+                                error: "failed to get a token",
+                                reason: "Unrecognized request",
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
+    });
+
+    describe("org.matrix.msc4533.rtc_livekit_delegate_delayed_leave action", () => {
+        const data = {
+            room_id: "!room-id",
+            slot_id: "slot-id",
+            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+            delay_id: "delay-id",
+        };
+
+        function makeEvent(): IRtcLivekitDelegateDelayedLeaveFromWidgetActionRequest {
+            return {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4533RtcLivekitDelegateDelayedLeave,
+                data,
+            };
+        }
+
+        it("should handle and process the request", async () => {
+            driver.delegateRtcLivekitDelayedLeave.mockResolvedValue({});
+
+            const event = makeEvent();
+
+            await loadIframe([MatrixCapabilities.MSC4533RtcLivekitDelegateDelayedLeave]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+
+            expect(driver.delegateRtcLivekitDelayedLeave).toHaveBeenCalledWith(data);
+        });
+
+        it("should reject requests when the capability was not requested", async () => {
+            const event = makeEvent();
+
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Missing capability" },
+                });
+            });
+
+            expect(driver.delegateRtcLivekitDelayedLeave).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.delegateRtcLivekitDelayedLeave.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
+
+            const event = makeEvent();
+
+            await loadIframe([MatrixCapabilities.MSC4533RtcLivekitDelegateDelayedLeave]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Unexpected error while delegating a LiveKit delayed leave" },
+                });
+            });
+        });
+
+        it("should relay a Matrix API error for homeservers that lack the endpoint", async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+            driver.delegateRtcLivekitDelayedLeave.mockRejectedValue(
+                new CustomMatrixError("Unrecognized request", 404, "M_UNRECOGNIZED", {}),
+            );
+
+            const event = makeEvent();
+
+            await loadIframe([MatrixCapabilities.MSC4533RtcLivekitDelegateDelayedLeave]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: {
+                        message: "Unexpected error while delegating a LiveKit delayed leave",
+                        matrix_api_error: {
+                            http_status: 404,
+                            http_headers: {},
+                            url: "",
+                            response: {
+                                errcode: "M_UNRECOGNIZED",
+                                error: "Unrecognized request",
                             },
                         } satisfies IMatrixApiError,
                     },

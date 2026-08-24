@@ -23,6 +23,12 @@ import { ISendEventFromWidgetResponseData } from "../src/interfaces/SendEventAct
 import { ISupportedVersionsActionResponseData } from "../src/interfaces/SupportedVersionsAction";
 import { IUploadFileActionFromWidgetResponseData } from "../src/interfaces/UploadFileAction";
 import { IDownloadFileActionFromWidgetResponseData } from "../src/interfaces/DownloadFileAction";
+import {
+    IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData,
+    IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData,
+    IRtcLivekitGetTokenFromWidgetRequestData,
+    IRtcLivekitGetTokenFromWidgetResponseData,
+} from "../src/interfaces/RtcLivekitActions";
 import { IUserDirectorySearchFromWidgetResponseData } from "../src/interfaces/UserDirectorySearchAction";
 import { WidgetApiFromWidgetAction } from "../src/interfaces/WidgetApiAction";
 import { WidgetApi, WidgetApiResponseError } from "../src/WidgetApi";
@@ -862,6 +868,161 @@ describe("WidgetApi", () => {
             } as IWidgetApiErrorResponseData);
 
             await expect(widgetApi.downloadFile("mxc://example.com/test_file")).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
+        });
+    });
+
+    describe("getRtcLivekitToken", () => {
+        const data: IRtcLivekitGetTokenFromWidgetRequestData = {
+            server_name: "example.org",
+            url: "wss://livekit.example.org",
+            room_id: "!room-id",
+            slot_id: "slot-id",
+            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+        };
+
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4533],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ jwt: "the-jwt" } as IRtcLivekitGetTokenFromWidgetResponseData);
+
+            await expect(widgetApi.getRtcLivekitToken(data)).resolves.toEqual({ jwt: "the-jwt" });
+
+            expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
+            expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
+                action: WidgetApiFromWidgetAction.MSC4533RtcLivekitGetToken,
+                data,
+            } satisfies SendRequestArgs);
+        });
+
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
+
+            await expect(widgetApi.getRtcLivekitToken(data)).rejects.toThrow(
+                "The rtc_livekit_get_token action is not supported by the client.",
+            );
+
+            const request = widgetTransportHelper.nextTrackedRequest();
+            expect(request).not.toBeUndefined();
+            expect(request).not.toEqual({
+                action: WidgetApiFromWidgetAction.MSC4533RtcLivekitGetToken,
+                data: expect.anything(),
+            } satisfies SendRequestArgs);
+        });
+
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4533],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
+
+            await expect(widgetApi.getRtcLivekitToken(data)).rejects.toThrow("An error occurred");
+        });
+
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4533],
+            } as ISupportedVersionsActionResponseData);
+
+            const errorDetails: IWidgetApiErrorResponseDataDetails = {
+                matrix_api_error: {
+                    http_status: 404,
+                    http_headers: {},
+                    url: "",
+                    response: {
+                        errcode: "M_UNRECOGNIZED",
+                        error: "Unrecognized request",
+                    },
+                },
+            };
+
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(widgetApi.getRtcLivekitToken(data)).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
+        });
+    });
+
+    describe("delegateRtcLivekitDelayedLeave", () => {
+        const data: IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData = {
+            room_id: "!room-id",
+            slot_id: "slot-id",
+            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+            delay_id: "delay-id",
+        };
+
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4533],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({} as IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData);
+
+            await expect(widgetApi.delegateRtcLivekitDelayedLeave(data)).resolves.toEqual({});
+
+            expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
+            expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
+                action: WidgetApiFromWidgetAction.MSC4533RtcLivekitDelegateDelayedLeave,
+                data,
+            } satisfies SendRequestArgs);
+        });
+
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
+
+            await expect(widgetApi.delegateRtcLivekitDelayedLeave(data)).rejects.toThrow(
+                "The rtc_livekit_delegate_delayed_leave action is not supported by the client.",
+            );
+
+            const request = widgetTransportHelper.nextTrackedRequest();
+            expect(request).not.toBeUndefined();
+            expect(request).not.toEqual({
+                action: WidgetApiFromWidgetAction.MSC4533RtcLivekitDelegateDelayedLeave,
+                data: expect.anything(),
+            } satisfies SendRequestArgs);
+        });
+
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4533],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
+
+            await expect(widgetApi.delegateRtcLivekitDelayedLeave(data)).rejects.toThrow("An error occurred");
+        });
+
+        it("should surface an unsupported endpoint as a Matrix API error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4533],
+            } as ISupportedVersionsActionResponseData);
+
+            const errorDetails: IWidgetApiErrorResponseDataDetails = {
+                matrix_api_error: {
+                    http_status: 404,
+                    http_headers: {},
+                    url: "",
+                    response: {
+                        errcode: "M_UNRECOGNIZED",
+                        error: "Unrecognized request",
+                    },
+                },
+            };
+
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(widgetApi.delegateRtcLivekitDelayedLeave(data)).rejects.toThrow(
                 new WidgetApiResponseError("An error occurred", errorDetails),
             );
         });

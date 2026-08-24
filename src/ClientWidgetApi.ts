@@ -111,6 +111,12 @@ import {
     IDownloadFileActionFromWidgetActionRequest,
     IDownloadFileActionFromWidgetResponseData,
 } from "./interfaces/DownloadFileAction";
+import {
+    IRtcLivekitDelegateDelayedLeaveFromWidgetActionRequest,
+    IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData,
+    IRtcLivekitGetTokenFromWidgetActionRequest,
+    IRtcLivekitGetTokenFromWidgetResponseData,
+} from "./interfaces/RtcLivekitActions";
 import { IThemeChangeActionRequestData } from "./interfaces/ThemeChangeAction";
 import { IUpdateStateToWidgetRequestData } from "./interfaces/UpdateStateAction";
 import { IToDeviceMessage } from "./interfaces/IToDeviceMessage";
@@ -1030,6 +1036,42 @@ export class ClientWidgetApi extends EventEmitter {
         }
     }
 
+    private async handleRtcLivekitGetToken(request: IRtcLivekitGetTokenFromWidgetActionRequest): Promise<void> {
+        if (!this.hasCapability(MatrixCapabilities.MSC4533RtcLivekitGetToken)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const result = await this.driver.getRtcLivekitToken(request.data);
+
+            return this.transport.reply<IRtcLivekitGetTokenFromWidgetResponseData>(request, result);
+        } catch (e) {
+            console.error("error while getting a LiveKit token", e);
+            this.handleDriverError(e, request, "Unexpected error while getting a LiveKit token");
+        }
+    }
+
+    private async handleRtcLivekitDelegateDelayedLeave(
+        request: IRtcLivekitDelegateDelayedLeaveFromWidgetActionRequest,
+    ): Promise<void> {
+        if (!this.hasCapability(MatrixCapabilities.MSC4533RtcLivekitDelegateDelayedLeave)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const result = await this.driver.delegateRtcLivekitDelayedLeave(request.data);
+
+            return this.transport.reply<IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData>(request, result);
+        } catch (e) {
+            console.error("error while delegating a LiveKit delayed leave", e);
+            this.handleDriverError(e, request, "Unexpected error while delegating a LiveKit delayed leave");
+        }
+    }
+
     private handleDriverError(e: unknown, request: IWidgetApiRequest, message: string): void {
         const data = this.driver.processError(e);
         this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -1085,6 +1127,12 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleDownloadFile(<IDownloadFileActionFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent:
                     return this.handleUpdateDelayedEvent(<IUpdateDelayedEventFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4533RtcLivekitGetToken:
+                    return this.handleRtcLivekitGetToken(<IRtcLivekitGetTokenFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4533RtcLivekitDelegateDelayedLeave:
+                    return this.handleRtcLivekitDelegateDelayedLeave(
+                        <IRtcLivekitDelegateDelayedLeaveFromWidgetActionRequest>ev.detail,
+                    );
 
                 default:
                     return this.transport.reply(ev.detail, <IWidgetApiErrorResponseData>{
