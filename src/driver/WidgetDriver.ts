@@ -24,6 +24,10 @@ import {
     ITurnServer,
     IWidgetApiErrorResponseDataDetails,
     IRtcTransport,
+    IRtcLivekitGetTokenFromWidgetRequestData,
+    IRtcLivekitGetTokenFromWidgetResponseData,
+    IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData,
+    IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData,
 } from "..";
 
 export interface ISendEventDetails {
@@ -489,6 +493,35 @@ export abstract class WidgetDriver {
      */
     public downloadFile(contentUri: string): Promise<{ file: XMLHttpRequestBodyInit }> {
         throw new Error("Download file is not implemented");
+    }
+
+    /**
+     * Obtains a JWT for a LiveKit SFU by calling the homeserver's
+     * `/rtc/livekit/get_token` endpoint on the widget's behalf. The widget API
+     * will have already verified that the widget has permission to do so.
+     * @param data The request data, to be used as the request body verbatim.
+     * @returns Resolves to the response body of the endpoint, verbatim.
+     * @see {@link https://github.com/matrix-org/matrix-spec-proposals/pull/4533|MSC4533}
+     */
+    public getRtcLivekitToken(
+        data: IRtcLivekitGetTokenFromWidgetRequestData,
+    ): Promise<IRtcLivekitGetTokenFromWidgetResponseData> {
+        throw new Error("Getting a LiveKit token is not implemented");
+    }
+
+    /**
+     * Hands a MatrixRTC session's delayed leave event over to the server by
+     * calling the homeserver's `/rtc/livekit/delegate_delayed_leave` endpoint on
+     * the widget's behalf. The widget API will have already verified that the
+     * widget has permission to do so.
+     * @param data The request data, to be used as the request body verbatim.
+     * @returns Resolves to the response body of the endpoint, verbatim.
+     * @see {@link https://github.com/matrix-org/matrix-spec-proposals/pull/4533|MSC4533}
+     */
+    public delegateRtcLivekitDelayedLeave(
+        data: IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData,
+    ): Promise<IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData> {
+        throw new Error("Delegating a LiveKit delayed leave is not implemented");
     }
 
     /**

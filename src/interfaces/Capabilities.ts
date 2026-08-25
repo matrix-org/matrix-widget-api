@@ -65,6 +65,14 @@ export enum MatrixCapabilities {
      * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
     MSC4515RtcTransports = "org.matrix.msc4515.rtc_transports",
+    /**
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC4533RtcLivekitGetToken = "org.matrix.msc4533.rtc_livekit_get_token",
+    /**
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
+     */
+    MSC4533RtcLivekitDelegateDelayedLeave = "org.matrix.msc4533.rtc_livekit_delegate_delayed_leave",
 }
 
 export type Capability = MatrixCapabilities | string;

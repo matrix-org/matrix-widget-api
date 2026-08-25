@@ -64,6 +64,7 @@ export * from "./interfaces/UpdateDelayedEventAction";
 export type * from "./interfaces/UpdateStateAction";
 export type * from "./interfaces/UploadFileAction";
 export type * from "./interfaces/DownloadFileAction";
+export type * from "./interfaces/RtcLivekitActions";
 export type * from "./interfaces/ThemeChangeAction";
 export type * from "./interfaces/LanguageChangeAction";
 
