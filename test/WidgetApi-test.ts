@@ -953,6 +953,7 @@ describe("WidgetApi", () => {
 
     describe("delegateRtcLivekitDelayedLeave", () => {
         const data: IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData = {
+            url: "wss://livekit.example.org",
             room_id: "!room-id",
             slot_id: "slot-id",
             member: { id: "member-id", claimed_device_id: "DEVICEID" },
