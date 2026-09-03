@@ -56,6 +56,8 @@ export interface IRtcLivekitGetTokenFromWidgetActionResponse extends IRtcLivekit
 }
 
 export interface IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData extends IWidgetApiRequestData {
+    /** The URL of the LiveKit SFU the member is connected to. */
+    url: string;
     /** The room the MatrixRTC session belongs to. */
     room_id: string; // eslint-disable-line camelcase
     /** The MatrixRTC session (slot) the delayed leave event belongs to. */
