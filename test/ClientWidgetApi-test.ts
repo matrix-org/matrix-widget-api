@@ -3169,7 +3169,7 @@ describe("ClientWidgetApi", () => {
             url: "wss://livekit.example.org",
             room_id: "!room-id",
             slot_id: "slot-id",
-            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+            member_id: "member-id",
         };
 
         function makeEvent(): IRtcLivekitGetTokenFromWidgetActionRequest {
@@ -3266,9 +3266,10 @@ describe("ClientWidgetApi", () => {
 
     describe("org.matrix.msc4533.rtc_livekit_delegate_delayed_leave action", () => {
         const data = {
+            url: "wss://livekit.example.org",
             room_id: "!room-id",
             slot_id: "slot-id",
-            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+            member_id: "member-id",
             delay_id: "delay-id",
         };
 

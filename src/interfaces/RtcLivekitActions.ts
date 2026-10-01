@@ -18,17 +18,6 @@ import { IWidgetApiRequest, IWidgetApiRequestData } from "./IWidgetApiRequest";
 import { IWidgetApiResponseData } from "./IWidgetApiResponse";
 import { WidgetApiFromWidgetAction } from "./WidgetApiAction";
 
-/**
- * The MatrixRTC member a LiveKit request is made for.
- * @see {@link https://github.com/matrix-org/matrix-spec-proposals/pull/4195|MSC4195}
- */
-export interface IRtcLivekitMember {
-    /** The identifier of the member within the MatrixRTC session. */
-    id: string;
-    /** The device ID the member claims to be using. */
-    claimed_device_id?: string; // eslint-disable-line camelcase
-}
-
 export interface IRtcLivekitGetTokenFromWidgetRequestData extends IWidgetApiRequestData {
     /** The name of the homeserver hosting the MatrixRTC session. */
     server_name: string; // eslint-disable-line camelcase
@@ -38,7 +27,8 @@ export interface IRtcLivekitGetTokenFromWidgetRequestData extends IWidgetApiRequ
     room_id: string; // eslint-disable-line camelcase
     /** The MatrixRTC session (slot) to join. */
     slot_id: string; // eslint-disable-line camelcase
-    member: IRtcLivekitMember;
+    /** The `member.id` property of the `m.rtc.member` event. */
+    member_id: string;
 }
 
 export interface IRtcLivekitGetTokenFromWidgetActionRequest extends IWidgetApiRequest {
@@ -56,11 +46,14 @@ export interface IRtcLivekitGetTokenFromWidgetActionResponse extends IRtcLivekit
 }
 
 export interface IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData extends IWidgetApiRequestData {
+    /** The WebSocket URL of the LiveKit SFU that the user has connected to. */
+    url: string;
     /** The room the MatrixRTC session belongs to. */
     room_id: string; // eslint-disable-line camelcase
     /** The MatrixRTC session (slot) the delayed leave event belongs to. */
     slot_id: string; // eslint-disable-line camelcase
-    member: IRtcLivekitMember;
+    /** The `member.id` property of the `m.rtc.member` event. */
+    member_id: string;
     /** The ID of the delayed leave event to hand over to the server. */
     delay_id: string; // eslint-disable-line camelcase
 }

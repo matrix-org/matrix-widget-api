@@ -879,7 +879,7 @@ describe("WidgetApi", () => {
             url: "wss://livekit.example.org",
             room_id: "!room-id",
             slot_id: "slot-id",
-            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+            member_id: "member-id",
         };
 
         it("should forward the request to the ClientWidgetApi", async () => {
@@ -953,9 +953,10 @@ describe("WidgetApi", () => {
 
     describe("delegateRtcLivekitDelayedLeave", () => {
         const data: IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData = {
+            url: "wss://livekit.example.org",
             room_id: "!room-id",
             slot_id: "slot-id",
-            member: { id: "member-id", claimed_device_id: "DEVICEID" },
+            member_id: "member-id",
             delay_id: "delay-id",
         };
 
