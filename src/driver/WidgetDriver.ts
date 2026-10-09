@@ -28,6 +28,7 @@ import {
     IRtcLivekitGetTokenFromWidgetResponseData,
     IRtcLivekitDelegateDelayedLeaveFromWidgetRequestData,
     IRtcLivekitDelegateDelayedLeaveFromWidgetResponseData,
+    IDelayedEventsCapability,
 } from "..";
 
 export interface ISendEventDetails {
@@ -222,6 +223,18 @@ export abstract class WidgetDriver {
      */
     public sendScheduledDelayedEvent(delayId: string): Promise<void> {
         return Promise.reject(new Error("Failed to override function"));
+    }
+
+    /**
+     * @experimental Part of MSC4140 & MSC4157
+     * Get the homeserver's delayed events capability (`m.delayed_events`), which holds the limits
+     * the homeserver enforces on delayed events, from the authenticated
+     * `GET /_matrix/client/v3/capabilities` Client-Server endpoint.
+     * @returns Promise which resolves with the capability, or with undefined if the homeserver
+     * does not advertise it.
+     */
+    public getDelayedEventsCapability(): Promise<IDelayedEventsCapability | undefined> {
+        throw new Error("Get delayed events capability is not implemented");
     }
 
     /**

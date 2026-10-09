@@ -50,6 +50,7 @@ import {
 } from "../src";
 import { IGetMediaConfigActionFromWidgetActionRequest } from "../src/interfaces/GetMediaConfigAction";
 import { IRtcTransportsFromWidgetActionRequest } from "../src/interfaces/RtcTransportsAction";
+import { IGetDelayedEventsCapabilityFromWidgetActionRequest } from "../src/interfaces/GetDelayedEventsCapabilityAction";
 import { IReadRoomAccountDataFromWidgetActionRequest } from "../src/interfaces/ReadRoomAccountDataAction";
 import { IToDeviceMessage } from "../src/interfaces/IToDeviceMessage";
 
@@ -135,6 +136,7 @@ describe("ClientWidgetApi", () => {
             cancelScheduledDelayedEvent: jest.fn(),
             restartScheduledDelayedEvent: jest.fn(),
             sendScheduledDelayedEvent: jest.fn(),
+            getDelayedEventsCapability: jest.fn(),
             sendToDevice: jest.fn(),
             askOpenID: jest.fn(),
             readRoomAccountData: jest.fn(),
@@ -1482,6 +1484,120 @@ describe("ClientWidgetApi", () => {
                                 errcode: "M_NOT_JSON",
                                 error: "failed to update delayed event",
                                 reason: "Content must be a JSON object.",
+                            },
+                        } satisfies IMatrixApiError,
+                    },
+                });
+            });
+        });
+    });
+
+    describe("org.matrix.msc4157.get_delayed_events_capability action", () => {
+        const event: IGetDelayedEventsCapabilityFromWidgetActionRequest = {
+            api: WidgetApiDirection.FromWidget,
+            widgetId: "test",
+            requestId: "0",
+            action: WidgetApiFromWidgetAction.MSC4157GetDelayedEventsCapability,
+            data: {},
+        };
+
+        it("should present as supported api version", () => {
+            const event: ISupportedVersionsActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SupportedApiVersions,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4157_DELAYED_EVENTS_CAPABILITY]),
+            });
+        });
+
+        it("should reply with the capability", async () => {
+            driver.getDelayedEventsCapability.mockResolvedValue({ max_delay_ms: 86400000, max_scheduled: 10 });
+
+            await loadIframe(["org.matrix.msc4157.send.delayed_event"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    "m.delayed_events": { max_delay_ms: 86400000, max_scheduled: 10 },
+                });
+            });
+
+            expect(driver.getDelayedEventsCapability).toHaveBeenCalled();
+        });
+
+        it("should reply without the capability when the homeserver does not advertise it", async () => {
+            driver.getDelayedEventsCapability.mockResolvedValue(undefined);
+
+            await loadIframe(["org.matrix.msc4157.send.delayed_event"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {});
+            });
+        });
+
+        it("should reject requests when the capability to send delayed events was not requested", async () => {
+            await loadIframe([]); // Without the required capability
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: "Missing capability" },
+            });
+
+            expect(driver.getDelayedEventsCapability).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.getDelayedEventsCapability.mockRejectedValue(new Error("M_LIMIT_EXCEEDED: Too many requests"));
+
+            await loadIframe(["org.matrix.msc4157.send.delayed_event"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Unexpected error while getting the delayed events capability" },
+                });
+            });
+        });
+
+        it("should reject with Matrix API error response thrown by driver", async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.getDelayedEventsCapability.mockRejectedValue(
+                new CustomMatrixError("failed to get the capabilities", 429, "M_LIMIT_EXCEEDED", {
+                    reason: "Too many requests",
+                    retry_after_ms: 2000,
+                }),
+            );
+
+            await loadIframe(["org.matrix.msc4157.send.delayed_event"]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: {
+                        message: "Unexpected error while getting the delayed events capability",
+                        matrix_api_error: {
+                            http_status: 429,
+                            http_headers: {},
+                            url: "",
+                            response: {
+                                errcode: "M_LIMIT_EXCEEDED",
+                                error: "failed to get the capabilities",
+                                reason: "Too many requests",
+                                retry_after_ms: 2000,
                             },
                         } satisfies IMatrixApiError,
                     },
