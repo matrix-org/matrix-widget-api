@@ -87,6 +87,10 @@ import {
     IRtcTransportsFromWidgetResponseData,
 } from "./interfaces/RtcTransportsAction";
 import {
+    IGetDelayedEventsCapabilityFromWidgetRequestData,
+    IGetDelayedEventsCapabilityFromWidgetResponseData,
+} from "./interfaces/GetDelayedEventsCapabilityAction";
+import {
     IUploadFileActionFromWidgetRequestData,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
@@ -593,6 +597,27 @@ export class WidgetApi extends EventEmitter {
                 action: UpdateDelayedEventAction.Send,
             },
         );
+    }
+
+    /**
+     * Get the homeserver's delayed events capability, which holds the limits the
+     * homeserver enforces on delayed events (MSC4140).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
+     * @returns Promise which resolves with the capability under `m.delayed_events`,
+     * absent if the homeserver does not advertise it.
+     */
+    public async getDelayedEventsCapability(): Promise<IGetDelayedEventsCapabilityFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4157_DELAYED_EVENTS_CAPABILITY)) {
+            throw new Error("The get_delayed_events_capability action is not supported by the client.");
+        }
+
+        const data: IGetDelayedEventsCapabilityFromWidgetRequestData = {};
+
+        return this.transport.send<
+            IGetDelayedEventsCapabilityFromWidgetRequestData,
+            IGetDelayedEventsCapabilityFromWidgetResponseData
+        >(WidgetApiFromWidgetAction.MSC4157GetDelayedEventsCapability, data);
     }
 
     /**

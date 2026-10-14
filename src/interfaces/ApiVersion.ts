@@ -33,6 +33,7 @@ export enum UnstableApiVersion {
     MSC3869 = "org.matrix.msc3869",
     MSC3973 = "org.matrix.msc3973",
     MSC4039 = "org.matrix.msc4039",
+    MSC4157_DELAYED_EVENTS_CAPABILITY = "org.matrix.msc4157_delayed_events_capability",
     MSC4515 = "org.matrix.msc4515",
     MSC4533 = "org.matrix.msc4533",
 }
@@ -55,6 +56,7 @@ export const CurrentApiVersions: ApiVersion[] = [
     UnstableApiVersion.MSC3869,
     UnstableApiVersion.MSC3973,
     UnstableApiVersion.MSC4039,
+    UnstableApiVersion.MSC4157_DELAYED_EVENTS_CAPABILITY,
     UnstableApiVersion.MSC4515,
     UnstableApiVersion.MSC4533,
 ];

@@ -18,6 +18,7 @@
 import { UnstableApiVersion } from "../src/interfaces/ApiVersion";
 import { IGetMediaConfigActionFromWidgetResponseData } from "../src/interfaces/GetMediaConfigAction";
 import { IRtcTransportsFromWidgetResponseData } from "../src/interfaces/RtcTransportsAction";
+import { IGetDelayedEventsCapabilityFromWidgetResponseData } from "../src/interfaces/GetDelayedEventsCapabilityAction";
 import { IReadRelationsFromWidgetResponseData } from "../src/interfaces/ReadRelationsAction";
 import { ISendEventFromWidgetResponseData } from "../src/interfaces/SendEventAction";
 import { ISupportedVersionsActionResponseData } from "../src/interfaces/SupportedVersionsAction";
@@ -476,6 +477,80 @@ describe("WidgetApi", () => {
                     new WidgetApiResponseError("An error occurred", errorDetails),
                 );
             }
+        });
+    });
+
+    describe("getDelayedEventsCapability", () => {
+        it("should forward the request to the ClientWidgetApi", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4157_DELAYED_EVENTS_CAPABILITY],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({
+                "m.delayed_events": { max_delay_ms: 86400000, max_scheduled: 10 },
+            } as IGetDelayedEventsCapabilityFromWidgetResponseData);
+
+            await expect(widgetApi.getDelayedEventsCapability()).resolves.toEqual({
+                "m.delayed_events": { max_delay_ms: 86400000, max_scheduled: 10 },
+            });
+
+            expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
+            expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
+                action: WidgetApiFromWidgetAction.MSC4157GetDelayedEventsCapability,
+                data: {},
+            } satisfies SendRequestArgs);
+        });
+
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
+
+            await expect(widgetApi.getDelayedEventsCapability()).rejects.toThrow(
+                "The get_delayed_events_capability action is not supported by the client.",
+            );
+
+            const request = widgetTransportHelper.nextTrackedRequest();
+            expect(request).not.toBeUndefined();
+            expect(request).not.toEqual({
+                action: WidgetApiFromWidgetAction.MSC4157GetDelayedEventsCapability,
+                data: expect.anything(),
+            } satisfies SendRequestArgs);
+        });
+
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4157_DELAYED_EVENTS_CAPABILITY],
+            } as ISupportedVersionsActionResponseData);
+            widgetTransportHelper.queueResponse({ error: { message: "An error occurred" } });
+
+            await expect(widgetApi.getDelayedEventsCapability()).rejects.toThrow("An error occurred");
+        });
+
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse({
+                supported_versions: [UnstableApiVersion.MSC4157_DELAYED_EVENTS_CAPABILITY],
+            } as ISupportedVersionsActionResponseData);
+
+            const errorDetails: IWidgetApiErrorResponseDataDetails = {
+                matrix_api_error: {
+                    http_status: 400,
+                    http_headers: {},
+                    url: "",
+                    response: {
+                        errcode: "M_UNKNOWN",
+                        error: "Unknown error",
+                    },
+                },
+            };
+
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(widgetApi.getDelayedEventsCapability()).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
         });
     });
 

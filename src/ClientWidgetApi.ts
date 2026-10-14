@@ -104,6 +104,10 @@ import {
     UpdateDelayedEventAction,
 } from "./interfaces/UpdateDelayedEventAction";
 import {
+    IGetDelayedEventsCapabilityFromWidgetActionRequest,
+    IGetDelayedEventsCapabilityFromWidgetResponseData,
+} from "./interfaces/GetDelayedEventsCapabilityAction";
+import {
     IUploadFileActionFromWidgetActionRequest,
     IUploadFileActionFromWidgetResponseData,
 } from "./interfaces/UploadFileAction";
@@ -784,6 +788,28 @@ export class ClientWidgetApi extends EventEmitter {
             });
     }
 
+    private async handleGetDelayedEventsCapability(
+        request: IGetDelayedEventsCapabilityFromWidgetActionRequest,
+    ): Promise<void> {
+        if (!this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Missing capability" },
+            });
+        }
+
+        try {
+            const capability = await this.driver.getDelayedEventsCapability();
+
+            return this.transport.reply<IGetDelayedEventsCapabilityFromWidgetResponseData>(
+                request,
+                capability ? { "m.delayed_events": capability } : {},
+            );
+        } catch (e) {
+            console.error("error while getting the delayed events capability", e);
+            this.handleDriverError(e, request, "Unexpected error while getting the delayed events capability");
+        }
+    }
+
     private async handleSendToDevice(request: ISendToDeviceFromWidgetActionRequest): Promise<void> {
         if (!request.data.type) {
             this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -1127,6 +1153,10 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.handleDownloadFile(<IDownloadFileActionFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4157UpdateDelayedEvent:
                     return this.handleUpdateDelayedEvent(<IUpdateDelayedEventFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4157GetDelayedEventsCapability:
+                    return this.handleGetDelayedEventsCapability(
+                        <IGetDelayedEventsCapabilityFromWidgetActionRequest>ev.detail,
+                    );
                 case WidgetApiFromWidgetAction.MSC4533RtcLivekitGetToken:
                     return this.handleRtcLivekitGetToken(<IRtcLivekitGetTokenFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.MSC4533RtcLivekitDelegateDelayedLeave:
