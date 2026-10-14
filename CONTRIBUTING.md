@@ -13,15 +13,13 @@ The preferred and easiest way to contribute changes to the project is to fork
 it on github, and then create a pull request to ask us to pull your changes
 into our repo (https://help.github.com/articles/using-pull-requests/)
 
-We use the master branch to track the most recent release, so that folks who
-blindly clone the repo and automatically check out master get something that
-works. Develop is the unstable branch where all the development actually
-happens: the workflow is that contributors should fork the develop branch to
-make a 'feature' branch for a particular contribution, and then make a pull
-request to merge this back into the matrix.org 'official' develop branch. We
-use GitHub's pull request workflow to review the contribution, and either ask
-you to make any refinements needed or merge it and make them ourselves. The
-changes will then land on master when we next do a release.
+All development happens on the master branch: the workflow is that
+contributors should fork the repo and branch off master to make a 'feature'
+branch for a particular contribution, and then make a pull request to merge
+this back into the matrix.org 'official' master branch. We use GitHub's pull
+request workflow to review the contribution, and either ask you to make any
+refinements needed or merge it and make them ourselves. The changes will then
+be included in the next release.
 
 We use continuous integration, and all pull requests get automatically tested
 by it: if your change breaks the build, then the PR will show that there are
@@ -110,5 +108,5 @@ If you forgot to sign off your commits before making your pull request and are
 on Git 2.17+ you can mass signoff using rebase:
 
 ```
-git rebase --signoff origin/develop
+git rebase --signoff origin/master
 ```
