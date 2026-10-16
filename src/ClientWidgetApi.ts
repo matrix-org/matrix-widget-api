@@ -56,6 +56,10 @@ import {
     ISendEventToWidgetRequestData,
 } from "./interfaces/SendEventAction";
 import {
+    ISendDelayedEventFromWidgetActionRequest,
+    ISendDelayedEventFromWidgetResponseData,
+} from "./interfaces/SendDelayedEventAction";
+import {
     ISendToDeviceFromWidgetActionRequest,
     ISendToDeviceFromWidgetResponseData,
     ISendToDeviceToWidgetRequestData,
@@ -744,6 +748,92 @@ export class ClientWidgetApi extends EventEmitter {
             });
     }
 
+    private handleSendDelayedEvent(request: ISendDelayedEventFromWidgetActionRequest): void {
+        if (!request.data.type) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - missing event type" },
+            });
+        }
+
+        const delayMs = request.data.delay_ms;
+        if (typeof delayMs !== "number") {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: "Invalid request - missing delay_ms" },
+            });
+        }
+
+        if (!!request.data.room_id && !this.canUseRoomTimeline(request.data.room_id)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: `Unable to access room timeline: ${request.data.room_id}` },
+            });
+        }
+
+        if (!this.hasCapability(MatrixCapabilities.MSC4157SendDelayedEvent)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: `Missing capability for ${MatrixCapabilities.MSC4157SendDelayedEvent}` },
+            });
+        }
+
+        const stickyDurationMs = request.data.sticky_duration_ms;
+        if (stickyDurationMs !== undefined && !this.hasCapability(MatrixCapabilities.MSC4407SendStickyEvent)) {
+            return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                error: { message: `Missing capability for ${MatrixCapabilities.MSC4407SendStickyEvent}` },
+            });
+        }
+
+        let sendDelayedEventPromise: Promise<ISendDelayedEventDetails>;
+        if (request.data.state_key !== undefined) {
+            if (!this.canSendStateEvent(request.data.type, request.data.state_key)) {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: { message: "Cannot send state events of this type" },
+                });
+            }
+            if (stickyDurationMs !== undefined) {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: { message: "Cannot send a state event with a sticky duration" },
+                });
+            }
+
+            sendDelayedEventPromise = this.driver.sendDelayedEvent(
+                delayMs,
+                request.data.type,
+                request.data.content || {},
+                request.data.state_key,
+                request.data.room_id,
+            );
+        } else {
+            const content = (request.data.content as { msgtype?: string }) || {};
+            if (!this.canSendRoomEvent(request.data.type, content["msgtype"])) {
+                return this.transport.reply<IWidgetApiErrorResponseData>(request, {
+                    error: { message: "Cannot send room events of this type" },
+                });
+            }
+
+            sendDelayedEventPromise =
+                stickyDurationMs !== undefined
+                    ? this.driver.sendDelayedStickyEvent(
+                          delayMs,
+                          stickyDurationMs,
+                          request.data.type,
+                          content,
+                          request.data.room_id,
+                      )
+                    : this.driver.sendDelayedEvent(delayMs, request.data.type, content, null, request.data.room_id);
+        }
+
+        sendDelayedEventPromise
+            .then(({ roomId, delayId }) => {
+                return this.transport.reply<ISendDelayedEventFromWidgetResponseData>(request, {
+                    room_id: roomId,
+                    delay_id: delayId,
+                });
+            })
+            .catch((e: unknown) => {
+                console.error("error sending delayed event: ", e);
+                this.handleDriverError(e, request, "Error sending delayed event");
+            });
+    }
+
     private handleUpdateDelayedEvent(request: IUpdateDelayedEventFromWidgetActionRequest): void {
         if (!request.data.delay_id) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
@@ -1097,6 +1187,8 @@ export class ClientWidgetApi extends EventEmitter {
                     return this.replyVersions(<ISupportedVersionsActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.SendEvent:
                     return this.handleSendEvent(<ISendEventFromWidgetActionRequest>ev.detail);
+                case WidgetApiFromWidgetAction.MSC4157SendDelayedEvent:
+                    return this.handleSendDelayedEvent(<ISendDelayedEventFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.SendToDevice:
                     return this.handleSendToDevice(<ISendToDeviceFromWidgetActionRequest>ev.detail);
                 case WidgetApiFromWidgetAction.GetOpenIDCredentials:

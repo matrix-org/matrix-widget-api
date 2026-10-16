@@ -56,6 +56,7 @@ export const CurrentApiVersions: ApiVersion[] = [
     UnstableApiVersion.MSC3869,
     UnstableApiVersion.MSC3973,
     UnstableApiVersion.MSC4039,
+    UnstableApiVersion.MSC4157_SEND_DELAYED_EVENT,
     UnstableApiVersion.MSC4515,
     UnstableApiVersion.MSC4533,
 ];
