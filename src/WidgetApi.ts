@@ -549,15 +549,27 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
             {
-                type: eventType,
-                content,
-                ...(stateKey !== undefined && { state_key: stateKey }),
-                ...(roomId !== undefined && { room_id: roomId }),
+                ...WidgetApi.eventRequestData(eventType, stateKey, content, roomId, stickyDurationMs),
                 ...(delay !== undefined && { delay }),
                 ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
-                ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
             },
         );
+    }
+
+    private static eventRequestData(
+        eventType: string,
+        stateKey: string | undefined,
+        content: unknown,
+        roomId: string | undefined,
+        stickyDurationMs: number | undefined,
+    ): Pick<ISendEventFromWidgetRequestData, "type" | "content" | "state_key" | "room_id" | "sticky_duration_ms"> {
+        return {
+            type: eventType,
+            content,
+            ...(stateKey !== undefined && { state_key: stateKey }),
+            ...(roomId !== undefined && { room_id: roomId }),
+            ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
+        };
     }
 
     /**
@@ -589,12 +601,8 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<ISendDelayedEventFromWidgetRequestData, ISendDelayedEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.MSC4157SendDelayedEvent,
             {
-                type: eventType,
-                content,
+                ...WidgetApi.eventRequestData(eventType, stateKey, content, roomId, stickyDurationMs),
                 delay_ms: delayMs,
-                ...(stateKey !== undefined && { state_key: stateKey }),
-                ...(roomId !== undefined && { room_id: roomId }),
-                ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
             },
         );
     }
