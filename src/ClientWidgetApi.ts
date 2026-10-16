@@ -651,7 +651,7 @@ export class ClientWidgetApi extends EventEmitter {
             });
         }
 
-        const isStickyEvent = request.data.sticky_duration_ms !== undefined;
+        const isStickyEvent = !!request.data.sticky_duration_ms;
         if (isStickyEvent && !this.hasCapability(MatrixCapabilities.MSC4407SendStickyEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: `Missing capability for ${MatrixCapabilities.MSC4407SendStickyEvent}` },
@@ -775,7 +775,7 @@ export class ClientWidgetApi extends EventEmitter {
         }
 
         const stickyDurationMs = request.data.sticky_duration_ms;
-        if (stickyDurationMs !== undefined && !this.hasCapability(MatrixCapabilities.MSC4407SendStickyEvent)) {
+        if (stickyDurationMs && !this.hasCapability(MatrixCapabilities.MSC4407SendStickyEvent)) {
             return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                 error: { message: `Missing capability for ${MatrixCapabilities.MSC4407SendStickyEvent}` },
             });
@@ -788,7 +788,7 @@ export class ClientWidgetApi extends EventEmitter {
                     error: { message: "Cannot send state events of this type" },
                 });
             }
-            if (stickyDurationMs !== undefined) {
+            if (stickyDurationMs) {
                 return this.transport.reply<IWidgetApiErrorResponseData>(request, {
                     error: { message: "Cannot send a state event with a sticky duration" },
                 });
@@ -809,16 +809,15 @@ export class ClientWidgetApi extends EventEmitter {
                 });
             }
 
-            sendDelayedEventPromise =
-                stickyDurationMs !== undefined
-                    ? this.driver.sendDelayedStickyEvent(
-                          delayMs,
-                          stickyDurationMs,
-                          request.data.type,
-                          content,
-                          request.data.room_id,
-                      )
-                    : this.driver.sendDelayedEvent(delayMs, request.data.type, content, null, request.data.room_id);
+            sendDelayedEventPromise = stickyDurationMs
+                ? this.driver.sendDelayedStickyEvent(
+                      delayMs,
+                      stickyDurationMs,
+                      request.data.type,
+                      content,
+                      request.data.room_id,
+                  )
+                : this.driver.sendDelayedEvent(delayMs, request.data.type, content, null, request.data.room_id);
         }
 
         sendDelayedEventPromise
