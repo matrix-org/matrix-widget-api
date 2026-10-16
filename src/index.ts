@@ -51,6 +51,7 @@ export * from "./interfaces/ModalWidgetActions";
 export type * from "./interfaces/SetModalButtonEnabledAction";
 export type * from "./interfaces/WidgetConfigAction";
 export type * from "./interfaces/SendEventAction";
+export type * from "./interfaces/SendDelayedEventAction";
 export type * from "./interfaces/SendToDeviceAction";
 export type * from "./interfaces/ReadEventAction";
 export type * from "./interfaces/IRoomEvent";

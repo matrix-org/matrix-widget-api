@@ -96,6 +96,11 @@ export enum WidgetApiFromWidgetAction {
     /**
      * @experimental It is not recommended to rely on this existing - it can be removed without notice.
      */
+    MSC4157SendDelayedEvent = "org.matrix.msc4157.send_delayed_event",
+
+    /**
+     * @experimental It is not recommended to rely on this existing - it can be removed without notice.
+     */
     MSC4515GetRtcTransports = "org.matrix.msc4515.get_rtc_transports",
 
     /**
