@@ -38,6 +38,7 @@ import {
     IReadEventFromWidgetActionRequest,
     IRtcLivekitDelegateDelayedLeaveFromWidgetActionRequest,
     IRtcLivekitGetTokenFromWidgetActionRequest,
+    ISendDelayedEventFromWidgetActionRequest,
     ISendEventFromWidgetActionRequest,
     ISendToDeviceFromWidgetActionRequest,
     IUpdateDelayedEventFromWidgetActionRequest,
@@ -856,6 +857,303 @@ describe("ClientWidgetApi", () => {
             await waitFor(() => {
                 expect(transport.reply).toHaveBeenCalledWith(event, {
                     error: { message: "Cannot send a state event with a sticky duration" },
+                });
+            });
+        });
+    });
+
+    describe("org.matrix.msc4157.send_delayed_event action", () => {
+        const roomId = "!room:example.org";
+        const delayId = "ft";
+
+        function sendDelayedEventRequest(
+            data: Partial<ISendDelayedEventFromWidgetActionRequest["data"]> = {},
+        ): ISendDelayedEventFromWidgetActionRequest {
+            return {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.MSC4157SendDelayedEvent,
+                data: {
+                    type: "m.room.message",
+                    content: {},
+                    room_id: roomId,
+                    delay_ms: 5000,
+                    ...data,
+                },
+            };
+        }
+
+        it("should present as supported api version", () => {
+            const event: ISupportedVersionsActionRequest = {
+                api: WidgetApiDirection.FromWidget,
+                widgetId: "test",
+                requestId: "0",
+                action: WidgetApiFromWidgetAction.SupportedApiVersions,
+                data: {},
+            };
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                supported_versions: expect.arrayContaining([UnstableApiVersion.MSC4157_SEND_DELAYED_EVENT]),
+            });
+        });
+
+        it("sends delayed message events", async () => {
+            driver.sendDelayedEvent.mockResolvedValue({ roomId, delayId });
+
+            const event = sendDelayedEventRequest({ content: { body: "hello" } });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    delay_id: delayId,
+                });
+            });
+
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(
+                5000,
+                "m.room.message",
+                { body: "hello" },
+                null,
+                roomId,
+            );
+        });
+
+        it("sends delayed state events", async () => {
+            driver.sendDelayedEvent.mockResolvedValue({ roomId, delayId });
+
+            const event = sendDelayedEventRequest({ type: "m.room.topic", state_key: "" });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.state_event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    delay_id: delayId,
+                });
+            });
+
+            expect(driver.sendDelayedEvent).toHaveBeenCalledWith(5000, "m.room.topic", {}, "", roomId);
+        });
+
+        it("sends delayed sticky message events", async () => {
+            driver.sendDelayedStickyEvent.mockResolvedValue({ roomId, delayId });
+
+            const event = sendDelayedEventRequest({ content: { sticky_key: "12345" }, sticky_duration_ms: 3000 });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+                MatrixCapabilities.MSC4407SendStickyEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    room_id: roomId,
+                    delay_id: delayId,
+                });
+            });
+
+            expect(driver.sendDelayedStickyEvent).toHaveBeenCalledWith(
+                5000,
+                3000,
+                "m.room.message",
+                { sticky_key: "12345" },
+                roomId,
+            );
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests without delay_ms", async () => {
+            const event = sendDelayedEventRequest();
+            delete (event.data as Partial<ISendDelayedEventFromWidgetActionRequest["data"]>).delay_ms;
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: "Invalid request - missing delay_ms" },
+            });
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the capability to send delayed events was not requested", async () => {
+            const event = sendDelayedEventRequest();
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: `Missing capability for ${MatrixCapabilities.MSC4157SendDelayedEvent}` },
+            });
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the capability to send the event type was not requested", async () => {
+            const event = sendDelayedEventRequest();
+
+            await loadIframe([`org.matrix.msc2762.timeline:${roomId}`, MatrixCapabilities.MSC4157SendDelayedEvent]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: "Cannot send room events of this type" },
+            });
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the capability to send the state event type was not requested", async () => {
+            const event = sendDelayedEventRequest({ type: "m.room.topic", state_key: "" });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: "Cannot send state events of this type" },
+            });
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests for a room the widget cannot access", async () => {
+            const event = sendDelayedEventRequest({ room_id: "!other-room:example.org" });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: "Unable to access room timeline: !other-room:example.org" },
+            });
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+        });
+
+        it("should reject sticky requests when the capability to send sticky events was not requested", async () => {
+            const event = sendDelayedEventRequest({ sticky_duration_ms: 3000 });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: `Missing capability for ${MatrixCapabilities.MSC4407SendStickyEvent}` },
+            });
+            expect(driver.sendDelayedStickyEvent).not.toHaveBeenCalled();
+        });
+
+        it("does not allow sticky state events", async () => {
+            const event = sendDelayedEventRequest({ type: "m.room.topic", state_key: "", sticky_duration_ms: 3000 });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.state_event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+                MatrixCapabilities.MSC4407SendStickyEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            expect(transport.reply).toHaveBeenCalledWith(event, {
+                error: { message: "Cannot send a state event with a sticky duration" },
+            });
+            expect(driver.sendDelayedEvent).not.toHaveBeenCalled();
+            expect(driver.sendDelayedStickyEvent).not.toHaveBeenCalled();
+        });
+
+        it("should reject requests when the driver throws an exception", async () => {
+            driver.sendDelayedEvent.mockRejectedValue(new Error("M_BAD_JSON: Content must be a JSON object"));
+
+            const event = sendDelayedEventRequest({ content: "hello" });
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: { message: "Error sending delayed event" },
+                });
+            });
+        });
+
+        it("should reject with Matrix API error response thrown by driver", async () => {
+            driver.processError.mockImplementation(processCustomMatrixError);
+
+            driver.sendDelayedEvent.mockRejectedValue(
+                new CustomMatrixError("failed to send delayed event", 400, "M_MAX_DELAY_EXCEEDED", {
+                    "org.matrix.msc4140.max_delay": 3000,
+                }),
+            );
+
+            const event = sendDelayedEventRequest();
+
+            await loadIframe([
+                `org.matrix.msc2762.timeline:${roomId}`,
+                `org.matrix.msc2762.send.event:${event.data.type}`,
+                MatrixCapabilities.MSC4157SendDelayedEvent,
+            ]);
+
+            emitEvent(new CustomEvent("", { detail: event }));
+
+            await waitFor(() => {
+                expect(transport.reply).toHaveBeenCalledWith(event, {
+                    error: {
+                        message: "Error sending delayed event",
+                        matrix_api_error: {
+                            http_status: 400,
+                            http_headers: {},
+                            url: "",
+                            response: {
+                                "errcode": "M_MAX_DELAY_EXCEEDED",
+                                "error": "failed to send delayed event",
+                                "org.matrix.msc4140.max_delay": 3000,
+                            },
+                        } satisfies IMatrixApiError,
+                    },
                 });
             });
         });

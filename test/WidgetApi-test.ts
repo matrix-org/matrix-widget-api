@@ -20,6 +20,7 @@ import { IGetMediaConfigActionFromWidgetResponseData } from "../src/interfaces/G
 import { IRtcTransportsFromWidgetResponseData } from "../src/interfaces/RtcTransportsAction";
 import { IReadRelationsFromWidgetResponseData } from "../src/interfaces/ReadRelationsAction";
 import { ISendEventFromWidgetResponseData } from "../src/interfaces/SendEventAction";
+import { ISendDelayedEventFromWidgetResponseData } from "../src/interfaces/SendDelayedEventAction";
 import { ISupportedVersionsActionResponseData } from "../src/interfaces/SupportedVersionsAction";
 import { IUploadFileActionFromWidgetResponseData } from "../src/interfaces/UploadFileAction";
 import { IDownloadFileActionFromWidgetResponseData } from "../src/interfaces/DownloadFileAction";
@@ -416,6 +417,142 @@ describe("WidgetApi", () => {
             } as IWidgetApiErrorResponseData);
 
             await expect(widgetApi.sendRoomEvent("m.room.message", {}, "!room-id", undefined, 2500)).rejects.toThrow(
+                new WidgetApiResponseError("An error occurred", errorDetails),
+            );
+        });
+    });
+
+    describe("sendDelayedEvent", () => {
+        const supportedVersions = {
+            supported_versions: [UnstableApiVersion.MSC4157_SEND_DELAYED_EVENT],
+        } as ISupportedVersionsActionResponseData;
+
+        it("sends delayed message events", async () => {
+            widgetTransportHelper.queueResponse(supportedVersions);
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                delay_id: "id",
+            } as ISendDelayedEventFromWidgetResponseData);
+
+            await expect(
+                widgetApi.sendDelayedEvent("m.room.message", undefined, { body: "hello" }, 2000, "!room-id"),
+            ).resolves.toEqual({
+                room_id: "!room-id",
+                delay_id: "id",
+            });
+
+            expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
+            expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
+                action: WidgetApiFromWidgetAction.MSC4157SendDelayedEvent,
+                data: {
+                    type: "m.room.message",
+                    content: { body: "hello" },
+                    delay_ms: 2000,
+                    room_id: "!room-id",
+                },
+            } satisfies SendRequestArgs);
+        });
+
+        it("sends delayed state events", async () => {
+            widgetTransportHelper.queueResponse(supportedVersions);
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                delay_id: "id",
+            } as ISendDelayedEventFromWidgetResponseData);
+
+            await expect(widgetApi.sendDelayedEvent("m.room.topic", "", {}, 2000)).resolves.toEqual({
+                room_id: "!room-id",
+                delay_id: "id",
+            });
+
+            expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
+            expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
+                action: WidgetApiFromWidgetAction.MSC4157SendDelayedEvent,
+                data: {
+                    type: "m.room.topic",
+                    content: {},
+                    delay_ms: 2000,
+                    state_key: "",
+                },
+            } satisfies SendRequestArgs);
+        });
+
+        it("sends delayed sticky message events", async () => {
+            widgetTransportHelper.queueResponse(supportedVersions);
+            widgetTransportHelper.queueResponse({
+                room_id: "!room-id",
+                delay_id: "id",
+            } as ISendDelayedEventFromWidgetResponseData);
+
+            await expect(
+                widgetApi.sendDelayedEvent("m.room.message", undefined, {}, 2000, "!room-id", 2500),
+            ).resolves.toEqual({
+                room_id: "!room-id",
+                delay_id: "id",
+            });
+
+            expect(widgetTransportHelper.nextTrackedRequest()).not.toBeUndefined();
+            expect(widgetTransportHelper.nextTrackedRequest()).toEqual({
+                action: WidgetApiFromWidgetAction.MSC4157SendDelayedEvent,
+                data: {
+                    type: "m.room.message",
+                    content: {},
+                    delay_ms: 2000,
+                    room_id: "!room-id",
+                    sticky_duration_ms: 2500,
+                },
+            } satisfies SendRequestArgs);
+        });
+
+        it("should reject the request if the api is not supported", async () => {
+            widgetTransportHelper.queueResponse({ supported_versions: [] } as ISupportedVersionsActionResponseData);
+
+            await expect(widgetApi.sendDelayedEvent("m.room.message", undefined, {}, 2000)).rejects.toThrow(
+                "The send_delayed_event action is not supported by the client.",
+            );
+
+            const request = widgetTransportHelper.nextTrackedRequest();
+            expect(request).not.toBeUndefined();
+            expect(request).not.toEqual({
+                action: WidgetApiFromWidgetAction.MSC4157SendDelayedEvent,
+                data: expect.anything(),
+            } satisfies SendRequestArgs);
+        });
+
+        it("should handle an error", async () => {
+            widgetTransportHelper.queueResponse(supportedVersions);
+            widgetTransportHelper.queueResponse({
+                error: { message: "An error occurred" },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(widgetApi.sendDelayedEvent("m.room.message", undefined, {}, 2000)).rejects.toThrow(
+                "An error occurred",
+            );
+        });
+
+        it("should handle an error with details", async () => {
+            widgetTransportHelper.queueResponse(supportedVersions);
+
+            const errorDetails: IWidgetApiErrorResponseDataDetails = {
+                matrix_api_error: {
+                    http_status: 400,
+                    http_headers: {},
+                    url: "",
+                    response: {
+                        errcode: "M_UNKNOWN",
+                        error: "Unknown error",
+                    },
+                },
+            };
+
+            widgetTransportHelper.queueResponse({
+                error: {
+                    message: "An error occurred",
+                    ...errorDetails,
+                },
+            } as IWidgetApiErrorResponseData);
+
+            await expect(widgetApi.sendDelayedEvent("m.room.message", undefined, {}, 2000)).rejects.toThrow(
                 new WidgetApiResponseError("An error occurred", errorDetails),
             );
         });

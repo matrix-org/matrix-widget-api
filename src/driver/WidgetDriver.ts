@@ -190,7 +190,7 @@ export abstract class WidgetDriver {
         content: unknown,
         roomId: string | null = null,
     ): Promise<ISendDelayedEventDetails> {
-        throw new Error("Method not implemented.");
+        return Promise.reject(new Error("Method not implemented."));
     }
 
     /**

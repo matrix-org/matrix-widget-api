@@ -56,6 +56,10 @@ import {
 import { ISetModalButtonEnabledActionRequestData } from "./interfaces/SetModalButtonEnabledAction";
 import { ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData } from "./interfaces/SendEventAction";
 import {
+    ISendDelayedEventFromWidgetRequestData,
+    ISendDelayedEventFromWidgetResponseData,
+} from "./interfaces/SendDelayedEventAction";
+import {
     ISendToDeviceFromWidgetRequestData,
     ISendToDeviceFromWidgetResponseData,
 } from "./interfaces/SendToDeviceAction";
@@ -545,13 +549,60 @@ export class WidgetApi extends EventEmitter {
         return this.transport.send<ISendEventFromWidgetRequestData, ISendEventFromWidgetResponseData>(
             WidgetApiFromWidgetAction.SendEvent,
             {
-                type: eventType,
-                content,
-                ...(stateKey !== undefined && { state_key: stateKey }),
-                ...(roomId !== undefined && { room_id: roomId }),
+                ...WidgetApi.eventRequestData(eventType, stateKey, content, roomId, stickyDurationMs),
                 ...(delay !== undefined && { delay }),
                 ...(parentDelayId !== undefined && { parent_delay_id: parentDelayId }),
-                ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
+            },
+        );
+    }
+
+    private static eventRequestData(
+        eventType: string,
+        stateKey: string | undefined,
+        content: unknown,
+        roomId: string | undefined,
+        stickyDurationMs: number | undefined,
+    ): Pick<ISendEventFromWidgetRequestData, "type" | "content" | "state_key" | "room_id" | "sticky_duration_ms"> {
+        return {
+            type: eventType,
+            content,
+            ...(stateKey !== undefined && { state_key: stateKey }),
+            ...(roomId !== undefined && { room_id: roomId }),
+            ...(stickyDurationMs !== undefined && { sticky_duration_ms: stickyDurationMs }),
+        };
+    }
+
+    /**
+     * Schedule an event to be sent into a room after a delay (MSC4140).
+     * @experimental This currently relies on an unstable MSC (MSC4157).
+     * @param {string} eventType The type of the event to send.
+     * @param {string|undefined} stateKey The state key, for a state event. Undefined for a room event.
+     * @param {*} content The content of the event.
+     * @param {number} delayMs How long the homeserver should wait before sending the event, in milliseconds.
+     * @param {string} roomId The room to send the event into. Defaults to the room the user is looking at.
+     * @param {number} stickyDurationMs How long the event remains sticky, in milliseconds (MSC4407).
+     * Only for room events.
+     * @returns {Promise<ISendDelayedEventFromWidgetResponseData>} Resolves with the room ID and the delay ID
+     * of the scheduled event, which can be used to update it.
+     */
+    public async sendDelayedEvent(
+        eventType: string,
+        stateKey: string | undefined,
+        content: unknown,
+        delayMs: number,
+        roomId?: string,
+        stickyDurationMs?: number,
+    ): Promise<ISendDelayedEventFromWidgetResponseData> {
+        const versions = await this.getClientVersions();
+        if (!versions.includes(UnstableApiVersion.MSC4157_SEND_DELAYED_EVENT)) {
+            throw new Error("The send_delayed_event action is not supported by the client.");
+        }
+
+        return this.transport.send<ISendDelayedEventFromWidgetRequestData, ISendDelayedEventFromWidgetResponseData>(
+            WidgetApiFromWidgetAction.MSC4157SendDelayedEvent,
+            {
+                ...WidgetApi.eventRequestData(eventType, stateKey, content, roomId, stickyDurationMs),
+                delay_ms: delayMs,
             },
         );
     }
